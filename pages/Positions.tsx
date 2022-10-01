@@ -4,6 +4,7 @@ import { Box, Flex, Table, TableContainer, Tbody, Th, Thead, Tr, Text, Td, Butto
 import { useEffect, useState } from "react";
 import Link from 'next/link';
 import { fetchPositions } from "../contractCalls/dataFetching";
+import { Pagination } from "../components/Pagination";
 
 const Card = ({position}) => {
 
@@ -55,7 +56,8 @@ const Card = ({position}) => {
             }}>
             Edit
           </Button>
-          </Link>
+        </Link>
+        <Link href={`/analytics/${position.positionId}`}>
           <Button
             flex={1}
             fontSize={'sm'}
@@ -73,6 +75,7 @@ const Card = ({position}) => {
             }}>
             Analytics
           </Button>
+        </Link>
         </Stack>
       </Flex>
     </Box>
@@ -83,74 +86,30 @@ const Positions = () => {
   const {contracts} = useAppContext()
   const {account, provider} = useWeb3React()
   const [positions, setPositions] = useState(undefined)
+  console.log(positions)
 
   useEffect(() => {
     const fetchUserPositions = async () => {
-      setPositions([])
       const positions = await fetchPositions(contracts, provider.getSigner(account))
       setPositions(positions)
     }
     if (contracts && provider) {
       fetchUserPositions()
     }
-  }, [contracts, provider])
+  }, [contracts, provider, account])
 
   return <>
     <Box marginTop={20}>
       <Heading textAlign={'center'}>Your Positions</Heading>
       <Flex marginInline={'auto'} wrap={'wrap'} justifyContent={'center'} alignContent={'stretch'} maxW={'1000px'}>
-      {
-        positions?positions.map(position=><Card position={position}></Card>):
-        Array.from(Array(6).keys()).map(()=> {
-          return (
-          <Box py={6} px={'10'} m={'4'} boxShadow='lg' bg='white' minW={'300px'} height={'300'}>
-          <Skeleton
-            width={'80%'}
-            height='40px'
-            color='white'
-            mb={'8'}
-          />
-            <SkeletonText mt='4' noOfLines={7} spacing='4'/>
-          </Box>)
-        })
-      }
+      <Pagination
+      cards={positions?.map(position=><Card position={position}></Card>)}
+      placeholder={
+        <Text mt={'20'}>
+          No positions detected. <Link href={`/Assets`}><Text color='blue' _hover={{cursor: 'pointer'}} as={'u'}>Click here</Text></Link> to create a position using your assets
+        </Text>
+      }></Pagination>
       </Flex>
-      {/* <TableContainer marginTop={5} borderRadius={15} overflow={'hidden'}>
-        <Table size='lg'>
-          <Thead backgroundColor={'cyan.50'}>
-            <Tr>
-              <Th>Asset</Th>
-              <Th>Underlying Assets</Th>
-              <Th>USD Value</Th>
-              <Th>Action</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {
-              positions?.map((position, index)=> {
-                return <>
-                  <Tr backgroundColor={index%2==0?'cyan.100':'cyan.50'}
-                  _hover={{
-                    backgroundColor: 'white'
-                  }}>
-                    <Td>{position.name}</Td>
-                    <Td>
-                      {
-                        position.underlying.map((token)=> <Text>{token}</Text>)
-                      }
-                    </Td>
-                    <Td>${position.usdcValue}</Td>
-                    <Td display={'flex'} flexDir={'column'}>
-                      <Link href={`/editPosition/${position.positionId}`}><Button size={'sm'} mb='3'>Edit</Button></Link>
-                      <Button size={'sm'}>Analytics</Button>
-                    </Td>
-                  </Tr>
-                </>
-              })
-            }
-          </Tbody>
-        </Table>
-      </TableContainer> */}
     </Box>
   </>
 }

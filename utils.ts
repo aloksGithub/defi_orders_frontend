@@ -4,6 +4,9 @@ import { MetaMask } from '@web3-react/metamask'
 import { Network } from '@web3-react/network'
 import { WalletConnect } from '@web3-react/walletconnect'
 import type { Connector } from '@web3-react/types'
+import { ethers } from 'ethers'
+import erc20Abi from "./constants/abis/ERC20.json"
+import supportedProtocols from "./constants/supportedProtocols.json"
 
 export function getName(connector: Connector) {
   if (connector instanceof MetaMask) return 'MetaMask'
@@ -42,4 +45,9 @@ export const walletLogos = {
   MetaMask: "https://seeklogo.com/images/M/metamask-logo-09EDE53DBD-seeklogo.com.png",
   Coinbase: "https://seeklogo.com/images/C/coinbase-coin-logo-C86F46D7B8-seeklogo.com.png",
   WalletConnect: "https://seeklogo.com/images/W/walletconnect-logo-EE83B50C97-seeklogo.com.png"
+}
+
+export const getUnderlyingTokens = async (contracts, token) => {
+  const underlying = await contracts.universalSwap.getUnderlying(token)
+  return underlying
 }

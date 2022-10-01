@@ -1,24 +1,25 @@
 import { useAppContext } from "../../components/Provider"
-import { Box, Flex, Table, TableContainer, Tbody, Th, Thead, Tr, Text, Td, Button, Grid, GridItem, NumberInput, NumberInputField, useDisclosure, Modal, ModalBody, ModalCloseButton, ModalContent, ModalHeader, ModalOverlay, Slider, SliderFilledTrack, SliderThumb, SliderTrack, useColorModeValue } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { Box, Flex, Text, Button, Grid, GridItem, NumberInput, NumberInputField, useDisclosure, Modal, ModalBody, ModalCloseButton, ModalContent, ModalHeader, ModalOverlay, Slider, SliderFilledTrack, SliderThumb, SliderTrack, useColorModeValue } from "@chakra-ui/react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from 'next/router'
-import { ArrowBackIcon, MinusIcon, AddIcon } from "@chakra-ui/icons";
-import error from "next/error";
 import { useWeb3React } from "@web3-react/core";
 import { ethers } from "ethers";
 import erc20Abi from "../../constants/abis/ERC20.json"
-import Select from "react-select";
 import { fetchPosition } from "../../contractCalls/dataFetching";
-import { depositAgain, close, harvest, compound, withdraw } from "../../contractCalls/transactions";
+import { depositAgain, close, harvest, compound, withdraw, adjustLiquidationPoints } from "../../contractCalls/transactions";
+import LiquidationConditions from "../../components/LiquidationConditions";
+import { SupplyAssets } from "../../components/selectAssets";
 
 const WithdrawModal = ({position, refreshData, closeSelf}) => {
   const positionSize = position?.positionData.amount.toString()||0
   const {contracts} = useAppContext()
-  const [value, setValue] = useState(0)
+  const [value, setValue] = useState('0')
   const [isWithdrawing, setWithdrawing] = useState(false)
   const [percentage, setPercentage] = useState(0)
   const max = ethers.BigNumber.from(positionSize)
-  const usdWithdraw = ethers.BigNumber.from(value).mul(position.usdcValue).div(max).toString()
+  console.log(value, position.usdcValue, max)
+  const usdWithdraw = ethers.BigNumber.from(value).mul(10000).div(max).toNumber()*position.usdcValue/10000
+  console.log(ethers.BigNumber.from(value).div(max).toNumber())
   const handleChange = (value) => {
     setValue(value)
     setPercentage(ethers.BigNumber.from(value).mul('100').div(max).toNumber())
@@ -49,7 +50,7 @@ const WithdrawModal = ({position, refreshData, closeSelf}) => {
       </Flex>
       <Flex mb={'4'}>
       <Text as={'b'} mr={'4'}>Expected withdrawal worth:</Text>
-      <Text>${usdWithdraw}</Text>
+      <Text>${usdWithdraw.toFixed(4)}</Text>
       </Flex>
       <Box mb={'4'}>
       <Text as={'b'}>Tokens to Withdraw:</Text>
@@ -78,128 +79,41 @@ const WithdrawModal = ({position, refreshData, closeSelf}) => {
   )
 }
 
-const DepositModal = ({position}) => {
-  const {userAssets, contracts, chainId, slippage} = useAppContext()
+const DepositModal = ({position, refreshData, closeSelf}) => {
+  const childStateRef = useRef()
+  const {contracts, chainId, slippage} = useAppContext()
   const {provider ,account} = useWeb3React()
-  const [error, setError] = useState("")
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [isDepositing, setDepositing] = useState(false)
   
-  const filteredAssets = userAssets.filter(asset=>asset.quote>0)
-  const [assetsToConvert, setAssetsToConvert] = useState<any>([{asset: undefined, tokenDecimals: undefined, tokensAvailable: undefined, usdcValue: undefined, tokensSupplied: undefined}])
-  const assetOptions = filteredAssets.map(asset=>{
-    return {
-      value: asset.contract_address,
-      label: asset.contract_name
-    }
-  })
-  const addAsset = (i: number) => {
-    setAssetsToConvert([...assetsToConvert, {asset: undefined, tokenDecimals: undefined, tokensAvailable: undefined, usdcValue: undefined, tokensSupplied: undefined}])
-  }
-
-  const removeAsset = (i: number) => {
-    if (assetsToConvert.length===1) return
-    const tempAssets = [...assetsToConvert]
-    tempAssets.splice(i, 1)
-    setAssetsToConvert(tempAssets)
-  }
-
-  const setSupply = (i:number, tokens: number) => {
-    const temp = [...assetsToConvert]
-    temp[i].tokensSupplied = tokens
-    const assetDetails = filteredAssets.find(asset=>asset.contract_address===temp[i].asset)
-    const balance = ethers.utils.formatUnits(assetDetails.balance, assetDetails.contract_decimals)
-    const usdAvailable = assetDetails.quote
-    const usdSupplied = (usdAvailable*tokens/balance)
-    temp[i].usdcValue = usdSupplied
-    setAssetsToConvert(temp)
-  }
-
-  const setAsset = (i:number, asset:string) => {
-    const temp = [...assetsToConvert]
-    temp[i].asset = asset
-    const assetDetails = filteredAssets.find(asset=>asset.contract_address===temp[i].asset)
-    const balance = ethers.utils.formatUnits(assetDetails.balance, assetDetails.contract_decimals)
-    temp[i].tokensAvailable = balance
-    temp[i].tokenDecimals = assetDetails.contract_decimals
-    setAssetsToConvert(temp)
-  }
-
   const supply = async () => {
-    for (const asset of assetsToConvert) {
-      console.log(asset)
-      if (!asset.asset || !asset.tokensSupplied || !asset.usdcValue) {
-        setError(`Invalid data`)
-        onOpen()
-        return
-      }
-    }
-    await depositAgain(contracts, provider.getSigner(account), position, assetsToConvert, chainId, slippage)
+    setDepositing(true)
+    // @ts-ignore
+    const assetsToConvert = childStateRef.current.getFormattedConditions()
+    depositAgain(contracts,provider.getSigner(account), position, assetsToConvert, chainId, slippage).then(()=>{
+      setTimeout(() => {
+        setDepositing(false)
+        ethers.getDefaultProvider().getBlockNumber()
+        refreshData()
+        closeSelf()
+      }, 10000);
+    }).catch(()=>{
+      setDepositing(false)
+      console.log("Transaction failed")
+    })
   }
 
   return (
     <Flex alignItems={'center'} direction={'column'} maxH={'50vh'}>
       <Box overflowY={'scroll'}>
-        <TableContainer marginTop={5} borderRadius={15}>
-          <Table size='lg'>
-            <Thead backgroundColor={'cyan.50'}>
-              <Tr>
-                <Th>Asset</Th>
-                <Th>USD Supplied</Th>
-                <Th>Tokens Supplied</Th>
-                <Th>Action</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {
-                assetsToConvert.map((asset, index) => asset?(
-                  <Tr>
-                    <Td>
-                      <Select
-                      menuPosition="fixed"
-                      options={assetOptions}
-                      onChange={(newValue)=>setAsset(index, newValue.value)}
-                      />
-                    </Td>
-                    <Td>${(asset?.usdcValue || 0).toFixed(3)}</Td>
-                    <Td>
-                      <NumberInput maxW={32} min={0} max={asset?.tokensAvailable||99999999}
-                      onChange={(valueString)=>setSupply(index, parseFloat(valueString))}>
-                        <NumberInputField backgroundColor={'white'}></NumberInputField>
-                      </NumberInput>
-                    </Td>
-                    <Td><Button onClick={()=>removeAsset(index)}><MinusIcon/></Button></Td>
-                  </Tr>
-                ):<></>)
-              }
-              <Tr>
-                <Td></Td>
-                <Td></Td>
-                <Td></Td>
-                <Td><Button onClick={addAsset}><AddIcon/></Button></Td>
-              </Tr>
-            </Tbody>
-          </Table>
-        </TableContainer>
-        <Flex justifyContent={'center'}><Button colorScheme={'blue'} mt={'8'} onClick={supply}>Deposit</Button></Flex>
+        <SupplyAssets ref={childStateRef}/>
+        <Flex justifyContent={'center'}><Button isLoading={isDepositing} colorScheme={'blue'} mt={'8'} onClick={supply}>Deposit</Button></Flex>
       </Box>
-      <Modal isCentered isOpen={isOpen} onClose={onClose}>
-      <ModalOverlay
-        bg='blackAlpha.300'
-        backdropFilter='blur(10px)'
-      />
-        <ModalContent>
-          <ModalHeader>Error</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <Text mb={4}>{error}</Text>
-          </ModalBody>
-        </ModalContent>
-      </Modal>
     </Flex>
   )
 }
 
 const EditPosition = () => {
+  const childStateRef = useRef()
   const {contracts, chainId, supportedAssets} = useAppContext()
   const {provider, account} = useWeb3React()
   const router = useRouter()
@@ -208,25 +122,23 @@ const EditPosition = () => {
   const [position, setPosition] = useState(undefined)
   const [rewards, setRewards] = useState([])
   const [initialLiquidationPoints, setInitialLiquidationPoints] = useState([])
-  const [newLiquidationPoints, setNewLiquidationPoints] = useState([])
   const [isClosing, setClosing] = useState(false)
   const [isHarvesting, setHarvesting] = useState(false)
   const [isCompounding, setCompounding] = useState(false)
-  const [isDepositing, setDepositing] = useState(false)
-  const [isWithdrawing, setWithdrawing] = useState(false)
+  const [isAdjusting, setAdjusting] = useState(false)
   const [refresh, setRefresh] = useState(false)
   const { isOpen: isDepositOpen, onOpen: onDepositOpen, onClose: onDepositClose } = useDisclosure();
   const { isOpen: isWithdrawOpen, onOpen: onWithdrawOpen, onClose: onWithdrawClose } = useDisclosure();
   const { isOpen: isCloseOpen, onOpen: onCloseOpen, onClose: onCloseClose } = useDisclosure();
-  const assetsArray = supportedAssets.ERC20
+  const [resetFlag, setResetFlag] = useState(false)
+  // @ts-ignore
   const liquidationPoints = position?.positionData.liquidationPoints
-
-  console.log(refresh)
+  console.log(position?.positionData)
 
   useEffect(() => {
     const fetch = async () => {
+      // @ts-ignore
       const position = await fetchPosition(parseInt(id), contracts, provider.getSigner(account))
-      console.log(position)
       setPosition(position)
     }
     console.log("Should refresh data")
@@ -249,26 +161,33 @@ const EditPosition = () => {
           addedIndices.push(secondPointIndex)
           secondPoint = liquidationPoints[secondPointIndex]
         }
-        const below = point.lessThan?point.liquidationPoint.toNumber():secondPoint?.liquidationPoint.toNumber()
-        const above = !point.lessThan?point.liquidationPoint.toNumber():secondPoint?.liquidationPoint.toNumber()
+        let above, below
+        if (point.lessThan) {
+          below = point?.liquidationPoint?ethers.utils.formatUnits(point.liquidationPoint.toString(), '18').toString():undefined
+          above = secondPoint?.liquidationPoint?ethers.utils.formatUnits(secondPoint?.liquidationPoint.toString()||'0', '18').toString():undefined
+        } else {
+          above = point?.liquidationPoint?ethers.utils.formatUnits(point.liquidationPoint.toString()||'0', '18').toString():undefined
+          below = secondPoint?.liquidationPoint?ethers.utils.formatUnits(secondPoint?.liquidationPoint.toString()||'0', '18').toString():undefined
+        }
+        // const below = point.lessThan?ethers.utils.formatUnits(point.liquidationPoint.toString()||'0', '18').toString():ethers.utils.formatUnits(secondPoint?.liquidationPoint.toString()||'0', '18').toString()
+        // const above = !point.lessThan?ethers.utils.formatUnits(point.liquidationPoint.toString()||'0', '18').toString():ethers.utils.formatUnits(secondPoint?.liquidationPoint.toString()||'0', '18').toString()
         let price
         if (point.watchedToken===ethers.constants.AddressZero) {
           price = position.usdcValue
         } else {
-          const {data: {priceValue}} = await (await fetch(`/api/tokenPrice?chainId=${chainId}&address=${point.watchedToken}`)).json()
+          const {data: {price:priceValue}} = await (await fetch(`/api/tokenPrice?chainId=${chainId}&address=${point.watchedToken}`)).json()
           price = priceValue
         }
         formattedLiquidationPoints.push({watchedToken: point.watchedToken, above, below, liquidateTo: point.liquidateTo, price})
         
       }
       setInitialLiquidationPoints(JSON.parse(JSON.stringify(formattedLiquidationPoints)))
-      setNewLiquidationPoints(JSON.parse(JSON.stringify(formattedLiquidationPoints)))
     }
     if (liquidationPoints) {
       formatLiquidationPoints()
     }
   }, [liquidationPoints])
-  
+
   useEffect(() => {
     const fetchRewards = async () => {
       const {rewards, rewardAmounts} = await contracts?.positionManager.callStatic.harvestRewards(id)
@@ -287,37 +206,7 @@ const EditPosition = () => {
   }, [provider])
 
   const resetConditions = () => {
-    setNewLiquidationPoints(JSON.parse(JSON.stringify(initialLiquidationPoints)))
-  }
-
-  const addCondition = () => {
-  const temp = [...newLiquidationPoints]
-    temp.push({
-      asset: undefined,
-      below: 0, above: 0,
-      liquidateTo: undefined,
-      price: 0
-    })
-    setNewLiquidationPoints(temp)
-  }
-
-  const removeCondition = (index: number) => {
-    const temp = [...newLiquidationPoints]
-    temp.splice(index, 1)
-    setNewLiquidationPoints(temp)
-  }
-
-  const modifyCondition = async (value, key, index) => {
-    console.log(value)
-    const temp = [...newLiquidationPoints]
-    temp[index][key] = value || 0
-    if (key==='watchedToken') {
-      if (value!=ethers.constants.AddressZero) {
-        const {data: {price}} = await (await fetch(`/api/tokenPrice?chainId=${chainId}&address=${value}`)).json()
-        temp[index].price = price
-      }
-    }
-    setNewLiquidationPoints(temp)
+    setResetFlag(!resetFlag)
   }
 
   const refreshData = () => {
@@ -353,6 +242,22 @@ const EditPosition = () => {
       refreshData()
     }).catch(()=>{
       setCompounding(false)
+      console.log("Transaction failed")
+    })
+  }
+
+  const updateConditions = () => {
+    setAdjusting(true)
+    // @ts-ignore
+    let formattedConditions = childStateRef.current.getFormattedConditions()
+    adjustLiquidationPoints(contracts, id, formattedConditions).then(() => {
+      setTimeout(() => {
+        setAdjusting(false)
+        ethers.getDefaultProvider().getBlockNumber()
+        refreshData()
+      }, 10000);
+    }).catch(()=>{
+      setAdjusting(false)
       console.log("Transaction failed")
     })
   }
@@ -422,89 +327,12 @@ const EditPosition = () => {
           }
           </>
         </GridItem>
-        {/* <GridItem rowStart={4} colSpan={1} display={'flex'} flexDir={'column'}>
-          {
-            rewards.length>0?
-            <>
-            <Button colorScheme={'blue'} mb={'3'} maxW={'100'} size={'sm'}>Harvest</Button>
-            <Button colorScheme={'blue'} maxW={'100'} size={'sm'}>Compound</Button>
-            </>:<></>
-          }
-        </GridItem> */}
       </Grid>
       <Text fontSize='xl' as={'b'}>Liquidation Conditions</Text>
-      <TableContainer marginTop={5} borderRadius={15} overflow={'hidden'}>
-        <Table size='lg'>
-          <Thead backgroundColor={'cyan.50'}>
-            <Tr>
-              <Th>Watched Asset</Th>
-              <Th>Liquidation Points</Th>
-              <Th>Liquidate To</Th>
-              <Th>Current Value</Th>
-              <Th>Action</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {
-              newLiquidationPoints.map((condition, index)=> {
-                return(
-                <Tr>
-                  <Td>
-                    <Select
-                      menuPosition="fixed"
-                      options={[{value: ethers.constants.AddressZero, label: "Value of Position"}, ...(assetsArray||[])]}
-                      value={[{value: ethers.constants.AddressZero, label: "Value of Position"}, ...(assetsArray||[])].find(asset=>asset.value===condition.watchedToken?.toLowerCase())}
-                      onChange={(newValue)=>modifyCondition(newValue.value, 'watchedToken', index)}
-                    />
-                  </Td>
-                  <Td>
-                  <Flex alignItems={'center'}>
-                    <Text fontSize={'xs'} mr='2'>Price above</Text>
-                    <NumberInput value={condition.above} maxW={32}
-                    onChange={(valueString)=>modifyCondition(valueString, 'above', index)}>
-                      <NumberInputField backgroundColor={'white'}></NumberInputField>
-                    </NumberInput>
-                  </Flex>
-                  <Flex alignItems={'center'} mt='2'>
-                  <Text fontSize={'xs'} mr='2'>Price below</Text>
-                    <NumberInput value={condition.below} maxW={32} min={0} max={newLiquidationPoints[index].price+0.1}
-                    onChange={(valueString)=>modifyCondition(valueString, 'below', index)}>
-                      <NumberInputField backgroundColor={'white'}></NumberInputField>
-                    </NumberInput>
-                    </Flex>
-                  </Td>
-                  <Td>
-                    <Select
-                      menuPosition="fixed"
-                      options={assetsArray}
-                      value={assetsArray?.find(asset=>asset.value===condition.liquidateTo?.toLowerCase())}
-                      onChange={(newValue)=>modifyCondition(newValue.value, 'liquidateTo', index)}
-                    />
-                  </Td>
-                  <Td>${newLiquidationPoints[index].watchedToken!=ethers.constants.AddressZero?newLiquidationPoints[index].price:(position.usdcValue)}</Td>
-                  <Td>
-                    {
-                      index>0?
-                      <Button onClick={()=>removeCondition(index)}><MinusIcon></MinusIcon></Button>:
-                      <></>
-                    }
-                  </Td>
-                </Tr>
-              )})
-            }
-            <Tr>
-              <Td></Td><Td></Td><Td></Td><Td></Td>
-              <Td>
-                <Button onClick={addCondition}>
-                  <AddIcon></AddIcon>
-                </Button>
-              </Td>
-            </Tr>
-          </Tbody>
-        </Table>
-      </TableContainer>
+      {/* @ts-ignore */}
+      <LiquidationConditions assetPrice={position?.usdcValue} initialLiquidationPoints={initialLiquidationPoints} resetFlag={resetFlag} ref={childStateRef}></LiquidationConditions>
       <Flex mt={'4'} justifyContent={'center'}>
-        <Button colorScheme='blue' rounded={'full'} mr={'4'}>Update Conditions</Button>
+        <Button colorScheme='blue' isLoading={isAdjusting} rounded={'full'} mr={'4'} onClick={updateConditions}>Update Conditions</Button>
         <Button rounded={'full'} onClick={resetConditions}>Reset Conditions</Button>
       </Flex>
     </Box>
@@ -517,7 +345,7 @@ const EditPosition = () => {
         <ModalHeader>Deposit</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          <DepositModal position={position}></DepositModal>
+          <DepositModal position={position} closeSelf={onDepositClose} refreshData={refreshData}></DepositModal>
         </ModalBody>
       </ModalContent>
     </Modal>

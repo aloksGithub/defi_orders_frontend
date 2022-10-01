@@ -1,20 +1,11 @@
 import { useAppContext } from "../components/Provider"
 import {
-  Table,
-  Thead,
-  Tbody,
-  Tfoot,
-  Tr,
-  Th,
-  Td,
   Text,
-  TableContainer,
   Button,
   Flex,
   Box,
   Grid,
   GridItem,
-  Input,
   Select as DefaultSelect,
   NumberInput,
   NumberInputField,
@@ -24,16 +15,15 @@ import {
   ModalCloseButton,
   ModalContent,
   ModalHeader,
-  ModalOverlay
+  ModalOverlay,
+  Heading,
+  Stack,
+  useColorModeValue,
+  Skeleton,
+  SkeletonText
 } from '@chakra-ui/react'
-import { useEffect, useState } from "react"
-import { AddIcon, ArrowBackIcon, MinusIcon } from "@chakra-ui/icons"
-import {
-  AsyncCreatableSelect,
-  AsyncSelect,
-  CreatableSelect,
-  Select,
-} from "chakra-react-select";
+import { useEffect, useState, useRef } from "react"
+import { ArrowBackIcon } from "@chakra-ui/icons"
 import { ethers } from "ethers";
 import positionManagerAbi from "../constants/abis/PositionManager.json"
 import erc20Abi from "../constants/abis/ERC20.json"
@@ -41,20 +31,83 @@ import bankAbi from "../constants/abis/BankBase.json"
 import deploymentAddresses from "../constants/deployments.json"
 import { useWeb3React } from "@web3-react/core";
 import { depositNew } from "../contractCalls/transactions";
+import LiquidationConditions from "../components/LiquidationConditions";
+import { useRouter } from "next/router";
+import { Pagination } from "../components/Pagination";
+
+const Card = ({asset, index, setSecuring}) => {
+  return (
+    <Box py={6} m={'4'} minW={'300px'}>
+      <Flex direction={'column'}
+        justifyContent={'space-between'}
+        h={'100%'}
+        w={'full'}
+        bg={useColorModeValue('white', 'gray.900')}
+        boxShadow={'2xl'}
+        rounded={'lg'}
+        p={6}
+        textAlign={'center'}>
+        <Heading mb={'3'} fontSize={'xl'} fontFamily={'body'}>
+        {asset.contract_name}
+        </Heading>
+        <Flex mb={'3'} flexDir={'column'} alignItems={'start'}>
+        <Heading fontSize={'m'} >
+        Balance
+        </Heading>
+        {(asset.balance/10**asset.contract_decimals).toFixed(3)}
+        </Flex>
+        <Flex mb={'3'} flexDir={'column'} alignItems={'start'}>
+        <Heading fontSize={'m'} >
+        USD Value
+        </Heading>
+        ${asset.quote.toFixed(3)}
+        </Flex>
+
+        <Stack mt={8} direction={'row'} spacing={4}>
+        <Button
+          onClick={()=>setSecuring(index)}
+          flex={1}
+          fontSize={'sm'}
+          rounded={'full'}
+          bg={'blue.400'}
+          color={'white'}
+          boxShadow={
+            '0px 1px 25px -5px rgb(66 153 225 / 48%), 0 10px 10px -5px rgb(66 153 225 / 43%)'
+          }
+          _hover={{
+            bg: 'blue.500',
+          }}
+          _focus={{
+            bg: 'blue.500',
+          }}>
+          Secure
+        </Button>
+        </Stack>
+      </Flex>
+    </Box>
+  )
+}
 
 const SecureAsset = ({asset, setSecuring}) => {
-  const {supportedAssets, account, chainId: forkedChainId, contracts} = useAppContext()
+  const childStateRef = useRef()
+  const {account, contracts} = useAppContext()
   const {provider, chainId} = useWeb3React()
   const signer = provider.getSigner(account)
   const [tokens, setTokens] = useState(0)
-  const [liquidationConditions, setLiquidationConditions] = useState([{asset: undefined, below: 0, above: 0, liquidateTo: undefined, price: undefined}])
-  const assetsArray = supportedAssets.ERC20
+  // @ts-ignore
   const positionManager = new ethers.Contract(deploymentAddresses[chainId].positionsManager, positionManagerAbi, signer)
   const [banks, setBanks] = useState([])
   const [selectedBank, selectBank] = useState(undefined)
   const [rewards, setRewards] = useState([])
   const [error, setError] = useState("")
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [currentUsd, setCurrentUsd] = useState('0')
+  const [processing, setProcessing] = useState(false)
+  const router = useRouter()
+
+  useEffect(() => {
+    setCurrentUsd((asset.quote*tokens/(asset.balance/10**asset.contract_decimals)||0).toFixed(3))
+  }, [tokens])
 
   useEffect(() => {
     const getBanks = async () => {
@@ -94,87 +147,22 @@ const SecureAsset = ({asset, setSecuring}) => {
   }, [selectedBank])
 
   const exitSecuring = () => {
-    setLiquidationConditions([])
     setSecuring(undefined)
     setTokens(0)
   }
 
-  const addCondition = () => {
-  const temp = [...liquidationConditions]
-    temp.push({
-      asset: undefined,
-      below: 0, above: 0,
-      liquidateTo: undefined,
-      price: 0
-    })
-    setLiquidationConditions(temp)
-  }
-
-  const removeCondition = (index: number) => {
-    const temp = [...liquidationConditions]
-    temp.splice(index, 1)
-    setLiquidationConditions(temp)
-  }
-
-  const modifyCondition = async (value, key, index) => {
-    const temp = [...liquidationConditions]
-    temp[index][key] = value
-    if (key==='asset') {
-      if (value!=ethers.constants.AddressZero) {
-        const {data: {price}} = await (await fetch(`/api/tokenPrice?chainId=${forkedChainId}&address=${value}`)).json()
-        temp[index].price = price
-      }
-    }
-    setLiquidationConditions(temp)
-  }
-
   const secure = async () => {
-    console.log(liquidationConditions)
-    const formattedConditions = []
-    for (let [index, condition] of liquidationConditions.entries()) {
-      if (tokens===0) {
-        setError(`No tokens provided`)
-        onOpen()
-        return
-      }
-      if (!condition.asset) {
-        setError(`Invalid asset to watch for condition ${index}`)
-        onOpen()
-        return
-      }
-      if (!condition.liquidateTo) {
-        setError(`Invalid liquidate to token for condition ${index}`)
-        onOpen()
-        return
-      }
-      if (condition.below>condition.price) {
-        setError(`Lower limit for condition ${index} is greater than current price`)
-        onOpen()
-        return
-      }
-      if (condition.above<condition.price) {
-        setError(`Upper limit for condition ${index} is lesser than current price`)
-        onOpen()
-        return
-      }
-      const lowerCondition = {
-        wachedAsset: condition.asset,
-        liquidateTo: condition.liquidateTo,
-        lessThan: true,
-        liquidationPoint: condition.below
-      }
-      const upperCondition = {
-        wachedAsset: condition.asset,
-        liquidateTo: condition.liquidateTo,
-        lessThan: false,
-        liquidationPoint: condition.above
-      }
-      formattedConditions.push(lowerCondition)
-      formattedConditions.push(upperCondition)
-    }
+    setProcessing(true)
+    // @ts-ignore
+    const formattedConditions = childStateRef.current.getFormattedConditions()
     const bank = banks.find(bank=>bank.value.toString()===selectedBank)
     if (!bank) {
       setError(`Bank is not specified`)
+      onOpen()
+      return
+    }
+    if (!tokens) {
+      setError(`Deposit amount not specified`)
       onOpen()
       return
     }
@@ -186,11 +174,25 @@ const SecureAsset = ({asset, setSecuring}) => {
       liquidationPoints: formattedConditions
     }
     console.log(position, [asset.contract_address], [ethers.utils.parseUnits(tokens.toString(), asset.contract_decimals)], [0])
-    await depositNew(contracts, signer, position, asset)
+    depositNew(contracts, signer, position, asset).then(() => {
+      setTimeout(() => {
+        setProcessing(false)
+        ethers.getDefaultProvider().getBlockNumber()
+        router.push("/Positions")
+      }, 10000);
+    }).catch(()=>{
+      setProcessing(false)
+      console.log("Transaction failed")
+    })
   }
 
   return (
-    <Box>
+    <Box
+    justifyContent={'space-between'}
+    bg={useColorModeValue('white', 'gray.900')}
+    boxShadow={'2xl'}
+    rounded={'lg'}
+    p={10}>
       <Grid
         w={'100%'}
         gridTemplateRows={'30px 1fr 1fr'}
@@ -229,81 +231,14 @@ const SecureAsset = ({asset, setSecuring}) => {
         </GridItem>
         <GridItem rowStart={3} colSpan={1}>
           <Text fontSize='xl' as={'b'}>Secured USD</Text>
-          <Text fontSize='l'>${(asset.quote*tokens/(asset.balance/10**asset.contract_decimals)).toFixed(3)}</Text>
+          <Text fontSize='l'>${currentUsd}</Text>
         </GridItem>
       </Grid>
       <Text fontSize='xl' as={'b'}>Liquidation Conditions</Text>
-      <TableContainer marginTop={5} borderRadius={15} overflow={'hidden'}>
-        <Table size='lg'>
-          <Thead backgroundColor={'cyan.50'}>
-            <Tr>
-              <Th>Watched Asset</Th>
-              <Th>Liquidation Points</Th>
-              <Th>Liquidate To</Th>
-              <Th>Current Value</Th>
-              <Th>Action</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {
-              liquidationConditions.map((condition, index)=> (
-                <Tr>
-                  <Td>
-                    <Select
-                      size="sm"
-                      colorScheme="purple"
-                      options={[{value: ethers.constants.AddressZero, label: "Value of Position"}, ...assetsArray]}
-                      onChange={(newValue)=>modifyCondition(newValue.value, 'asset', index)}
-                    />
-                  </Td>
-                  <Td>
-                  <Flex alignItems={'center'}>
-                    <Text fontSize={'xs'} mr='2'>Price above</Text>
-                    <NumberInput maxW={32} min={liquidationConditions[index].price}
-                    onChange={(valueString)=>modifyCondition(parseFloat(valueString), 'above', index)}>
-                      <NumberInputField backgroundColor={'white'}></NumberInputField>
-                    </NumberInput>
-                  </Flex>
-                  <Flex alignItems={'center'} mt='2'>
-                  <Text fontSize={'xs'} mr='2'>Price below</Text>
-                    <NumberInput maxW={32} min={0} max={liquidationConditions[index].price}
-                    onChange={(valueString)=>modifyCondition(parseFloat(valueString), 'below', index)}>
-                      <NumberInputField backgroundColor={'white'}></NumberInputField>
-                    </NumberInput>
-                    </Flex>
-                  </Td>
-                  <Td>
-                    <Select
-                      size="sm"
-                      colorScheme="purple"
-                      options={assetsArray}
-                      onChange={(newValue)=>modifyCondition(newValue.value, 'liquidateTo', index)}
-                    />
-                  </Td>
-                  <Td>${liquidationConditions[index].asset!=ethers.constants.AddressZero?liquidationConditions[index].price:(asset.quote*tokens/(asset.balance/10**asset.contract_decimals)).toFixed(3)}</Td>
-                  <Td>
-                    {
-                      index>0?
-                      <Button onClick={()=>removeCondition(index)}><MinusIcon></MinusIcon></Button>:
-                      <></>
-                    }
-                  </Td>
-                </Tr>
-              ))
-            }
-            <Tr>
-              <Td></Td><Td></Td><Td></Td><Td></Td>
-              <Td>
-                <Button onClick={addCondition}>
-                  <AddIcon></AddIcon>
-                </Button>
-              </Td>
-            </Tr>
-          </Tbody>
-        </Table>
-      </TableContainer>
+      {/* @ts-ignore */}
+      <LiquidationConditions ref={childStateRef} assetPrice={currentUsd}></LiquidationConditions>
       <Flex mt={'10'} justifyContent={'end'}>
-        <Button onClick={secure}>Secure</Button>
+      <Button colorScheme='blue' isLoading={processing} rounded={'full'} mr={'4'} size='lg' onClick={secure}>Secure</Button>
       </Flex>
       <Modal isCentered isOpen={isOpen} onClose={onClose}>
       <ModalOverlay
@@ -323,7 +258,7 @@ const SecureAsset = ({asset, setSecuring}) => {
 }
 
 const Assets = () => {
-  const {userAssets, account, chainId, supportedAssets} = useAppContext()
+  const {userAssets} = useAppContext()
   const filteredAssets = userAssets.filter(asset=>asset.quote>0)
   const [securing, setSecuring] = useState<number>()
 
@@ -331,42 +266,14 @@ const Assets = () => {
     <Flex marginTop={20} justifyContent={'center'}>
       {
         securing!=undefined?
-        <SecureAsset asset={userAssets[securing]} setSecuring={setSecuring} />
-        :
+        <SecureAsset asset={userAssets[securing]} setSecuring={setSecuring} />:        
         <Box>
-          <Text fontSize='xl' as={'b'}>Your Unsecured Assets</Text>
-          <TableContainer marginTop={5} borderRadius={15} overflow={'hidden'}>
-            <Table size='lg'>
-              <Thead backgroundColor={'cyan.50'}>
-                <Tr>
-                  <Th>Asset</Th>
-                  <Th>Worth USD</Th>
-                  <Th>Balance</Th>
-                  <Th>Action</Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {
-                  filteredAssets.map((asset, index) => (
-                    <Tr backgroundColor={index%2==0?'cyan.100':'cyan.50'}
-                    _hover={{
-                      backgroundColor: 'white'
-                    }}>
-                      <Td>
-                        <Flex>
-                        <img src={asset.logo_url} style={{width: 20, height: 20, marginRight: 4}}/>
-                        {asset.contract_name}
-                        </Flex>
-                      </Td>
-                      <Td>${asset.quote.toFixed(3)}</Td>
-                      <Td>{(asset.balance/10**asset.contract_decimals).toFixed(3)}</Td>
-                      <Td><Button onClick={()=>setSecuring(index)}>Secure</Button></Td>
-                    </Tr>
-                  ))
-                }
-              </Tbody>
-            </Table>
-          </TableContainer>
+          <Heading textAlign={'center'}>Your Assets</Heading>
+          <Pagination
+          cards={filteredAssets?.map((asset, index)=><Card asset={asset} index={index} setSecuring={setSecuring}></Card>)}
+          placeholder={<Text>No Assets detected</Text>}></Pagination>
+          <Flex wrap={'wrap'} justifyContent={'center'} alignContent={'stretch'} maxW={'1000px'}>
+          </Flex>
         </Box>
       }
       

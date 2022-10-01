@@ -1,8 +1,7 @@
-import { ReactNode, useCallback, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Box,
   Flex,
-  Avatar,
   HStack,
   Link,
   IconButton,
@@ -11,10 +10,8 @@ import {
   MenuButton,
   MenuList,
   MenuItem,
-  MenuDivider,
   useDisclosure,
   useColorModeValue,
-  Stack,
   ModalOverlay,
   Modal,
   ModalBody,
@@ -23,15 +20,18 @@ import {
   ModalFooter,
   ModalHeader,
   Text,
+  NumberInput,
+  NumberInputField,
 } from '@chakra-ui/react';
-import { HamburgerIcon, CloseIcon } from '@chakra-ui/icons';
+import { HamburgerIcon, CloseIcon, SettingsIcon } from '@chakra-ui/icons';
 import { useWeb3React } from '@web3-react/core'
 import { getName, chainLogos, chainNames, supportedChains, walletLogos } from '../utils'
 import React from 'react';
-import { coinbaseWallet, hooks as coinbaseWalletHooks } from '../connectors/coinbaseWallet'
-import { hooks as metaMaskHooks, metaMask } from '../connectors/metaMask'
-import { hooks as networkHooks, network } from '../connectors/network'
-import { hooks as walletConnectHooks, walletConnect } from '../connectors/walletConnect'
+import { coinbaseWallet } from '../connectors/coinbaseWallet'
+import { metaMask } from '../connectors/metaMask'
+import { walletConnect } from '../connectors/walletConnect'
+import { useAppContext } from './Provider';
+import { useRouter } from 'next/router';
 
 const Links = [
   {
@@ -48,20 +48,23 @@ const Links = [
   }
 ];
 
-const NavLink = ({ children }: { children: any }) => (
+const NavLink = ({ children }: { children: any }) => {
+  const { asPath } = useRouter()
+  console.log(asPath)
+  return (
   <Link
     px={2}
     py={1}
     rounded={'md'}
+    bg={children.href===asPath?useColorModeValue('gray.200', 'gray.700'):undefined}
     _hover={{
       textDecoration: 'none',
       bg: useColorModeValue('gray.200', 'gray.700'),
     }}
     href={children.href}>
       <Text as='b'>{children.label}</Text>
-    
   </Link>
-);
+);}
 
 const Wallet = () => {
   const {isActive, account, chainId, connector} = useWeb3React()
@@ -183,6 +186,19 @@ const Wallet = () => {
 
 export function Navbar() {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const {slippageControl: {slippage, setSlippage}} = useAppContext()
+  const [temp, setTemp] = useState(slippage)
+  const { isOpen: isOpenSettings, onOpen: onOpenSettings, onClose: onCloseSettings } = useDisclosure();
+  const parseSlippage = (val) => val.replace(/^\%/, '')
+  const formatSlippage = (val) => val+`%`
+  const closeSettings = () => {
+    setTemp(slippage)
+    onCloseSettings()
+  }
+  const confirmSlippage = () => {
+    setSlippage(temp)
+    onCloseSettings()
+  }
 
   return (
     <>
@@ -206,11 +222,33 @@ export function Navbar() {
               ))}
             </HStack>
           </HStack>
-          <Flex alignItems={'center'}>
+          <Flex alignItems={'center'} justifyContent={'center'}>
+            <SettingsIcon onClick={onOpenSettings} color={'gray.600'} width={'20px'} height={'20px'} _hover={{cursor:'pointer'}} mr={'4'}></SettingsIcon>
             <Wallet/>
           </Flex>
         </Flex>
       </Box>
+      <Modal size={'sm'} isCentered isOpen={isOpenSettings} onClose={closeSettings}>
+        <ModalOverlay
+          bg='blackAlpha.300'
+          backdropFilter='blur(10px)'
+        />
+          <ModalContent>
+            <ModalHeader>Settings</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <Flex justifyContent={'space-between'} alignItems={'center'}>
+                <Text alignItems={'center'}>Slippage:</Text>
+                <NumberInput  min={0} max={100} onChange={(valueString)=>setTemp(parseSlippage(valueString))} value={formatSlippage(temp)}>
+                  <NumberInputField />
+                </NumberInput>
+              </Flex>
+            </ModalBody>
+            <ModalFooter>
+            <Button onClick={confirmSlippage} paddingInline={'10'} colorScheme='blue' rounded={'full'}>Ok</Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
     </>
   );
 }

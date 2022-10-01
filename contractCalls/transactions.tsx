@@ -23,7 +23,7 @@ export const depositAgain = async (contracts, signer, position, assetsToConvert,
     const {data:{price, decimals}} = await (await fetch(`/api/tokenPrice?chainId=${chainId}&address=${token}`)).json()
     const usd = usdTotal/underlyingTokens.length
     const expectedTokens = usd/price
-    const allowedSlippage = expectedTokens*(1-slippage)
+    const allowedSlippage = expectedTokens*(1-slippage/100)
     const minAmount = ethers.utils.parseUnits(allowedSlippage.toFixed(decimals).toString(), decimals)
     minAmounts.push(minAmount)
   }
@@ -37,6 +37,12 @@ export const depositAgain = async (contracts, signer, position, assetsToConvert,
     }
   }
   await contracts.positionManager["deposit(uint256,address[],uint256[],uint256[])"](position.positionId, addresses, amounts, minAmounts)
+}
+
+export const adjustLiquidationPoints = async (contracts, positionId, liquidationConditions) => {
+  console.log(contracts.positionManager)
+  console.log(positionId, liquidationConditions)
+  await contracts.positionManager.adjustLiquidationPoints(positionId, liquidationConditions)
 }
 
 export const harvest = async (contracts, positionId) => {

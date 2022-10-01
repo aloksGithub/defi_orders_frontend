@@ -27,11 +27,12 @@ const AppContext = createContext({
   connector: undefined,
   supportedAssets: {},
   contracts: undefined,
-  slippage: undefined
+  slippageControl: {slippage:0.5, setSlippage: undefined}
 });
 
 export function AppWrapper({ children }) {
   const {isActive, account, chainId, connector, provider} = useWeb3React()
+  const [slippage, setSlippage] = useState(0.5)
   const usedChainId = chainId==1337?parseInt(process.env.NEXT_PUBLIC_CURRENTLY_FORKING):chainId
   
   const [userData, setUserData] = useState({
@@ -42,7 +43,6 @@ export function AppWrapper({ children }) {
   })
   const [supportedAssets, setSupportedAssets] = useState({})
   const [contracts, setContracts] = useState<{positionManager: ethers.Contract, banks: ethers.Contract[], universalSwap: ethers.Contract, usdcContract: ethers.Contract}>()
-
   useEffect(() => {
     void connector.connectEagerly?.()
   }, [])
@@ -50,6 +50,9 @@ export function AppWrapper({ children }) {
   useEffect(() => {
     const getContracts = async () => {
       const signer = provider.getSigner(account)
+      if (!(chainId in deploymentAddresses)) {
+        return
+      }
       const positionManager = new ethers.Contract(deploymentAddresses[chainId].positionsManager, positionManagerAbi, signer)
       const numBanks = await positionManager.numBanks()
       const banks = []
@@ -69,49 +72,59 @@ export function AppWrapper({ children }) {
   }, [provider])
 
   const addAssets = (assets, protocol) => {
-    supportedAssets[protocol] = assets
-    setSupportedAssets(supportedAssets)
+    const temp = {...supportedAssets}
+    console.log("ADDING ASSet", protocol)
+    temp[protocol] = assets
+    setSupportedAssets(temp)
   }
 
   const getAssets = async (url: string, query: string, protocol: string) => {
-    const res = await (await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query }),
-    })).json()
-    if ('tokens' in res.data) {
-      return res.data.tokens.map(token=>{
-        return {
-          value: token.id,
-          label: token.symbol
+    console.log(`fetching for ${protocol}`)
+    for (let i =0; i<5; i++) {
+      try {
+        const res = await (await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query }),
+        })).json()
+        if ('tokens' in res.data) {
+          return res.data.tokens.map(token=>{
+            return {
+              value: token.id,
+              label: token.symbol
+            }
+          })
+        } else if ('pairs' in res.data) {
+          const formattedAssets = res.data.pairs.map(asset=> {
+            return {
+              value: asset.id,
+              label: `${protocol} ${asset.token0.symbol}-${asset.token1.symbol} LP`
+            }
+          })
+          return formattedAssets
+        } else if ('pools' in res.data) {
+          const formattedAssets = res.data.pools.map(asset=> {
+            return {
+              value: asset.id,
+              label: `${protocol} ${asset.token0.symbol}-${asset.token1.symbol} LP`
+            }
+          })
+          return formattedAssets
         }
-      })
-    } else if ('pairs' in res.data) {
-      const formattedAssets = res.data.pairs.map(asset=> {
-        return {
-          value: asset.id,
-          label: `${protocol} ${asset.token0.symbol}-${asset.token1.symbol} LP`
-        }
-      })
-      return formattedAssets
-    } else if ('pools' in res.data) {
-      const formattedAssets = res.data.pools.map(asset=> {
-        return {
-          value: asset.id,
-          label: `${protocol} ${asset.token0.symbol}-${asset.token1.symbol} LP`
-        }
-      })
-      return formattedAssets
+        return res.data
+      } catch {
+        continue
+      }
     }
-    return res.data
   }
 
   useEffect(() => {
+    const fetchSupportedAssets = async () => {
+      const {data} = await (await fetch(`/api/supportedTokens?chainId=${usedChainId}`)).json()
+      setSupportedAssets(data)
+    }
     if (usedChainId) {
-      const protocols = supportedProtocols[usedChainId]
-      protocols.map(protocol=> {
-        getAssets(protocol.url, protocol.query, protocol.name).then((data)=>addAssets(data, protocol.name)).catch(()=>console.log(`Failed to fetch assets for ${protocol.name}`))
-      })
+      fetchSupportedAssets()
     }
   }, [usedChainId])
 
@@ -130,7 +143,7 @@ export function AppWrapper({ children }) {
   }, [account, usedChainId, provider, contracts])
 
   return (
-    <AppContext.Provider value={{supportedAssets, ...userData, contracts, slippage: 0.01}}>
+    <AppContext.Provider value={{supportedAssets, ...userData, contracts, slippageControl: {slippage, setSlippage}}}>
       {children}
     </AppContext.Provider>
   );
