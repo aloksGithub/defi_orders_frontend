@@ -18,7 +18,9 @@ import positionManagerAbi from "../constants/abis/PositionManager.json"
 import universalSwapAbi from "../constants/abis/UniversalSwap.json"
 import bankBaseAbi from "../constants/abis/BankBase.json"
 import erc20Abi from "../constants/abis/ERC20.json"
+import uniswapV3PoolInteractorAbi from "../constants/abis/UniswapV3PoolInteractor.json"
 import deploymentAddresses from "../constants/deployments.json"
+import theme from './Theme'
 
 const AppContext = createContext({
   userAssets: [],
@@ -42,7 +44,13 @@ export function AppWrapper({ children }) {
     connector: undefined
   })
   const [supportedAssets, setSupportedAssets] = useState({})
-  const [contracts, setContracts] = useState<{positionManager: ethers.Contract, banks: ethers.Contract[], universalSwap: ethers.Contract, usdcContract: ethers.Contract}>()
+  const [contracts, setContracts] = useState<{
+    positionManager: ethers.Contract,
+    banks: ethers.Contract[],
+    universalSwap: ethers.Contract,
+    usdcContract: ethers.Contract
+    uniswapV3PoolInteractor: ethers.Contract
+  }>()
   useEffect(() => {
     void connector.connectEagerly?.()
   }, [])
@@ -64,59 +72,13 @@ export function AppWrapper({ children }) {
       const universalSwapAddress = await positionManager.universalSwap()
       const universalSwap = new ethers.Contract(universalSwapAddress, universalSwapAbi, signer)
       const usdcContract = new ethers.Contract(deploymentAddresses[chainId].usdc, erc20Abi, provider)
-      setContracts({positionManager, banks, universalSwap, usdcContract})
+      const uniswapV3PoolInteractor = new ethers.Contract(deploymentAddresses[chainId].uniswapV3PoolInteractor, uniswapV3PoolInteractorAbi, signer)
+      setContracts({positionManager, banks, universalSwap, usdcContract, uniswapV3PoolInteractor})
     }
     if (provider && chainId) {
       getContracts()
     }
   }, [provider])
-
-  const addAssets = (assets, protocol) => {
-    const temp = {...supportedAssets}
-    console.log("ADDING ASSet", protocol)
-    temp[protocol] = assets
-    setSupportedAssets(temp)
-  }
-
-  const getAssets = async (url: string, query: string, protocol: string) => {
-    console.log(`fetching for ${protocol}`)
-    for (let i =0; i<5; i++) {
-      try {
-        const res = await (await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query }),
-        })).json()
-        if ('tokens' in res.data) {
-          return res.data.tokens.map(token=>{
-            return {
-              value: token.id,
-              label: token.symbol
-            }
-          })
-        } else if ('pairs' in res.data) {
-          const formattedAssets = res.data.pairs.map(asset=> {
-            return {
-              value: asset.id,
-              label: `${protocol} ${asset.token0.symbol}-${asset.token1.symbol} LP`
-            }
-          })
-          return formattedAssets
-        } else if ('pools' in res.data) {
-          const formattedAssets = res.data.pools.map(asset=> {
-            return {
-              value: asset.id,
-              label: `${protocol} ${asset.token0.symbol}-${asset.token1.symbol} LP`
-            }
-          })
-          return formattedAssets
-        }
-        return res.data
-      } catch {
-        continue
-      }
-    }
-  }
 
   useEffect(() => {
     const fetchSupportedAssets = async () => {
@@ -132,7 +94,6 @@ export function AppWrapper({ children }) {
     const fetchUserData = async () => {
       const {data} = await (await fetch(`/api/userAssets?chainId=${usedChainId}&address=${account}`)).json()
       const assets = data?data.items:[]
-      console.log(assets)
       setUserData({
         userAssets: assets, account, chainId: usedChainId, connector
       })
@@ -141,6 +102,7 @@ export function AppWrapper({ children }) {
       fetchUserData()
     }
   }, [account, usedChainId, provider, contracts])
+
 
   return (
     <AppContext.Provider value={{supportedAssets, ...userData, contracts, slippageControl: {slippage, setSlippage}}}>
@@ -162,7 +124,7 @@ const connectors: [MetaMask | WalletConnect | CoinbaseWallet | Network, Web3Reac
 
 export default function Provider({children}) {
   return (
-    <ChakraProvider>
+    <ChakraProvider theme={theme}>
     <Web3ReactProvider connectors={connectors}>
       <AppWrapper>
       <Navbar></Navbar>

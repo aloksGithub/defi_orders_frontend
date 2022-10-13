@@ -37,7 +37,7 @@ import { Pagination } from "../components/Pagination";
 
 const Card = ({asset, index, setSecuring}) => {
   return (
-    <Box py={6} m={'4'} minW={'300px'}>
+    <Box py={6} marginInline={'4'} minW={'300px'}>
       <Flex direction={'column'}
         justifyContent={'space-between'}
         h={'100%'}
@@ -263,7 +263,7 @@ const Assets = () => {
   const [securing, setSecuring] = useState<number>()
 
   return (
-    <Flex marginTop={20} justifyContent={'center'}>
+    <Flex marginBlock={10} justifyContent={'center'}>
       {
         securing!=undefined?
         <SecureAsset asset={userAssets[securing]} setSecuring={setSecuring} />:        
@@ -271,7 +271,7 @@ const Assets = () => {
           <Heading textAlign={'center'}>Your Assets</Heading>
           <Pagination
           cards={filteredAssets?.map((asset, index)=><Card asset={asset} index={index} setSecuring={setSecuring}></Card>)}
-          placeholder={<Text>No Assets detected</Text>}></Pagination>
+          placeholder={<Text mt={'20'}>No Assets detected</Text>}></Pagination>
           <Flex wrap={'wrap'} justifyContent={'center'} alignContent={'stretch'} maxW={'1000px'}>
           </Flex>
         </Box>

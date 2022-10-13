@@ -1,7 +1,8 @@
 {
   "1337": {
-    "positionsManager": "0x18eed2c26276A42c70E064D25d4f773c3626478e",
-    "universalSwap": "0xFb314854baCb329200778B82cb816CFB6500De9D",
-    "usdc": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d"
+    "positionsManager": "0xc0692A034E71d0FAb0795d53e171a101f857Dd76",
+    "universalSwap": "0x598720B8f158A506284D00be1a54063EB5635b75",
+    "uniswapV3PoolInteractor": "0x748fA28c53a9307BF13ab41164723C133D59fa67",
+    "usdc": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
   }
 }

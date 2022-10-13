@@ -5,11 +5,12 @@ import { useEffect, useState } from "react";
 import Link from 'next/link';
 import { fetchPositions } from "../contractCalls/dataFetching";
 import { Pagination } from "../components/Pagination";
+import { Heading1 } from "../components/Typography";
 
 const Card = ({position}) => {
 
   return (
-    <Box py={6} m={'4'} minW={'300px'}>
+    <Box py={6} marginInline={'4'} minW={'300px'}>
       <Flex direction={'column'}
         justifyContent={'space-between'}
         h={'100%'}
@@ -99,7 +100,7 @@ const Positions = () => {
   }, [contracts, provider, account])
 
   return <>
-    <Box marginTop={20}>
+    <Box marginBlock={10}>
       <Heading textAlign={'center'}>Your Positions</Heading>
       <Flex marginInline={'auto'} wrap={'wrap'} justifyContent={'center'} alignContent={'stretch'} maxW={'1000px'}>
       <Pagination

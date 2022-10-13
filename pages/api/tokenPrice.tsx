@@ -2,6 +2,10 @@ export default async function serverSideCall(req, res) {
   const {
     query: { chainId, address },
   } = req;
+  if (!address) {
+    console.log("Trying to fetch price for undefined")
+    return
+  }
   for (let i = 0; i<5; i++) {
     try {
       const baseUrl = `https://api.covalenthq.com/v1/pricing/historical_by_addresses_v2/${chainId}/USD/${address}/?quote-currency=USD&format=JSON&key=${process.env.COVALENT_KEY}`;

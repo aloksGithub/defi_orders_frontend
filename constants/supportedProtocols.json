@@ -16,7 +16,8 @@
             "name": "Uniswap V3",
             "url": "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3",
             "query": "query {\npools (first: 100, orderBy: volumeUSD, orderDirection: desc) {\nid,\ntoken0 {\nid\nname\nsymbol\n}\ntoken1 {\nid\nname\nsymbol\n}\nfeeTier\n}\n}",
-            "tokenName": "Uniswap V3 Positions NFT-V1"
+            "tokenName": "Uniswap V3 Positions NFT-V1",
+            "manager": "0xC36442b4a4522E871399CD717aBDD847Ab11FE88"
         },
         {
             "name": "Sushiswap",
@@ -52,9 +53,9 @@
         },
         {
             "name": "Venus",
-            "url": "",
-            "query": "",
-            "tokenName": ""
+            "url": "https://api.thegraph.com/subgraphs/name/venusprotocol/venus-subgraph",
+            "query": "query {\nmarkets (first: 100, orderBy: totalSupply, orderDirection:desc) {\nid\nname\n}\n}",
+            "tokenName": "Venus *"
         }
     ]
 }

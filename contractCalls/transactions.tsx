@@ -8,8 +8,8 @@ export const depositNew = async (contracts, signer, position, asset) => {
   if (currentApproval<position.amount) {
     await contract.approve(contracts.positionManager.address, position.amount)
   }
-  await contracts.positionManager["deposit((address,uint256,uint256,uint256,(address,address,bool,uint256)[]),address[],uint256[],uint256[])"]
-  (position, [asset.contract_address], [position.amount], [0])
+  await contracts.positionManager["deposit((address,uint256,uint256,uint256,(address,address,bool,uint256)[]),address[],uint256[])"]
+  (position, [asset.contract_address], [position.amount])
 }
 
 export const depositAgain = async (contracts, signer, position, assetsToConvert, chainId, slippage) => {

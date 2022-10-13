@@ -81,7 +81,7 @@ const WithdrawModal = ({position, refreshData, closeSelf}) => {
 
 const DepositModal = ({position, refreshData, closeSelf}) => {
   const childStateRef = useRef()
-  const {contracts, chainId, slippage} = useAppContext()
+  const {contracts, chainId, slippageControl: {slippage}} = useAppContext()
   const {provider ,account} = useWeb3React()
   const [isDepositing, setDepositing] = useState(false)
   
@@ -104,7 +104,7 @@ const DepositModal = ({position, refreshData, closeSelf}) => {
 
   return (
     <Flex alignItems={'center'} direction={'column'} maxH={'50vh'}>
-      <Box overflowY={'scroll'}>
+      <Box >
         <SupplyAssets ref={childStateRef}/>
         <Flex justifyContent={'center'}><Button isLoading={isDepositing} colorScheme={'blue'} mt={'8'} onClick={supply}>Deposit</Button></Flex>
       </Box>
@@ -301,7 +301,7 @@ const EditPosition = () => {
         </GridItem>
         <GridItem rowStart={3} colSpan={1}>
           <Text fontSize='xl' as={'b'}>Value USD</Text>
-          <Text fontSize='l'>${position?.usdcValue}</Text>
+          <Text fontSize='l'>${position?.usdcValue.toFixed(4)}</Text>
         </GridItem>
         <GridItem rowStart={3} colSpan={1}>
           <>

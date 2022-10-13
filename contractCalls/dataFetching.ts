@@ -8,8 +8,6 @@ export const fetchPositions = async (contracts, signer) => {
   const positionsArray = Array.from(Array(numPositions.toNumber()).keys())
   const positionsData = positionsArray.map(i=> 
     contracts.positionManager.userPositions(account, i).then(async (position)=>{
-      const isPositionClosed = await contracts.positionManager.positionClosed(position.toNumber())
-      if (isPositionClosed) return
       const positionData = await contracts.positionManager.getPosition(position.toNumber())
       const usdcValue = await contracts.positionManager.callStatic.closeToUSDC(position.toNumber())
       const usdcDecimals = await contracts.usdcContract.decimals()
@@ -78,7 +76,7 @@ export const getGraphData = async (contracts, id, provider, duration) => {
   const blockTime = currentTime-previousTimestamp
   let startBlock
   if (duration===-1) {
-    startBlock = (await contracts.positionManager.positionInteractions(id, 0)).toNumber()
+    startBlock = (await contracts.positionManager.getPositionInteractions(id))[0][0].toNumber()
     startBlock += (latestBlock.number-startBlock)%numPoints
   } else {
     startBlock = latestBlock.number-blockTime*numPoints*duration
@@ -119,46 +117,95 @@ export const getGraphData = async (contracts, id, provider, duration) => {
 }
 
 export const fetchImportantPoints = async (contracts, id, provider) => {
-  const numInteractions = (await contracts.positionManager.numPositionInteractions(id)).toNumber()
   const usdcDecimals = await contracts.usdcContract.decimals()
   const data = []
   let usdcDeposited = 0
   let usdcWithdrawn = 0
   
-  const interactionsArray = Array.from(Array(numInteractions).keys())
-  const interactionsData = interactionsArray.map(i=> 
-    contracts.positionManager.positionInteractions(id, i).then(async (b)=>{
-      const block = b.toNumber()
-      const timestamp = (await provider.getBlock(block)).timestamp
-      const date = (new Date(timestamp * 1000)).toLocaleDateString()
-      const blockData = (await contracts.positionManager.functions.getPosition(id, {blockTag: block}))[0]
-      const size = blockData.amount
-      let prevSize = 0
-      let prevUsdcValue = 0
-      if (i>0) {
-        const prevBlockData = (await contracts.positionManager.functions.getPosition(id, {blockTag: block-1}))[0]
-        prevUsdcValue = await contracts.positionManager.callStatic.closeToUSDC(id, {blockTag: block-1})
-        prevSize = prevBlockData.amount
+  const positionInteractions = await contracts.positionManager.getPositionInteractions(id)
+  await Promise.all(positionInteractions.map(async (interaction, index)=> {
+    const block = interaction[0].toNumber()
+    const interactionType = interaction[1].toNumber()
+    const timestamp = (await provider.getBlock(block)).timestamp
+    const date = (new Date(timestamp * 1000)).toLocaleDateString()
+    const blockData = (await contracts.positionManager.functions.getPosition(id, {blockTag: block}))[0]
+    const size = blockData.amount
+    let prevSize = 0
+    let prevUsdcValue = 0
+    if (index>0) {
+      const prevBlockData = (await contracts.positionManager.functions.getPosition(id, {blockTag: block-1}))[0]
+      prevUsdcValue = await contracts.positionManager.callStatic.closeToUSDC(id, {blockTag: block-1})
+      prevSize = prevBlockData.amount
+    }
+    const blockUsdcValue = await contracts.positionManager.callStatic.closeToUSDC(id, {blockTag: block})
+    const usdcChange = parseFloat(ethers.utils.formatUnits(blockUsdcValue.sub(prevUsdcValue).toString(), usdcDecimals))
+    const sizeChange = size.sub(prevSize).toString()
+    let transactionType
+    switch (interactionType) {
+      case 0: {
+        transactionType = 'Deposit'
+        break
+      } case 1: {
+        transactionType = 'Withdrawal'
+        break
+      } case 2: {
+        transactionType = 'Harvest'
+        break
+      } case 3: {
+        transactionType = 'Compound'
+        break
+      } case 4: {
+        transactionType = 'Bot Liquidate'
+        break
       }
-      const blockUsdcValue = await contracts.positionManager.callStatic.closeToUSDC(id, {blockTag: block})
-      const usdcChange = parseFloat(ethers.utils.formatUnits(blockUsdcValue.sub(prevUsdcValue).toString(), usdcDecimals))
-      const sizeChange = size.sub(prevSize).toString()
-      const transactionType = usdcChange>0?'deposit':'withdrawal'
-      if (transactionType==='deposit') {
-        usdcDeposited+=usdcChange
-      } else {
-        usdcWithdrawn-=usdcChange
-      }
-      data.push({
-        transactionType,
-        date,
-        timestamp,
-        usdc: Math.abs(usdcChange),
-        tokens: sizeChange
-      })
+    }
+    if (transactionType==='Deposit'||transactionType==='Compound') {
+      usdcDeposited+=usdcChange
+    } else if (transactionType==='Withdrawal'||transactionType==='Bot Liquidate'||transactionType==='Harvest') {
+      usdcWithdrawn-=usdcChange
+    }
+    data.push({
+      transactionType,
+      date,
+      timestamp,
+      usdc: Math.abs(usdcChange),
+      tokens: sizeChange
     })
-  )
-  await Promise.all(interactionsData)
+  }))
+  // const interactionsArray = Array.from(Array(numInteractions).keys())
+  // const interactionsData = interactionsArray.map(i=> 
+  //   contracts.positionManager.positionInteractions(id, i).then(async (b)=>{
+  //     const block = b.toNumber()
+  //     const timestamp = (await provider.getBlock(block)).timestamp
+  //     const date = (new Date(timestamp * 1000)).toLocaleDateString()
+  //     const blockData = (await contracts.positionManager.functions.getPosition(id, {blockTag: block}))[0]
+  //     const size = blockData.amount
+  //     let prevSize = 0
+  //     let prevUsdcValue = 0
+  //     if (i>0) {
+  //       const prevBlockData = (await contracts.positionManager.functions.getPosition(id, {blockTag: block-1}))[0]
+  //       prevUsdcValue = await contracts.positionManager.callStatic.closeToUSDC(id, {blockTag: block-1})
+  //       prevSize = prevBlockData.amount
+  //     }
+  //     const blockUsdcValue = await contracts.positionManager.callStatic.closeToUSDC(id, {blockTag: block})
+  //     const usdcChange = parseFloat(ethers.utils.formatUnits(blockUsdcValue.sub(prevUsdcValue).toString(), usdcDecimals))
+  //     const sizeChange = size.sub(prevSize).toString()
+  //     const transactionType = usdcChange>0?'deposit':'withdrawal'
+  //     if (transactionType==='deposit') {
+  //       usdcDeposited+=usdcChange
+  //     } else {
+  //       usdcWithdrawn-=usdcChange
+  //     }
+  //     data.push({
+  //       transactionType,
+  //       date,
+  //       timestamp,
+  //       usdc: Math.abs(usdcChange),
+  //       tokens: sizeChange
+  //     })
+  //   })
+  // )
+  // await Promise.all(interactionsData)
   data.sort((a,b) => a.timestamp - b.timestamp)
   return {data, usdcDeposited, usdcWithdrawn}
 }

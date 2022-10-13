@@ -58,6 +58,7 @@ export const SupplyAssets = forwardRef((props, _ref) => {
           onOpen()
           return
         }
+        asset.tokensBn = ethers.utils.parseUnits(asset.tokensSupplied.toString(), asset.tokenDecimals)
       }
       return assetsToConvert
     }
@@ -65,47 +66,47 @@ export const SupplyAssets = forwardRef((props, _ref) => {
 
   return (
     <Flex>
-        <TableContainer marginTop={5} borderRadius={15}>
-          <Table size='lg'>
-            <Thead backgroundColor={'cyan.50'}>
-              <Tr>
-                <Th>Asset</Th>
-                <Th>USD Supplied</Th>
-                <Th>Tokens Supplied</Th>
-                <Th>Action</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {
-                assetsToConvert.map((asset, index) => asset?(
-                  <Tr>
-                    <Td>
-                      <Select
-                      menuPosition="fixed"
-                      options={assetOptions}
-                      onChange={(newValue)=>setAsset(index, newValue.value)}
-                      />
-                    </Td>
-                    <Td>${(asset?.usdcValue || 0).toFixed(3)}</Td>
-                    <Td>
-                      <NumberInput isDisabled={asset.asset==undefined} maxW={32} min={0} max={asset?.tokensAvailable||99999999}
-                      onChange={(valueString)=>setSupply(index, parseFloat(valueString))}>
-                        <NumberInputField backgroundColor={'white'}></NumberInputField>
-                      </NumberInput>
-                    </Td>
-                    <Td><Button onClick={()=>removeAsset(index)}><MinusIcon/></Button></Td>
-                  </Tr>
-                ):<></>)
-              }
-              <Tr>
-                <Td></Td>
-                <Td></Td>
-                <Td></Td>
-                <Td><Button onClick={addAsset}><AddIcon/></Button></Td>
-              </Tr>
-            </Tbody>
-          </Table>
-        </TableContainer>
+      <div style={{ overflowY: 'auto', maxWidth: "100vw", maxHeight: "400px" }}>
+        <Table size='lg'>
+          <Thead backgroundColor={'cyan.50'}>
+            <Tr>
+              <Th>Asset</Th>
+              <Th>USD Supplied</Th>
+              <Th>Tokens Supplied</Th>
+              <Th>Action</Th>
+            </Tr>
+          </Thead>
+          <Tbody>
+            {
+              assetsToConvert.map((asset, index) => asset?(
+                <Tr>
+                  <Td>
+                    <Select
+                    menuPosition="fixed"
+                    options={assetOptions}
+                    onChange={(newValue)=>setAsset(index, newValue.value)}
+                    />
+                  </Td>
+                  <Td>${(asset?.usdcValue || 0).toFixed(3)}</Td>
+                  <Td>
+                    <NumberInput isDisabled={asset.asset==undefined} maxW={32} min={0} max={asset?.tokensAvailable||99999999}
+                    onChange={(valueString)=>setSupply(index, parseFloat(valueString))}>
+                      <NumberInputField backgroundColor={'white'}></NumberInputField>
+                    </NumberInput>
+                  </Td>
+                  <Td><Button onClick={()=>removeAsset(index)}><MinusIcon/></Button></Td>
+                </Tr>
+              ):<></>)
+            }
+            <Tr>
+              <Td></Td>
+              <Td></Td>
+              <Td></Td>
+              <Td><Button onClick={addAsset}><AddIcon/></Button></Td>
+            </Tr>
+          </Tbody>
+        </Table>
+      </div>
       <Modal isCentered isOpen={isOpen} onClose={onClose}>
       <ModalOverlay
         bg='blackAlpha.300'

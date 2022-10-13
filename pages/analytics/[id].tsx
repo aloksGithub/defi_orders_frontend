@@ -1,5 +1,5 @@
 import { useAppContext } from "../../components/Provider"
-import { Box, Flex, Text, Grid, GridItem, useColorModeValue, Skeleton, TableContainer, Table, Tbody, Td, Th, Thead, Tr } from "@chakra-ui/react";
+import { Box, Flex, Text, Grid, GridItem, useColorModeValue, Skeleton, TableContainer, Table, Tbody, Td, Th, Thead, Tr, Stack } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { useRouter } from 'next/router'
 import { useWeb3React } from "@web3-react/core";
@@ -14,8 +14,8 @@ const Analytics = () => {
   const { id } = router.query
   const [position, setPosition] = useState(undefined)
   const [analytics, setAnalytics] = useState(undefined)
-  const [roi, setRoi] = useState('0')
-  const [pnl, setPnl] = useState('0')
+  const [roi, setRoi] = useState<string>()
+  const [pnl, setPnl] = useState<string>()
   const [graphData, setGraphData] = useState(undefined)
 
   console.log(graphData)
@@ -37,7 +37,6 @@ const Analytics = () => {
       const positionData = await fetchImportantPoints(contracts, id, provider)
       const roi = positionData.usdcWithdrawn+position.usdcValue-positionData.usdcDeposited
       const pnl = roi*100/positionData.usdcDeposited
-      console.log(position.usdcValue, positionData.usdcDeposited)
       setRoi(roi.toFixed(4))
       setPnl(pnl.toFixed(4))
       setAnalytics(positionData)
@@ -64,15 +63,25 @@ const Analytics = () => {
       >
         <GridItem colSpan={1}>
           <Text fontSize='2xl' as={'b'}>NAV</Text>
-          <Text>${position?.usdcValue.toFixed(3)}</Text>
+          {
+            position?<Text>${position?.usdcValue.toFixed(3)}</Text>:
+            <Skeleton width={'50%'} height='20px'/>
+          }
         </GridItem>
         <GridItem colSpan={1}>
           <Text fontSize='2xl' as={'b'}>ROI</Text>
-          <Text>{roi}%</Text>
+          {
+            roi?<Text>{roi}%</Text>:
+            <Skeleton width={'50%'} height='20px'/>
+          }
         </GridItem>
         <GridItem colSpan={1}>
           <Text fontSize='2xl' as={'b'}>PnL</Text>
-          <Text>${pnl}</Text>
+          {
+            pnl?<Text>${pnl}</Text>:
+            <Skeleton width={'50%'} height='20px'/>
+          }
+          
         </GridItem>
       </Grid>
       <Text fontSize='2xl' as={'b'}>Historical Position Value</Text>
@@ -100,12 +109,20 @@ const Analytics = () => {
       >
         <GridItem colSpan={1}>
           <Text fontSize='xl' as={'b'}>Asset</Text>
-          <Text>{position?.name}</Text>
+          {
+            position?<Text>{position?.name}</Text>:
+            <Skeleton width={'60%'} height='20px' />
+          }
+          
         </GridItem>
         <GridItem colSpan={1}>
           <Text fontSize='xl' as={'b'}>Underlying Tokens</Text>
           {
-            position?.underlying.map((token)=> <Text>{token}</Text>)
+            position?position.underlying.map((token)=> <Text>{token}</Text>):
+            <Stack>
+              <Skeleton width={'60%'} height='20px' />
+              <Skeleton width={'60%'} height='20px' />
+            </Stack>
           }
         </GridItem>
       </Grid>

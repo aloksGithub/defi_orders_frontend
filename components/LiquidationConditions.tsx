@@ -115,8 +115,8 @@ const LiquidationConditions = forwardRef(({assetPrice, initialLiquidationPoints,
   }
 
   return (
-    <Box>
-    <TableContainer marginTop={5} borderRadius={15} overflow={'hidden'}>
+    <Box marginTop={'5'}>
+      <div style={{ overflowX: 'auto', maxWidth: "100vw", borderRadius:15 }}>
       <Table size='lg'>
         <Thead backgroundColor={'cyan.50'}>
           <Tr>
@@ -130,6 +130,7 @@ const LiquidationConditions = forwardRef(({assetPrice, initialLiquidationPoints,
         <Tbody>
           {
             newLiquidationPoints.map((condition, index)=> {
+              console.log(condition)
               return(
               <Tr>
                 <Td>
@@ -164,7 +165,7 @@ const LiquidationConditions = forwardRef(({assetPrice, initialLiquidationPoints,
                     onChange={(newValue)=>modifyCondition(newValue.value, 'liquidateTo', index)}
                   />
                 </Td>
-                <Td>${condition.price}</Td>
+                <Td>${condition?.price}</Td>
                 <Td>
                   {
                     index>0?
@@ -185,7 +186,7 @@ const LiquidationConditions = forwardRef(({assetPrice, initialLiquidationPoints,
           </Tr>
         </Tbody>
       </Table>
-    </TableContainer>
+    </div>
     <Modal isCentered isOpen={isOpen} onClose={onClose}>
       <ModalOverlay
         bg='blackAlpha.300'

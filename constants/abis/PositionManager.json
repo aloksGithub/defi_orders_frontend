@@ -10,6 +10,11 @@
         "internalType": "address",
         "name": "_usdc",
         "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_defaultFeeModel",
+        "type": "address"
       }
     ],
     "stateMutability": "nonpayable",
@@ -116,12 +121,31 @@
           }
         ],
         "indexed": false,
-        "internalType": "struct IPositionsManager.LiquidationCondition[]",
+        "internalType": "struct LiquidationCondition[]",
         "name": "liquidationPoints",
         "type": "tuple[]"
       }
     ],
     "name": "Deposit",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "positionId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "usdcClaimed",
+        "type": "uint256"
+      }
+    ],
+    "name": "FeeClaimed",
     "type": "event"
   },
   {
@@ -239,7 +263,7 @@
           }
         ],
         "indexed": false,
-        "internalType": "struct IPositionsManager.LiquidationCondition[]",
+        "internalType": "struct LiquidationCondition[]",
         "name": "liquidationPoints",
         "type": "tuple[]"
       }
@@ -341,7 +365,7 @@
             "type": "uint256"
           }
         ],
-        "internalType": "struct IPositionsManager.LiquidationCondition[]",
+        "internalType": "struct LiquidationCondition[]",
         "name": "_liquidationPoints",
         "type": "tuple[]"
       }
@@ -389,6 +413,19 @@
       }
     ],
     "name": "botLiquidate",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "positionId",
+        "type": "uint256"
+      }
+    ],
+    "name": "claimDevFee",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -472,12 +509,12 @@
                 "type": "uint256"
               }
             ],
-            "internalType": "struct IPositionsManager.LiquidationCondition[]",
+            "internalType": "struct LiquidationCondition[]",
             "name": "liquidationPoints",
             "type": "tuple[]"
           }
         ],
-        "internalType": "struct IPositionsManager.Position",
+        "internalType": "struct Position",
         "name": "position",
         "type": "tuple"
       },
@@ -490,11 +527,6 @@
         "internalType": "uint256[]",
         "name": "suppliedAmounts",
         "type": "uint256[]"
-      },
-      {
-        "internalType": "uint256[]",
-        "name": "minAmountsUsed",
-        "type": "uint256[]"
       }
     ],
     "name": "deposit",
@@ -505,7 +537,7 @@
         "type": "uint256"
       }
     ],
-    "stateMutability": "nonpayable",
+    "stateMutability": "payable",
     "type": "function"
   },
   {
@@ -533,7 +565,26 @@
     ],
     "name": "deposit",
     "outputs": [],
-    "stateMutability": "nonpayable",
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "feeModels",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -591,12 +642,12 @@
                 "type": "uint256"
               }
             ],
-            "internalType": "struct IPositionsManager.LiquidationCondition[]",
+            "internalType": "struct LiquidationCondition[]",
             "name": "liquidationPoints",
             "type": "tuple[]"
           }
         ],
-        "internalType": "struct IPositionsManager.Position",
+        "internalType": "struct Position",
         "name": "position",
         "type": "tuple"
       }
@@ -610,6 +661,30 @@
         "internalType": "uint256",
         "name": "positionId",
         "type": "uint256"
+      }
+    ],
+    "name": "getPositionInteractions",
+    "outputs": [
+      {
+        "internalType": "uint256[3][]",
+        "name": "",
+        "type": "uint256[3][]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "positionId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "minAmountsUsed",
+        "type": "uint256[]"
       }
     ],
     "name": "harvestAndRecompound",
@@ -668,25 +743,6 @@
   {
     "inputs": [],
     "name": "numBanks",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "positionId",
-        "type": "uint256"
-      }
-    ],
-    "name": "numPositionInteractions",
     "outputs": [
       {
         "internalType": "uint256",
@@ -772,6 +828,11 @@
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
       }
     ],
     "name": "positionInteractions",
@@ -817,6 +878,37 @@
   {
     "inputs": [],
     "name": "renounceOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "feeModel",
+        "type": "address"
+      }
+    ],
+    "name": "setDefaultFeeModel",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "positionId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "feeModel",
+        "type": "address"
+      }
+    ],
+    "name": "setFeeModel",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

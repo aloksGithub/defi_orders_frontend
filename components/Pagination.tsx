@@ -9,11 +9,8 @@ export const Pagination = ({cards, placeholder}) => {
   const cardsToShow = cards?.slice(currentPage*cardsPerPage, (currentPage+1)*cardsPerPage)
   const [pageNumbersToShow, setNumbersToShow] = useState([])
 
-  console.log(pageNumbersToShow)
-
   useEffect(() => {
     const surroundingPages = []
-    console.log(currentPage, numPages)
     if (currentPage-1>0) {
       surroundingPages.push(0)
     }
@@ -59,7 +56,7 @@ export const Pagination = ({cards, placeholder}) => {
     </Flex>
     {
       numPages&&numPages>1?
-      <Flex justifyContent={'center'}>
+      <Flex mt={'4'} justifyContent={'center'}>
         <Button colorScheme={'blackAlpha'} padding={'0'} size={'sm'} onClick={()=>setCurrentPage(currentPage===0?0:currentPage-1)}>
         <ChevronLeftIcon fontSize={'2xl'}></ChevronLeftIcon>
         </Button>

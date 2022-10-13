@@ -3,7 +3,6 @@ import {
   Box,
   Flex,
   HStack,
-  Link,
   IconButton,
   Button,
   Menu,
@@ -22,6 +21,7 @@ import {
   Text,
   NumberInput,
   NumberInputField,
+  Stack,
 } from '@chakra-ui/react';
 import { HamburgerIcon, CloseIcon, SettingsIcon } from '@chakra-ui/icons';
 import { useWeb3React } from '@web3-react/core'
@@ -32,6 +32,7 @@ import { metaMask } from '../connectors/metaMask'
 import { walletConnect } from '../connectors/walletConnect'
 import { useAppContext } from './Provider';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 
 const Links = [
   {
@@ -50,20 +51,21 @@ const Links = [
 
 const NavLink = ({ children }: { children: any }) => {
   const { asPath } = useRouter()
-  console.log(asPath)
   return (
-  <Link
-    px={2}
-    py={1}
-    rounded={'md'}
-    bg={children.href===asPath?useColorModeValue('gray.200', 'gray.700'):undefined}
-    _hover={{
-      textDecoration: 'none',
-      bg: useColorModeValue('gray.200', 'gray.700'),
-    }}
-    href={children.href}>
-      <Text as='b'>{children.label}</Text>
-  </Link>
+    <Link href={children.href}>
+      <Box
+      px={2}
+      py={1}
+      rounded={'md'}
+      bg={children.href===asPath?useColorModeValue('gray.200', 'gray.700'):undefined}
+      _hover={{
+        cursor: 'pointer',
+        textDecoration: 'none',
+        bg: useColorModeValue('gray.200', 'gray.700'),
+      }}>
+        <Text as='b'>{children.label}</Text>
+      </Box>
+    </Link>
 );}
 
 const Wallet = () => {
@@ -139,7 +141,7 @@ const Wallet = () => {
           onClick={() => {
             setOverlay(<Overlay />)
             onOpen()
-          }}>{account.slice(0, 5)+"..."+account.slice(-4)}
+          }}>{account.slice(0, 4)+"..."+account.slice(-3)}
         </Text>
       </Flex>
     )
@@ -223,7 +225,7 @@ export function Navbar() {
             </HStack>
           </HStack>
           <Flex alignItems={'center'} justifyContent={'center'}>
-            <SettingsIcon onClick={onOpenSettings} color={'gray.600'} width={'20px'} height={'20px'} _hover={{cursor:'pointer'}} mr={'4'}></SettingsIcon>
+            <SettingsIcon display={{ base: 'none', md: 'flex' }} onClick={onOpenSettings} color={'gray.600'} width={'20px'} height={'20px'} _hover={{cursor:'pointer'}} mr={'4'}></SettingsIcon>
             <Wallet/>
           </Flex>
         </Flex>
@@ -233,22 +235,42 @@ export function Navbar() {
           bg='blackAlpha.300'
           backdropFilter='blur(10px)'
         />
-          <ModalContent>
-            <ModalHeader>Settings</ModalHeader>
-            <ModalCloseButton />
-            <ModalBody>
-              <Flex justifyContent={'space-between'} alignItems={'center'}>
-                <Text alignItems={'center'}>Slippage:</Text>
-                <NumberInput  min={0} max={100} onChange={(valueString)=>setTemp(parseSlippage(valueString))} value={formatSlippage(temp)}>
-                  <NumberInputField />
-                </NumberInput>
-              </Flex>
-            </ModalBody>
-            <ModalFooter>
-            <Button onClick={confirmSlippage} paddingInline={'10'} colorScheme='blue' rounded={'full'}>Ok</Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
+        <ModalContent>
+          <ModalHeader>Settings</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Flex justifyContent={'space-between'} alignItems={'center'}>
+              <Text alignItems={'center'}>Slippage:</Text>
+              <NumberInput  min={0} max={100} onChange={(valueString)=>setTemp(parseSlippage(valueString))} value={formatSlippage(temp)}>
+                <NumberInputField />
+              </NumberInput>
+            </Flex>
+          </ModalBody>
+          <ModalFooter>
+          <Button onClick={confirmSlippage} paddingInline={'10'} colorScheme='blue' rounded={'full'}>Ok</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+      {isOpen ? (
+        <Box position={'absolute'} width={'100%'} background={'gray.100'} pb={4} display={{ md: 'none' }} onClick={onOpenSettings}>
+          <Stack as={'nav'} spacing={4}>
+            {Links.map((link) => (
+              <NavLink>{link}</NavLink>
+            ))}
+            <Box
+            px={2}
+            py={1}
+            rounded={'md'}
+            _hover={{
+              cursor: 'pointer',
+              textDecoration: 'none',
+              bg: useColorModeValue('gray.200', 'gray.700'),
+            }}>
+              <Text as='b'>Settings</Text>
+            </Box>
+          </Stack>
+        </Box>
+      ) : null}
     </>
   );
 }
