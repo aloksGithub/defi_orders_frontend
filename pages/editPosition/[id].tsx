@@ -9,7 +9,7 @@ import { fetchPosition } from "../../contractCalls/dataFetching";
 import { depositAgain, close, harvest, compound, withdraw, adjustLiquidationPoints } from "../../contractCalls/transactions";
 import LiquidationConditions from "../../components/LiquidationConditions";
 import { SupplyAssets } from "../../components/selectAssets";
-
+ 
 const WithdrawModal = ({position, refreshData, closeSelf}) => {
   const positionSize = position?.positionData.amount.toString()||0
   const {contracts} = useAppContext()
