@@ -38,8 +38,8 @@ const TickPicker = forwardRef(({pool, usdSupplied}, _ref) => {
   const [loading, setLoading] = useState(true)
   const [token0Name, setToken0Name] = useState('')
   const [token1Name, setToken1Name] = useState('')
-  const [decimals0, setDecimals0] = useState()
-  const [decimals1, setDecimals1] = useState()
+  const [decimals0, setDecimals0] = useState(18)
+  const [decimals1, setDecimals1] = useState(18)
   const [token0Main, setToken0Main] = useState(false)
   const [priceLower, setPriceLower] = useState(undefined)
   const [priceUpper, setPriceUpper] = useState(undefined)
@@ -50,7 +50,7 @@ const TickPicker = forwardRef(({pool, usdSupplied}, _ref) => {
   const [ratio, setRatio] = useState([undefined, undefined])
   const [minAmount0, setMinAmount0] = useState(undefined)
   const [minAmount1, setMinAmount1] = useState(undefined)
-  const [tickSpacing, seTickSpacing] = useState()
+  const [tickSpacing, seTickSpacing] = useState(10)
 
   useImperativeHandle(_ref, () => ({
     getUniV3Data: () => {
@@ -242,7 +242,7 @@ const UniversalSwap = () => {
   const {provider} = useWeb3React()
   
   const [totalToConvert, setTotal] = useState(0)
-  const [wantedAsset, setWantedAsset] = useState()
+  const [wantedAsset, setWantedAsset] = useState<any>()
   const assetsArray = [].concat.apply([], Object.values(supportedAssets))
   const [converting, setConverting] = useState(false)
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -359,6 +359,7 @@ const UniversalSwap = () => {
             />
             {
               uniV3Pool?
+              // @ts-ignore
               <TickPicker pool={uniV3Pool} usdSupplied={totalToConvert} ref={childStateRef2}/>:<></>
             }
             <Flex justifyContent={'center'}>

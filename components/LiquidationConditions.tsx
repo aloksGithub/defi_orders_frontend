@@ -9,7 +9,7 @@ import { useAppContext } from "./Provider"
 const LiquidationConditions = forwardRef(({assetPrice, initialLiquidationPoints, resetFlag}, _ref) => {
   const {contracts} = useAppContext()
   const [newLiquidationPoints, setNewLiquidationPoints] = useState([{
-    watchedToken: ethers.constants.AddressZero, below: 0, above: 0, liquidateTo: contracts.usdcContract.address, price: 0
+    watchedToken: ethers.constants.AddressZero, below: 0, above: 0, liquidateTo: contracts?.usdcContract.address, price: 0
     }])
   const {chainId, supportedAssets} = useAppContext()
   const [error, setError] = useState("")
