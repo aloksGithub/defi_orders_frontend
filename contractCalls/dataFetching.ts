@@ -31,7 +31,11 @@ export const fetchPositions = async (contracts, signer) => {
       positions.push(newPosition)
     })
   )
-  await Promise.all(positionsData)
+  try {
+    await Promise.all(positionsData)
+  } catch {
+    return undefined
+  }
   return positions
 }
 
