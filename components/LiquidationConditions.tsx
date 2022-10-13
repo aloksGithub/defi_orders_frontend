@@ -17,7 +17,6 @@ const LiquidationConditions = forwardRef(({assetPrice, initialLiquidationPoints,
   // @ts-ignore
   const assetsArray = supportedAssets.ERC20
 
-  console.log(initialLiquidationPoints)
 
   useEffect(()=> {
     if (initialLiquidationPoints) {
