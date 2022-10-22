@@ -100,18 +100,18 @@ const Positions = () => {
   }, [contracts, provider, account])
 
   return <>
-    <Box marginBlock={10}>
-      <Heading textAlign={'center'}>Your Positions</Heading>
+    <Flex marginBlock={10} direction={'column'} justifyContent={'center'}>
+      <Heading1 textAlign={'center'}>Your Positions</Heading1>
       <Flex marginInline={'auto'} wrap={'wrap'} justifyContent={'center'} alignContent={'stretch'} maxW={'1000px'}>
       <Pagination
       cards={positions?.map(position=><Card position={position}></Card>)}
       placeholder={
         <Text mt={'20'}>
-          No positions detected. <Link href={`/Assets`}><Text color='blue' _hover={{cursor: 'pointer'}} as={'u'}>Click here</Text></Link> to create a position using your assets
+          No positions detected. <Link href={`/`}><Text color='blue' _hover={{cursor: 'pointer'}} as={'u'}>Click here</Text></Link> to create a position using your assets
         </Text>
       }></Pagination>
       </Flex>
-    </Box>
+    </Flex>
   </>
 }
 

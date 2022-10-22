@@ -9,17 +9,17 @@ import { fetchPosition } from "../../contractCalls/dataFetching";
 import { depositAgain, close, harvest, compound, withdraw, adjustLiquidationPoints } from "../../contractCalls/transactions";
 import LiquidationConditions from "../../components/LiquidationConditions";
 import { SupplyAssets } from "../../components/selectAssets";
+import { Heading2 } from "../../components/Typography";
+import { DangerButton, PrimaryButton, SecondaryButton } from "../../components/Buttons";
 
 const WithdrawModal = ({position, refreshData, closeSelf}) => {
   const positionSize = position?.positionData.amount.toString()||0
-  const {contracts} = useAppContext()
+  const {contracts, onError} = useAppContext()
   const [value, setValue] = useState('0')
   const [isWithdrawing, setWithdrawing] = useState(false)
   const [percentage, setPercentage] = useState(0)
   const max = ethers.BigNumber.from(positionSize)
-  console.log(value, position.usdcValue, max)
   const usdWithdraw = ethers.BigNumber.from(value).mul(10000).div(max).toNumber()*position.usdcValue/10000
-  console.log(ethers.BigNumber.from(value).div(max).toNumber())
   const handleChange = (value) => {
     setValue(value)
     setPercentage(ethers.BigNumber.from(value).mul('100').div(max).toNumber())
@@ -37,9 +37,9 @@ const WithdrawModal = ({position, refreshData, closeSelf}) => {
         refreshData()
         closeSelf()
       }, 6000);
-    }).catch(()=>{
+    }).catch((error)=>{
+      onError(error)
       setWithdrawing(false)
-      console.log("Transaction failed")
     })
   }
   return (
@@ -81,7 +81,7 @@ const WithdrawModal = ({position, refreshData, closeSelf}) => {
 
 const DepositModal = ({position, refreshData, closeSelf}) => {
   const childStateRef = useRef()
-  const {contracts, chainId, slippageControl: {slippage}} = useAppContext()
+  const {contracts, chainId, slippageControl: {slippage}, onError} = useAppContext()
   const {provider ,account} = useWeb3React()
   const [isDepositing, setDepositing] = useState(false)
   
@@ -96,9 +96,9 @@ const DepositModal = ({position, refreshData, closeSelf}) => {
         refreshData()
         closeSelf()
       }, 10000);
-    }).catch(()=>{
+    }).catch((error)=>{
       setDepositing(false)
-      console.log("Transaction failed")
+      onError(error)
     })
   }
 
@@ -114,7 +114,7 @@ const DepositModal = ({position, refreshData, closeSelf}) => {
 
 const EditPosition = () => {
   const childStateRef = useRef()
-  const {contracts, chainId, supportedAssets} = useAppContext()
+  const {contracts, chainId, supportedAssets, onError} = useAppContext()
   const {provider, account} = useWeb3React()
   const router = useRouter()
   const { id } = router.query
@@ -133,7 +133,6 @@ const EditPosition = () => {
   const [resetFlag, setResetFlag] = useState(false)
   // @ts-ignore
   const liquidationPoints = position?.positionData.liquidationPoints
-  console.log(position?.positionData)
 
   useEffect(() => {
     const fetch = async () => {
@@ -141,7 +140,6 @@ const EditPosition = () => {
       const position = await fetchPosition(parseInt(id), contracts, provider.getSigner(account))
       setPosition(position)
     }
-    console.log("Should refresh data")
     if (contracts && provider) {
       fetch()
     }
@@ -178,7 +176,7 @@ const EditPosition = () => {
           const {data: {price:priceValue}} = await (await fetch(`/api/tokenPrice?chainId=${chainId}&address=${point.watchedToken}`)).json()
           price = priceValue
         }
-        formattedLiquidationPoints.push({watchedToken: point.watchedToken, above, below, liquidateTo: point.liquidateTo, price})
+        formattedLiquidationPoints.push({watchedToken: point.watchedToken, above, below, liquidateTo: point.liquidateTo, price:price.toFixed(3)})
         
       }
       setInitialLiquidationPoints(JSON.parse(JSON.stringify(formattedLiquidationPoints)))
@@ -218,9 +216,9 @@ const EditPosition = () => {
     close(contracts, id).then(()=>{
       setClosing(false)
       router.push("/Positions")
-    }).catch(()=>{
+    }).catch((error)=>{
       setClosing(false)
-      console.log("Transaction failed")
+      onError(error)
     })
   }
 
@@ -229,9 +227,9 @@ const EditPosition = () => {
     harvest(contracts, id).then(()=>{
       setHarvesting(false)
       refreshData()
-    }).catch(()=>{
+    }).catch((error)=>{
       setHarvesting(false)
-      console.log("Transaction failed")
+      onError(error)
     })
   }
 
@@ -240,9 +238,9 @@ const EditPosition = () => {
     compound(contracts, id).then(()=>{
       setCompounding(false)
       refreshData()
-    }).catch(()=>{
+    }).catch((error)=>{
+      onError(error)
       setCompounding(false)
-      console.log("Transaction failed")
     })
   }
 
@@ -256,9 +254,9 @@ const EditPosition = () => {
         ethers.getDefaultProvider().getBlockNumber()
         refreshData()
       }, 10000);
-    }).catch(()=>{
+    }).catch((error)=>{
       setAdjusting(false)
-      console.log("Transaction failed")
+      onError(error)
     })
   }
 
@@ -279,33 +277,33 @@ const EditPosition = () => {
         gap={10}
       >
         <GridItem colSpan={2}>
-        <Button colorScheme='blue' rounded={'full'} mr={'4'} size='lg' onClick={onDepositOpen}>Deposit</Button>
-        <Button rounded={'full'} size='lg' onClick={onWithdrawOpen}>Withdraw</Button>
+        <PrimaryButton size={'large'} mr={'4'} onClick={onDepositOpen}>Deposit</PrimaryButton>
+        <SecondaryButton size={'large'} onClick={onWithdrawOpen}>Withdraw</SecondaryButton>
         </GridItem>
         <GridItem colStart={3} colSpan={1} display='flex' justifyContent={'end'}>
-        <Button colorScheme={'red'} rounded={'full'} size='lg' onClick={onCloseOpen}>Close</Button>
+        <DangerButton size={'large'} onClick={onCloseOpen}>Close</DangerButton>
         </GridItem>
         <GridItem colSpan={1}>
-          <Text fontSize='xl' as={'b'}>Asset</Text>
+          <Heading2>Asset</Heading2>
           <Text>{position?.name}</Text>
         </GridItem>
         <GridItem colSpan={1}>
-          <Text fontSize='xl' as={'b'}>Underlying Tokens</Text>
+          <Heading2>Underlying Tokens</Heading2>
           {
             position?.underlying.map((token)=> <Text>{token}</Text>)
           }
         </GridItem>
         <GridItem rowStart={3} colSpan={1}>
-          <Text fontSize='xl' as={'b'}>Position Size</Text>
-          <Text>{position?.positionData.amount.toString()||0}</Text>
+          <Heading2>Position Size</Heading2>
+          <Text>{position?.positionData.amountDecimal||0}</Text>
         </GridItem>
         <GridItem rowStart={3} colSpan={1}>
-          <Text fontSize='xl' as={'b'}>Value USD</Text>
+          <Heading2>Value USD</Heading2>
           <Text fontSize='l'>${position?.usdcValue.toFixed(4)}</Text>
         </GridItem>
         <GridItem rowStart={3} colSpan={1}>
           <>
-          <Text fontSize='xl' as={'b'}>Rewards</Text>
+          <Heading2>Rewards</Heading2>
           {
             rewards.length>0?
             rewards.map((reward) => {
@@ -328,12 +326,12 @@ const EditPosition = () => {
           </>
         </GridItem>
       </Grid>
-      <Text fontSize='xl' as={'b'}>Liquidation Conditions</Text>
+      <Heading2>Liquidation Conditions</Heading2>
       {/* @ts-ignore */}
       <LiquidationConditions assetPrice={position?.usdcValue} initialLiquidationPoints={initialLiquidationPoints} resetFlag={resetFlag} ref={childStateRef}></LiquidationConditions>
       <Flex mt={'4'} justifyContent={'center'}>
-        <Button colorScheme='blue' isLoading={isAdjusting} rounded={'full'} mr={'4'} onClick={updateConditions}>Update Conditions</Button>
-        <Button rounded={'full'} onClick={resetConditions}>Reset Conditions</Button>
+        <PrimaryButton isLoading={isAdjusting} mr={'4'} onClick={updateConditions}>Update Conditions</PrimaryButton>
+        <SecondaryButton rounded={'full'} onClick={resetConditions}>Reset Conditions</SecondaryButton>
       </Flex>
     </Box>
     <Modal isCentered size={'3xl'} isOpen={isDepositOpen} onClose={onDepositClose}>

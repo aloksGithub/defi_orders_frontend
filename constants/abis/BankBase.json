@@ -207,7 +207,7 @@
         "type": "address"
       }
     ],
-    "stateMutability": "nonpayable",
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -243,9 +243,14 @@
         "internalType": "address[]",
         "name": "underlying",
         "type": "address[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "ratios",
+        "type": "uint256[]"
       }
     ],
-    "stateMutability": "nonpayable",
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -262,9 +267,14 @@
         "internalType": "address[]",
         "name": "",
         "type": "address[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "ratios",
+        "type": "uint256[]"
       }
     ],
-    "stateMutability": "nonpayable",
+    "stateMutability": "view",
     "type": "function"
   },
   {

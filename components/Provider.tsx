@@ -1,4 +1,4 @@
-import { ChakraProvider } from '@chakra-ui/react'
+import { ChakraProvider, Flex, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, useDisclosure, Text } from '@chakra-ui/react'
 import { CoinbaseWallet } from '@web3-react/coinbase-wallet'
 import { useWeb3React, Web3ReactHooks, Web3ReactProvider } from '@web3-react/core'
 import { MetaMask } from '@web3-react/metamask'
@@ -12,7 +12,6 @@ import { hooks as walletConnectHooks, walletConnect } from '../connectors/wallet
 import { getName } from '../utils'
 import { Navbar } from './Navbar'
 import { createContext, useContext } from 'react';
-import supportedProtocols from '../constants/supportedProtocols.json'
 import { ethers } from 'ethers'
 import positionManagerAbi from "../constants/abis/PositionManager.json"
 import universalSwapAbi from "../constants/abis/UniversalSwap.json"
@@ -29,14 +28,18 @@ const AppContext = createContext({
   connector: undefined,
   supportedAssets: {},
   contracts: undefined,
-  slippageControl: {slippage:0.5, setSlippage: undefined}
+  slippageControl: {slippage:0.5, setSlippage: undefined},
+  onError: (error:Error)=>{}
 });
 
 export function AppWrapper({ children }) {
   const {isActive, account, chainId, connector, provider} = useWeb3React()
   const [slippage, setSlippage] = useState(0.5)
   const usedChainId = chainId==1337?parseInt(process.env.NEXT_PUBLIC_CURRENTLY_FORKING):chainId
-  
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen: errorHappened, onOpen: triggerError, onClose: closeErrorModal } = useDisclosure();
+  const { isOpen: alertOpen, onOpen: openAlert, onClose: closeAlert } = useDisclosure();
+  const [errorMessage, setErrorMessage] = useState('')
   const [userData, setUserData] = useState({
     userAssets: [],
     account: undefined,
@@ -51,16 +54,21 @@ export function AppWrapper({ children }) {
     usdcContract: ethers.Contract
     uniswapV3PoolInteractor: ethers.Contract
   }>()
+
   useEffect(() => {
     void connector.connectEagerly?.()
+    openAlert()
   }, [])
 
   useEffect(() => {
     const getContracts = async () => {
       const signer = provider.getSigner(account)
       if (!(chainId in deploymentAddresses)) {
+        onOpen()
+        setContracts({positionManager:undefined, banks:undefined, universalSwap:undefined, usdcContract:undefined, uniswapV3PoolInteractor:undefined})
         return
       }
+      onClose()
       const positionManager = new ethers.Contract(deploymentAddresses[chainId].positionsManager, positionManagerAbi, signer)
       const numBanks = await positionManager.numBanks()
       const banks = []
@@ -78,7 +86,7 @@ export function AppWrapper({ children }) {
     if (provider && chainId) {
       getContracts()
     }
-  }, [provider])
+  }, [provider, chainId])
 
   useEffect(() => {
     const fetchSupportedAssets = async () => {
@@ -94,6 +102,7 @@ export function AppWrapper({ children }) {
     const fetchUserData = async () => {
       const {data} = await (await fetch(`/api/userAssets?chainId=${usedChainId}&address=${account}`)).json()
       const assets = data?data.items:[]
+      console.log(assets)
       setUserData({
         userAssets: assets, account, chainId: usedChainId, connector
       })
@@ -103,10 +112,67 @@ export function AppWrapper({ children }) {
     }
   }, [account, usedChainId, provider, contracts])
 
+  const onError = (error:Error) => {
+    console.log(error)
+    // @ts-ignore
+    if (error.reason?.includes('slippage')) {
+      setErrorMessage("Transaction failed due to high slippage. You can try setting a higher slippage threshold from the settings")
+    } else {
+      setErrorMessage("Transaction failed with no revert reason. Please contact us at ...")
+    }
+    triggerError()
+  }
 
   return (
-    <AppContext.Provider value={{supportedAssets, ...userData, contracts, slippageControl: {slippage, setSlippage}}}>
+    <AppContext.Provider value={{supportedAssets, ...userData, contracts, slippageControl: {slippage, setSlippage}, onError}}>
       {children}
+      <Modal size={'sm'} isCentered isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay
+          bg='blackAlpha.300'
+          backdropFilter='blur(10px)'
+        />
+        <ModalContent>
+          <ModalHeader>Unsupported chain</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Text>Selected chain is not currently supported, please switch to BSC</Text>
+          </ModalBody>
+          <ModalFooter>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+      <Modal size={'sm'} isCentered isOpen={errorHappened} onClose={closeErrorModal}>
+        <ModalOverlay
+          bg='blackAlpha.300'
+          backdropFilter='blur(10px)'
+        />
+        <ModalContent>
+          <ModalHeader>Transaction Failed</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Text>{errorMessage}</Text>
+          </ModalBody>
+          <ModalFooter>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+      <Modal size={'sm'} isCentered isOpen={alertOpen} onClose={closeAlert}>
+        <ModalOverlay
+          bg='blackAlpha.300'
+          backdropFilter='blur(10px)'
+        />
+        <ModalContent>
+          <ModalHeader>Welcome</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Text mb={'3'}>Welcome to the alpha version of Delimit. Please do not use a large
+              amount of funds as we are still testing and fixing issues.</Text>
+            <Text fontSize={'sm'}>Note: All positions created in the alpha version will be liquidated by February 2023</Text>
+          </ModalBody>
+          <ModalFooter>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </AppContext.Provider>
   );
 }

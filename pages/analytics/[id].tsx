@@ -1,11 +1,12 @@
 import { useAppContext } from "../../components/Provider"
-import { Box, Flex, Text, Grid, GridItem, useColorModeValue, Skeleton, TableContainer, Table, Tbody, Td, Th, Thead, Tr, Stack } from "@chakra-ui/react";
+import { Box, Flex, Text, Grid, GridItem, useColorModeValue, Skeleton, TableContainer, Table, Tbody, Td, Th, Thead, Tr, Stack, Stat, StatArrow, StatGroup, StatHelpText, StatLabel, StatNumber } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { useRouter } from 'next/router'
 import { useWeb3React } from "@web3-react/core";
 import { fetchPosition, getGraphData } from "../../contractCalls/dataFetching";
 import { fetchImportantPoints } from "../../contractCalls/dataFetching";
 import { LineChart, Line, CartesianGrid, Tooltip, XAxis, YAxis } from 'recharts';
+import { Heading2 } from "../../components/Typography";
 
 const Analytics = () => {
   const {contracts} = useAppContext()
@@ -37,8 +38,8 @@ const Analytics = () => {
       const positionData = await fetchImportantPoints(contracts, id, provider)
       const roi = positionData.usdcWithdrawn+position.usdcValue-positionData.usdcDeposited
       const pnl = roi*100/positionData.usdcDeposited
-      setRoi(roi.toFixed(4))
-      setPnl(pnl.toFixed(4))
+      setRoi(roi.toFixed(2))
+      setPnl(pnl.toFixed(2))
       setAnalytics(positionData)
       setPosition(position)
     }
@@ -48,45 +49,40 @@ const Analytics = () => {
   }, [contracts, provider, id])
 
   return (
-    <Flex marginTop={10} marginBottom={10} justifyContent={'center'}>
+    <Flex>
     <Box
+      maxWidth={'100vw'}
+      marginInline={'auto'}
+      marginBlock={'10'}
       justifyContent={'space-between'}
       bg={useColorModeValue('white', 'gray.900')}
       boxShadow={'2xl'}
       rounded={'lg'}
       p={10}>
-        <Grid
-        w={'100%'}
-        gridTemplateRows={'100px'}
-        templateColumns='repeat(3, 1fr)'
-        gap={10}
-      >
-        <GridItem colSpan={1}>
-          <Text fontSize='2xl' as={'b'}>NAV</Text>
-          {
-            position?<Text>${position?.usdcValue.toFixed(3)}</Text>:
-            <Skeleton width={'50%'} height='20px'/>
-          }
-        </GridItem>
-        <GridItem colSpan={1}>
-          <Text fontSize='2xl' as={'b'}>ROI</Text>
-          {
-            roi?<Text>{roi}%</Text>:
-            <Skeleton width={'50%'} height='20px'/>
-          }
-        </GridItem>
-        <GridItem colSpan={1}>
-          <Text fontSize='2xl' as={'b'}>PnL</Text>
-          {
-            pnl?<Text>${pnl}</Text>:
-            <Skeleton width={'50%'} height='20px'/>
-          }
-          
-        </GridItem>
-      </Grid>
-      <Text fontSize='2xl' as={'b'}>Historical Position Value</Text>
+      <StatGroup mb={'10'}>
+        <Stat>
+          <StatLabel fontSize={'l'}>Asset Value</StatLabel>
+          <StatNumber fontSize={{base: 'xl', md: '2xl'}}>${position?.usdcValue.toFixed(3)}</StatNumber>
+        </Stat>
+        <Stat>
+          <StatLabel fontSize={'l'}>PnL</StatLabel>
+          <Flex direction={{base: 'column', md: 'row'}} >
+          <StatNumber fontSize={{base: 'xl', md: '2xl'}} mr={'3'}>${pnl}</StatNumber>
+          <StatHelpText display={'flex'} alignItems={'end'} justifyContent={'start'}>
+            <StatArrow type={+roi<0?'decrease':'increase'} />
+            {roi}%
+          </StatHelpText>
+          </Flex>
+        </Stat>
+        <Stat>
+          <StatLabel fontSize={'l'}>Projected APY</StatLabel>
+          <StatNumber fontSize={{base: 'xl', md: '2xl'}}>0%</StatNumber>
+        </Stat>
+      </StatGroup>
+      <Heading2>Historical Position Value</Heading2>
+      <Box style={{ overflow: 'auto', maxWidth: '80vw'}} mt={'6'} mb={'12'}>
       {
-        graphData?<Box mt={'6'} mb={'12'}>
+        graphData?<Box>
         <LineChart width={500} height={300} data={graphData}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="name" padding={{left: 10}}>
@@ -98,8 +94,9 @@ const Analytics = () => {
           <Line type="monotone" dataKey="value" />
         </LineChart>
         </Box>:
-        <Skeleton mt={'6'} mb={'12'} height={'300px'}></Skeleton>
+        <Skeleton height={'300px'}></Skeleton>
       }
+      </Box>
       <Grid
         w={'100%'}
         gridTemplateRows={'80px'}
@@ -108,7 +105,7 @@ const Analytics = () => {
         gap={10}
       >
         <GridItem colSpan={1}>
-          <Text fontSize='xl' as={'b'}>Asset</Text>
+          <Heading2>Asset</Heading2>
           {
             position?<Text>{position?.name}</Text>:
             <Skeleton width={'60%'} height='20px' />
@@ -116,7 +113,7 @@ const Analytics = () => {
           
         </GridItem>
         <GridItem colSpan={1}>
-          <Text fontSize='xl' as={'b'}>Underlying Tokens</Text>
+          <Heading2>Underlying Tokens</Heading2>
           {
             position?position.underlying.map((token)=> <Text>{token}</Text>):
             <Stack>
@@ -126,7 +123,7 @@ const Analytics = () => {
           }
         </GridItem>
       </Grid>
-      <Text fontSize='2xl' as={'b'}>Transactions</Text>
+      <Heading2>Transactions</Heading2>
       <TableContainer mt={'6'}>
         <Table size='sm'>
           <Thead>

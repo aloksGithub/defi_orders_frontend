@@ -28,6 +28,8 @@ import { SupplyAssets } from '../components/selectAssets';
 import { TickMath, encodeSqrtRatioX96 } from '@uniswap/v3-sdk';
 import JSBI from 'jsbi';
 import Fraction from 'fraction.js'
+import { Heading1 } from '../components/Typography';
+import { PrimaryButton } from '../components/Buttons';
 
   // @ts-ignore
 const TickPicker = forwardRef(({pool, usdSupplied}, _ref) => {
@@ -238,7 +240,7 @@ const TickPicker = forwardRef(({pool, usdSupplied}, _ref) => {
 const UniversalSwap = () => {
   const childStateRef = useRef()
   const childStateRef2 = useRef()
-  const {account, chainId, supportedAssets, contracts, slippageControl: {slippage}} = useAppContext()
+  const {account, chainId, supportedAssets, contracts, slippageControl: {slippage}, onError} = useAppContext()
   const {provider} = useWeb3React()
   
   const [totalToConvert, setTotal] = useState(0)
@@ -274,8 +276,8 @@ const UniversalSwap = () => {
     setConverting(true)
     // @ts-ignore
     let assetsToConvert = childStateRef.current.getFormattedConditions()
-    const etherSupplied = assetsToConvert.find(asset=>asset.asset==="0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")?.tokensBn || 0
-    assetsToConvert = assetsToConvert.filter(asset=>asset.asset!="0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
+    const etherSupplied = assetsToConvert.find(asset=>[ethers.constants.AddressZero].includes(asset.asset))?.tokensBn || 0
+    assetsToConvert = assetsToConvert.filter(asset=>![ethers.constants.AddressZero].includes(asset.asset))
     const erc20Supplied = assetsToConvert.map(asset=>asset.asset)
     const erc20Amounts = assetsToConvert.map(asset=>asset.tokensBn)
     for (let [index, token] of erc20Supplied.entries()) {
@@ -286,8 +288,9 @@ const UniversalSwap = () => {
       }
       try {
         await contract.functions.approve(contracts.universalSwap.address, erc20Amounts[index])
-      } catch {
-        console.log("Transaction failed")
+      } catch (error) {
+        onError(error)
+        return
       }
     }
     if (uniV3Pool) {
@@ -313,7 +316,7 @@ const UniversalSwap = () => {
         setConverting(false)
         onClose()
       } catch (err) {
-        console.log("Transaction failed", err)
+        onError(err)
         setConverting(false)
       }
     } else {
@@ -321,23 +324,25 @@ const UniversalSwap = () => {
       const expectedTokens = totalToConvert/price
       const allowedSlippage = expectedTokens*(1-slippage/100)
       const minAmount = ethers.utils.parseUnits(allowedSlippage.toFixed(decimals).toString(), decimals)
-      try {
-        console.log(etherSupplied.toString())
-        await contracts.universalSwap.swapERC20(erc20Supplied, erc20Amounts, [], wantedAsset.value, minAmount, {value: etherSupplied})
+      contracts.universalSwap.swapERC20(erc20Supplied, erc20Amounts, [], wantedAsset.value, minAmount, {value: etherSupplied}).then(() => {
+        setTimeout(() => {
+          setConverting(false)
+          ethers.getDefaultProvider().getBlockNumber()
+          onClose()
+        }, 6000);
+      }).catch((error)=>{
         setConverting(false)
         onClose()
-      } catch {
-        console.log("Transaction failed")
-        setConverting(false)
-      }
+        onError(error)
+      })
     }
   }
   return (
     <Flex marginBlock={10} alignItems={'center'} direction={'column'}>
-      <Heading mb={'4'}>Select Assets to Swap</Heading>
+      <Heading1 mb={'10'}>Select Assets to Swap</Heading1>
       <SupplyAssets ref={childStateRef}/>
       <Flex marginTop={5} marginBottom={25} justifyContent={'end'}>
-      <Button colorScheme='blue' rounded={'full'} mr={'4'} size='lg' onClick={proceed}>Proceed</Button>
+      <PrimaryButton size={'large'} mr={'4'} onClick={proceed}>Proceed</PrimaryButton>
       </Flex>
       <Modal isCentered isOpen={isOpen} onClose={onClose}>
       <ModalOverlay

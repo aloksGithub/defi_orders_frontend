@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   Box,
   Flex,
@@ -33,11 +33,12 @@ import { walletConnect } from '../connectors/walletConnect'
 import { useAppContext } from './Provider';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import {CSSTransition} from 'react-transition-group'
 
 const Links = [
   {
     label: "Your Assets",
-    href: "/Assets"
+    href: "/"
   },
   {
     label: "Your Positions",
@@ -53,9 +54,11 @@ const NavLink = ({ children }: { children: any }) => {
   const { asPath } = useRouter()
   return (
     <Link href={children.href}>
-      <Box
-      px={2}
-      py={1}
+      <Flex
+      alignItems={'center'}
+      height='100%'
+      minHeight={'50px'}
+      px={5}
       rounded={'md'}
       bg={children.href===asPath?useColorModeValue('gray.200', 'gray.700'):undefined}
       _hover={{
@@ -64,7 +67,7 @@ const NavLink = ({ children }: { children: any }) => {
         bg: useColorModeValue('gray.200', 'gray.700'),
       }}>
         <Text as='b'>{children.label}</Text>
-      </Box>
+      </Flex>
     </Link>
 );}
 
@@ -186,6 +189,7 @@ const Wallet = () => {
   )
 }
 
+
 export function Navbar() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const {slippageControl: {slippage, setSlippage}} = useAppContext()
@@ -201,10 +205,26 @@ export function Navbar() {
     setSlippage(temp)
     onCloseSettings()
   }
+  const wrapperRef = useRef(null);
+  useOutsideAlerter(wrapperRef);
+  
+  function useOutsideAlerter(ref) {
+    useEffect(() => {
+      function handleClickOutside(event) {
+        if (ref.current && !ref.current.contains(event.target)) {
+          onClose()
+        }
+      }
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }, [ref]);
+  }
 
   return (
     <>
-      <Box bg={useColorModeValue('gray.100', 'gray.900')} px={4}>
+      <Box style={{width: '100vw'}} bg={useColorModeValue('gray.100', 'gray.900')} px={4}>
         <Flex h={16} alignItems={'center'} justifyContent={'space-between'}>
           <IconButton
             size={'md'}
@@ -213,11 +233,12 @@ export function Navbar() {
             display={{ md: 'none' }}
             onClick={isOpen ? onClose : onOpen}
           />
-          <HStack spacing={8} alignItems={'center'}>
+          <HStack spacing={4} height='100%' alignItems={'center'}>
             <Box>Logo</Box>
             <HStack
               as={'nav'}
-              spacing={4}
+              height='100%'
+              spacing={0}
               display={{ base: 'none', md: 'flex' }}>
               {Links.map((link) => (
                 <NavLink key={link.href}>{link}</NavLink>
@@ -251,26 +272,51 @@ export function Navbar() {
           </ModalFooter>
         </ModalContent>
       </Modal>
-      {isOpen ? (
-        <Box position={'absolute'} width={'100%'} background={'gray.100'} pb={4} display={{ md: 'none' }} onClick={onOpenSettings}>
-          <Stack as={'nav'} spacing={4}>
+      <Box sx={{
+          '.my-node-enter': {
+            'opacity': 0,
+            'transform': 'translateX(-100%)',
+          },
+          '.my-node-enter-active': {
+            'opacity': 1,
+            'transform': 'translateX(0%)',
+            'transition': 'opacity 300ms, transform 300ms',
+          },
+          '.my-node-exit': {
+            'opacity': 1,
+            'transform': 'translateX(0%)',
+          },
+          '.my-node-exit-active': {
+            'opacity': 0,
+            'transform': 'translateX(-100%)',
+            'transition': 'opacity 300ms, transform 300ms',
+          }
+        }}>
+      <CSSTransition classNames="my-node" nodeRef={wrapperRef} in={isOpen} timeout={300} unmountOnExit>
+        <Box zIndex={3} ref={wrapperRef} position={'absolute'} width={'100%'} background={'gray.100'} pb={2} display={{ md: 'none' }}
+        onClick={onClose}>
+          <Stack spacing={0} as={'nav'}>
             {Links.map((link) => (
               <NavLink>{link}</NavLink>
             ))}
-            <Box
-            px={2}
-            py={1}
+            <Flex
+            alignItems={'center'}
+            height='100%'
+            minHeight={'50px'}
+            px={5}
             rounded={'md'}
+            onClick={onOpenSettings}
             _hover={{
               cursor: 'pointer',
               textDecoration: 'none',
               bg: useColorModeValue('gray.200', 'gray.700'),
             }}>
               <Text as='b'>Settings</Text>
-            </Box>
+            </Flex>
           </Stack>
         </Box>
-      ) : null}
+      </CSSTransition>
+      </Box>
     </>
   );
 }

@@ -1,9 +1,10 @@
-import { MinusIcon, AddIcon } from "@chakra-ui/icons"
+import { MinusIcon, AddIcon, DeleteIcon } from "@chakra-ui/icons"
 import { TableContainer, Table, Thead, Tr, Th, Tbody, Text, Td, Flex, NumberInput, NumberInputField, Button, useDisclosure, Box, Modal, ModalBody, ModalCloseButton, ModalContent, ModalHeader, ModalOverlay } from "@chakra-ui/react"
-import Select from "react-select";
+import {Select} from "chakra-react-select";
 import { ethers } from "ethers"
 import { forwardRef, useEffect, useState, useImperativeHandle } from "react"
 import { useAppContext } from "./Provider"
+import { Heading3 } from "./Typography";
 
   // @ts-ignore
 const LiquidationConditions = forwardRef(({assetPrice, initialLiquidationPoints, resetFlag}, _ref) => {
@@ -84,6 +85,7 @@ const LiquidationConditions = forwardRef(({assetPrice, initialLiquidationPoints,
   }
 
   const removeCondition = (index: number) => {
+    if (newLiquidationPoints.length===1) return
     const temp = [...newLiquidationPoints]
     temp.splice(index, 1)
     setNewLiquidationPoints(temp)
@@ -115,15 +117,29 @@ const LiquidationConditions = forwardRef(({assetPrice, initialLiquidationPoints,
 
   return (
     <Box marginTop={'5'}>
-      <div style={{ overflowX: 'auto', maxWidth: "100vw", borderRadius:15 }}>
-      <Table size='lg'>
+      <div style={{ overflowX: 'auto', maxWidth: "80vw", borderRadius:15 }}>
+      <Table size='lg'
+        sx={{
+          "td, th":{
+            'padding-left': '15px',
+            'padding-right': '15px'
+          },
+          "input": {
+            'padding-left': '10px',
+            'padding-right': '10px',
+          },
+        }}>
         <Thead backgroundColor={'cyan.50'}>
           <Tr>
-            <Th>Watched Asset</Th>
-            <Th>Liquidation Points</Th>
-            <Th>Liquidate To</Th>
+            <Th>
+              <div>
+                <Heading3>Asset to watch/</Heading3>
+                <Heading3>Liquidate to</Heading3>
+              </div>
+            </Th>
+            <Th>Liquidate when</Th>
             <Th>Current Value</Th>
-            <Th>Action</Th>
+            <Th></Th>
           </Tr>
         </Thead>
         <Tbody>
@@ -132,51 +148,50 @@ const LiquidationConditions = forwardRef(({assetPrice, initialLiquidationPoints,
               console.log(condition)
               return(
               <Tr>
-                <Td>
+                <Td style={{width: '180px'}}>
                   <Select
+                    useBasicStyles
                     menuPosition="fixed"
                     options={[{value: ethers.constants.AddressZero, label: "Value of Position"}, ...(assetsArray||[])]}
                     value={[{value: ethers.constants.AddressZero, label: "Value of Position"}, ...(assetsArray||[])].find(asset=>asset.value===condition.watchedToken?.toLowerCase())}
                     onChange={(newValue)=>modifyCondition(newValue.value, 'watchedToken', index)}
                   />
-                </Td>
-                <Td>
-                <Flex alignItems={'center'}>
-                  <Text fontSize={'xs'} mr='2'>Price above</Text>
-                  <NumberInput value={condition.above||''} maxW={32} min={0}
-                  onChange={(valueString)=>modifyCondition(valueString, 'above', index)}>
-                    <NumberInputField backgroundColor={'white'}></NumberInputField>
-                  </NumberInput>
-                </Flex>
-                <Flex alignItems={'center'} mt='2'>
-                <Text fontSize={'xs'} mr='2'>Price below</Text>
-                  <NumberInput value={condition.below||''} maxW={32} min={0} max={condition.price+0.1}
-                  onChange={(valueString)=>modifyCondition(valueString, 'below', index)}>
-                    <NumberInputField backgroundColor={'white'}></NumberInputField>
-                  </NumberInput>
-                  </Flex>
-                </Td>
-                <Td>
+                  <div style={{height: '12px'}}></div>
                   <Select
+                    useBasicStyles
                     menuPosition="fixed"
                     options={assetsArray}
                     value={assetsArray?.find(asset=>asset.value===condition.liquidateTo?.toLowerCase())}
                     onChange={(newValue)=>modifyCondition(newValue.value, 'liquidateTo', index)}
                   />
                 </Td>
-                <Td>${condition?.price}</Td>
                 <Td>
-                  {
-                    index>0?
-                    <Button onClick={()=>removeCondition(index)}><MinusIcon></MinusIcon></Button>:
-                    <></>
-                  }
+                <Flex alignItems={'center'}>
+                  <Text fontSize={'xs'} mr='2'>Price above</Text>
+                  <NumberInput value={condition.above||''} width={'32'} min={+condition.price+0.1}
+                  onChange={(valueString)=>modifyCondition(valueString, 'above', index)}>
+                    <NumberInputField backgroundColor={'white'}></NumberInputField>
+                  </NumberInput>
+                </Flex>
+                <Flex alignItems={'center'} mt='2'>
+                <Text fontSize={'xs'} mr='2'>Price below</Text>
+                  <NumberInput value={condition.below||''} width={'32'} min={0} max={+condition.price+0.1}
+                  onChange={(valueString)=>modifyCondition(valueString, 'below', index)}>
+                    <NumberInputField backgroundColor={'white'}></NumberInputField>
+                  </NumberInput>
+                  </Flex>
+                </Td>
+                <Td>${condition?.price||0}</Td>
+                <Td>
+                    <Flex justifyContent={'center'}>
+                      <DeleteIcon _hover={{cursor: 'pointer'}} onClick={()=>removeCondition(index)}></DeleteIcon>
+                    </Flex>
                 </Td>
               </Tr>
             )})
           }
           <Tr>
-            <Td></Td><Td></Td><Td></Td><Td></Td>
+            <Td></Td><Td></Td><Td></Td>
             <Td>
               <Button onClick={addCondition}>
                 <AddIcon></AddIcon>

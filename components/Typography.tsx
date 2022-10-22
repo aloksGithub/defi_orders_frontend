@@ -1,20 +1,20 @@
 import { Text } from "@chakra-ui/react"
 
-export const Heading1 = ({children}) => {
+export const Heading1 = (props) => {
   return (
-    <Text>{children}</Text>
+    <Text fontSize={'2xl'} as={'b'} {...props}></Text>
   )
 }
 
-export const Heading2 = ({children}) => {
+export const Heading2 = (props) => {
   return (
-    <Text>{children}</Text>
+    <Text fontSize={{base: 'l', md: 'xl'}} as={'b'} {...props}></Text>
   )
 }
 
-export const Heading3 = ({children}) => {
+export const Heading3 = (props) => {
   return (
-    <Text>{children}</Text>
+    <Text fontSize={{base: 'm', md: 'l'}} {...props}></Text>
   )
 }
 

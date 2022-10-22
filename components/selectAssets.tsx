@@ -1,4 +1,4 @@
-import { MinusIcon, AddIcon } from "@chakra-ui/icons";
+import { DeleteIcon, AddIcon } from "@chakra-ui/icons";
 import { useDisclosure, Flex, TableContainer, Table, Text, Thead, Tr, Th, Tbody, Td, NumberInput, NumberInputField, Button, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, Box } from "@chakra-ui/react";
 import Select from "react-select";
 import { ethers } from "ethers";
@@ -94,7 +94,11 @@ export const SupplyAssets = forwardRef((props, _ref) => {
                       <NumberInputField backgroundColor={'white'}></NumberInputField>
                     </NumberInput>
                   </Td>
-                  <Td><Button onClick={()=>removeAsset(index)}><MinusIcon/></Button></Td>
+                  <Td>
+                    <Flex justifyContent={'center'}>
+                    <DeleteIcon _hover={{cursor: 'pointer'}} onClick={()=>removeAsset(index)}/>
+                    </Flex>
+                  </Td>
                 </Tr>
               ):<></>)
             }
