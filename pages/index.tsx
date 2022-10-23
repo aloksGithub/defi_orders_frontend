@@ -32,7 +32,7 @@ import { depositNew } from "../contractCalls/transactions";
 import LiquidationConditions from "../components/LiquidationConditions";
 import { useRouter } from "next/router";
 import { Pagination } from "../components/Pagination";
-import { Heading1 } from "../components/Typography";
+import { Heading1, Heading2 } from "../components/Typography";
 
 const Card = ({asset, index, setSecuring}) => {
   return (
@@ -96,8 +96,6 @@ const SecureAsset = ({asset, setSecuring}) => {
   const {provider, chainId} = useWeb3React()
   const signer = provider.getSigner(account)
   const [tokens, setTokens] = useState(0)
-  // @ts-ignore
-  const positionManager = new ethers.Contract(deploymentAddresses[chainId].positionsManager, positionManagerAbi, signer)
   const [banks, setBanks] = useState([])
   const [selectedBank, selectBank] = useState(undefined)
   const [rewards, setRewards] = useState([])
@@ -113,7 +111,10 @@ const SecureAsset = ({asset, setSecuring}) => {
 
   useEffect(() => {
     const getBanks = async () => {
-      const [bankIds, bankNames, tokenIds] = await positionManager.functions.recommendBank(asset.contract_address)
+      if (!contracts.positionManager) {
+        return
+      }
+      const [bankIds, bankNames, tokenIds] = await contracts.positionManager.functions.recommendBank(asset.contract_address)
       const banks = []
       for (let [index, bank] of bankIds.entries()) {
         banks.push({
@@ -130,7 +131,7 @@ const SecureAsset = ({asset, setSecuring}) => {
   useEffect(() => {
     const getRewards = async () => {
       const bank = banks.find(bank=>bank.value.toString()===selectedBank)
-      const bankAddress = await positionManager.functions.banks(selectedBank)
+      const bankAddress = await contracts.positionManager.functions.banks(selectedBank)
       const bankContract = new ethers.Contract(bankAddress[0], bankAbi, provider)
       const rewards = await bankContract.functions.getRewards(bank.tokenId)
       const rewardNames = []
@@ -202,44 +203,44 @@ const SecureAsset = ({asset, setSecuring}) => {
         w={'100%'}
         gridTemplateRows={'30px 1fr 1fr'}
         // templateRows='repeat(3, 1fr)'
-        templateColumns='repeat(3, 1fr)'
+        templateColumns={{base: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)'}}
         mb={'8'}
         gap={10}
       >
-        <GridItem colSpan={2}>
-        <Text fontSize='xl' as={'b'}>Secure {asset.contract_name}</Text>
+        <GridItem colSpan={{base:1, md: 2}}>
+        <Heading2>Secure {asset.contract_name}</Heading2>
         </GridItem>
-        <GridItem colStart={3} colSpan={1} display='flex' justifyContent={'end'}>
+        <GridItem colStart={{base: 2, md: 3}} colSpan={1} display='flex' justifyContent={'end'}>
         <Button onClick={exitSecuring} alignSelf={'start'} marginBottom={3}><ArrowBackIcon/>Back</Button>
         </GridItem>
-        <GridItem colSpan={1}>
-          <Text fontSize='xl' as={'b'}>Bank</Text>
+        <GridItem rowStart={2} colSpan={1}>
+          <Heading2>Bank</Heading2>
           <DefaultSelect size={'sm'} w={'60%'} placeholder='Select Bank' onChange={(event)=>selectBank(event.target.value)}>
             {
               banks.map(bank=> (<option value={bank.value}>{bank.label}</option>))
             }
           </DefaultSelect>
         </GridItem>
-        <GridItem colSpan={1}>
-          <Text fontSize='xl' as={'b'}>Expected Rewards</Text>
+        <GridItem rowStart={2} colSpan={1}>
+          <Heading2>Expected Rewards</Heading2>
           { rewards.length>0?
             rewards.map(reward=> <Text fontSize='l'>{reward}</Text>):
             <Text fontSize='l'>None</Text>
           }
         </GridItem>
         <GridItem rowStart={3} colSpan={1}>
-          <Text fontSize='xl' as={'b'}>Tokens To Secure</Text>
+          <Heading2>Tokens To Secure</Heading2>
           <NumberInput size={'sm'} w={'60%'} min={0} max={asset.balance/10**asset.contract_decimals}
           onChange={(valueString)=>setTokens(parseFloat(valueString))}>
             <NumberInputField backgroundColor={'white'}></NumberInputField>
           </NumberInput>
         </GridItem>
         <GridItem rowStart={3} colSpan={1}>
-          <Text fontSize='xl' as={'b'}>Secured USD</Text>
+          <Heading2>Secured USD</Heading2>
           <Text fontSize='l'>${currentUsd}</Text>
         </GridItem>
       </Grid>
-      <Text fontSize='xl' as={'b'}>Liquidation Conditions</Text>
+      <Heading2>Liquidation Conditions</Heading2>
       {/* @ts-ignore */}
       <LiquidationConditions ref={childStateRef} assetPrice={currentUsd}></LiquidationConditions>
       <Flex mt={'10'} justifyContent={'end'}>
@@ -265,7 +266,6 @@ const SecureAsset = ({asset, setSecuring}) => {
 const Assets = () => {
   const {userAssets} = useAppContext()
   const filteredAssets = userAssets.filter(asset=>asset.quote>0)
-  console.log(userAssets)
   const [securing, setSecuring] = useState<number>()
 
   return (

@@ -14,7 +14,7 @@ export const Pagination = ({cards, placeholder}) => {
     if (currentPage-1>0) {
       surroundingPages.push(0)
     }
-    if (currentPage-2>=0) {
+    if (currentPage-2>0) {
       surroundingPages.push(currentPage-2)
     }
     if (currentPage-1>=0) {

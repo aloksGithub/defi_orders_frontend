@@ -167,7 +167,7 @@ export function AppWrapper({ children }) {
           <ModalBody>
             <Text mb={'3'}>Welcome to the alpha version of Delimit. Please do not use a large
               amount of funds as we are still testing and fixing issues.</Text>
-            <Text fontSize={'sm'}>Note: All positions created in the alpha version will be liquidated by February 2023</Text>
+            <Text fontSize={'sm'}>Note: All positions created in the alpha version will be liquidated and returned by February 2023</Text>
           </ModalBody>
           <ModalFooter>
           </ModalFooter>

@@ -8,7 +8,7 @@ export const Heading1 = (props) => {
 
 export const Heading2 = (props) => {
   return (
-    <Text fontSize={{base: 'l', md: 'xl'}} as={'b'} {...props}></Text>
+    <Text fontSize={{base: 'l', sm: 'xl'}} as={'b'} {...props}></Text>
   )
 }
 

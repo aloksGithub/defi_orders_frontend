@@ -273,6 +273,7 @@ const UniversalSwap = () => {
 
   const swap = async () => {
     if (!wantedAsset) return
+    if (!contracts.positionManager) return
     setConverting(true)
     // @ts-ignore
     let assetsToConvert = childStateRef.current.getFormattedConditions()
