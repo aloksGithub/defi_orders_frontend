@@ -1,5 +1,5 @@
 import { useAppContext } from "../../components/Provider"
-import { Box, Flex, Text, Button, Grid, GridItem, NumberInput, NumberInputField, useDisclosure, Modal, ModalBody, ModalCloseButton, ModalContent, ModalHeader, ModalOverlay, Slider, SliderFilledTrack, SliderThumb, SliderTrack, useColorModeValue } from "@chakra-ui/react";
+import { Box, Flex, Text, Button, Grid, GridItem, NumberInput, NumberInputField, useDisclosure, Modal, ModalBody, ModalCloseButton, ModalContent, ModalHeader, ModalOverlay, Slider, SliderFilledTrack, SliderThumb, SliderTrack, useColorModeValue, ModalFooter } from "@chakra-ui/react";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from 'next/router'
 import { useWeb3React } from "@web3-react/core";
@@ -11,6 +11,8 @@ import LiquidationConditions from "../../components/LiquidationConditions";
 import { SupplyAssets } from "../../components/selectAssets";
 import { Heading2 } from "../../components/Typography";
 import { DangerButton, PrimaryButton, SecondaryButton } from "../../components/Buttons";
+import { getPrice, nFormatter } from "../../utils";
+import { BiErrorAlt } from "react-icons/bi";
 
 const WithdrawModal = ({position, refreshData, closeSelf}) => {
   const positionSize = position?.positionData.amount.toString()||0
@@ -80,15 +82,13 @@ const WithdrawModal = ({position, refreshData, closeSelf}) => {
 }
 
 const DepositModal = ({position, refreshData, closeSelf}) => {
-  const childStateRef = useRef()
+  const [assetsToConvert, setAssetsToConvert] = useState([])
   const {contracts, chainId, slippageControl: {slippage}, onError} = useAppContext()
   const {provider ,account} = useWeb3React()
   const [isDepositing, setDepositing] = useState(false)
   
   const supply = async () => {
     setDepositing(true)
-    // @ts-ignore
-    const assetsToConvert = childStateRef.current.getFormattedConditions()
     depositAgain(contracts,provider.getSigner(account), position, assetsToConvert, chainId, slippage).then(()=>{
       setTimeout(() => {
         setDepositing(false)
@@ -103,9 +103,13 @@ const DepositModal = ({position, refreshData, closeSelf}) => {
   }
 
   return (
-    <Flex alignItems={'center'} direction={'column'} maxH={'50vh'}>
-      <Box >
-        <SupplyAssets ref={childStateRef}/>
+    <Flex alignItems={'center'} direction={'column'} width={'100%'}>
+      <Box width={'100%'}>
+        <div style={{overflow: 'auto', maxHeight: '60vh'}}>
+        <Flex width={'100%'} justifyContent={'center'}>
+          <SupplyAssets onChange={setAssetsToConvert}/>
+        </Flex>
+        </div>
         <Flex justifyContent={'center'}><Button isLoading={isDepositing} colorScheme={'blue'} mt={'8'} onClick={supply}>Deposit</Button></Flex>
       </Box>
     </Flex>
@@ -113,26 +117,25 @@ const DepositModal = ({position, refreshData, closeSelf}) => {
 }
 
 const EditPosition = () => {
-  const childStateRef = useRef()
   const {contracts, chainId, supportedAssets, onError} = useAppContext()
   const {provider, account} = useWeb3React()
   const router = useRouter()
   const { id } = router.query
   // const position = userPositions?.find((position)=>position.positionId.toString()===id)
   const [position, setPosition] = useState(undefined)
-  const [rewards, setRewards] = useState([])
   const [initialLiquidationPoints, setInitialLiquidationPoints] = useState([])
   const [isClosing, setClosing] = useState(false)
-  const [isHarvesting, setHarvesting] = useState(false)
-  const [isCompounding, setCompounding] = useState(false)
   const [isAdjusting, setAdjusting] = useState(false)
   const [refresh, setRefresh] = useState(false)
   const { isOpen: isDepositOpen, onOpen: onDepositOpen, onClose: onDepositClose } = useDisclosure();
   const { isOpen: isWithdrawOpen, onOpen: onWithdrawOpen, onClose: onWithdrawClose } = useDisclosure();
   const { isOpen: isCloseOpen, onOpen: onCloseOpen, onClose: onCloseClose } = useDisclosure();
+  const [error, setError] = useState("")
+  const { isOpen: errorOpen, onOpen: openError, onClose: closeError } = useDisclosure();
   const [resetFlag, setResetFlag] = useState(false)
   // @ts-ignore
   const liquidationPoints = position?.positionData.liquidationPoints
+  const [liquidationConditions, setLiquidationConditions] = useState<any>(undefined)
 
   useEffect(() => {
     const fetch = async () => {
@@ -147,61 +150,37 @@ const EditPosition = () => {
 
   useEffect(() => {
     const formatLiquidationPoints = async () => {
-      const formattedLiquidationPoints = []
-      const addedIndices = []
-      for (const [index, point] of liquidationPoints.entries()) {
-        if (addedIndices.includes(index)) {
-          continue
-        }
-        const secondPointIndex = liquidationPoints.findIndex(point2=>point2.watchedToken===point.watchedToken && point.lessThan!=point2.lessThan)
-        let secondPoint
-        if (secondPointIndex!=-1) {
-          addedIndices.push(secondPointIndex)
-          secondPoint = liquidationPoints[secondPointIndex]
-        }
-        let above, below
-        if (point.lessThan) {
-          below = point?.liquidationPoint?ethers.utils.formatUnits(point.liquidationPoint.toString(), '18').toString():undefined
-          above = secondPoint?.liquidationPoint?ethers.utils.formatUnits(secondPoint?.liquidationPoint.toString()||'0', '18').toString():undefined
-        } else {
-          above = point?.liquidationPoint?ethers.utils.formatUnits(point.liquidationPoint.toString()||'0', '18').toString():undefined
-          below = secondPoint?.liquidationPoint?ethers.utils.formatUnits(secondPoint?.liquidationPoint.toString()||'0', '18').toString():undefined
-        }
-        // const below = point.lessThan?ethers.utils.formatUnits(point.liquidationPoint.toString()||'0', '18').toString():ethers.utils.formatUnits(secondPoint?.liquidationPoint.toString()||'0', '18').toString()
-        // const above = !point.lessThan?ethers.utils.formatUnits(point.liquidationPoint.toString()||'0', '18').toString():ethers.utils.formatUnits(secondPoint?.liquidationPoint.toString()||'0', '18').toString()
+      const allAssets =  Object.values(supportedAssets).flat()
+      const promises = liquidationPoints.map(async point=> {
+        let watchedAsset
         let price
         if (point.watchedToken===ethers.constants.AddressZero) {
-          price = position.usdcValue
+          watchedAsset = {
+            value: ethers.constants.AddressZero,
+            label: 'Value of self',
+            contract_name: 'Value of self',
+            contract_ticker_symbol: 'Self',
+            contract_address: ethers.constants.AddressZero,
+            underlying:[],
+            logo_url: 'https://www.svgrepo.com/show/99387/dollar.svg'
+          }
+          price = position?.usdcValue
         } else {
-          const {data: {price:priceValue}} = await (await fetch(`/api/tokenPrice?chainId=${chainId}&address=${point.watchedToken}`)).json()
-          price = priceValue
+          watchedAsset = allAssets.find((asset:any)=>asset.contract_address===point.watchedToken)
+          price = await getPrice(chainId, point.watchedToken)
         }
-        formattedLiquidationPoints.push({watchedToken: point.watchedToken, above, below, liquidateTo: point.liquidateTo, price:price.toFixed(3)})
-        
-      }
+        const convertTo = allAssets.find((asset:any)=>asset.contract_address===point.liquidateTo.toLowerCase())
+        const lessThan = point.lessThan
+        const liquidationPoint = ethers.utils.formatUnits(point.liquidationPoint.toString(), 18)
+        return {watchedAsset, convertTo, lessThan, liquidationPoint, price}
+      })
+      const formattedLiquidationPoints = await Promise.all(promises)
       setInitialLiquidationPoints(JSON.parse(JSON.stringify(formattedLiquidationPoints)))
     }
     if (liquidationPoints) {
       formatLiquidationPoints()
     }
   }, [liquidationPoints])
-
-  useEffect(() => {
-    const fetchRewards = async () => {
-      const {rewards, rewardAmounts} = await contracts?.positionManager.callStatic.harvestRewards(id)
-      const formattedRewards = await Promise.all(rewards.map(async (reward, index)=> {
-        const contract = new ethers.Contract(reward, erc20Abi, provider)
-        const decimals = await contract.decimals()
-        const name = await contract.name()  
-        const rewardAmount = rewardAmounts[index].div(ethers.utils.parseUnits("1.0", decimals)).toNumber()
-        return ({name, rewardAmount})
-      }))
-      setRewards(formattedRewards)
-    }
-    if (contracts) {
-      fetchRewards()
-    }
-  }, [provider])
 
   const resetConditions = () => {
     setResetFlag(!resetFlag)
@@ -222,32 +201,28 @@ const EditPosition = () => {
     })
   }
 
-  const harvestPosition = () => {
-    setHarvesting(true)
-    harvest(contracts, id).then(()=>{
-      setHarvesting(false)
-      refreshData()
-    }).catch((error)=>{
-      setHarvesting(false)
-      onError(error)
-    })
-  }
-
-  const compoundPosition = () => {
-    setCompounding(true)
-    compound(contracts, id).then(()=>{
-      setCompounding(false)
-      refreshData()
-    }).catch((error)=>{
-      onError(error)
-      setCompounding(false)
-    })
-  }
-
   const updateConditions = () => {
     setAdjusting(true)
-    // @ts-ignore
-    let formattedConditions = childStateRef.current.getFormattedConditions()
+    let invalidConditions = false
+    const formattedConditions = liquidationConditions.map((condition, index) => {
+      try {
+        return {
+          watchedToken: condition.watchedAsset.contract_address,
+          liquidateTo: condition.convertTo.contract_address,
+          lessThan: condition.lessThan,
+          liquidationPoint: ethers.utils.parseUnits(condition.liquidationPoint.toString(), 18)
+        }
+      } catch (error) {
+        console.log(error)
+        invalidConditions = true
+        setError(`Invalid data for liquidation condition ${index+1}`)
+      }
+    })
+    if (invalidConditions) {
+      openError()
+      setAdjusting(false)
+      return
+    }
     adjustLiquidationPoints(contracts, id, formattedConditions).then(() => {
       setTimeout(() => {
         setAdjusting(false)
@@ -261,85 +236,66 @@ const EditPosition = () => {
   }
 
   return (
-    <Flex marginTop={10} marginBottom={10} justifyContent={'center'}>
+    <Box maxWidth={'700px'} margin={'auto'}>
     <Box
       justifyContent={'space-between'}
       bg={useColorModeValue('white', 'gray.900')}
       boxShadow={'2xl'}
       rounded={'lg'}
       p={10}>
-      <Grid
-        w={'100%'}
-        gridTemplateRows={'30px 1fr 1fr'}
-        // templateRows='repeat(3, 1fr)'
-        templateColumns='repeat(3, 1fr)'
-        mb={'8'}
-        gap={10}
-      >
-        <GridItem colSpan={2}>
+        <Flex>
         <PrimaryButton size={'large'} mr={'4'} onClick={onDepositOpen}>Deposit</PrimaryButton>
         <SecondaryButton size={'large'} onClick={onWithdrawOpen}>Withdraw</SecondaryButton>
-        </GridItem>
-        <GridItem colStart={3} colSpan={1} display='flex' justifyContent={'end'}>
-        <DangerButton size={'large'} onClick={onCloseOpen}>Close</DangerButton>
-        </GridItem>
+        <Box marginLeft={'auto'}>
+          <DangerButton size={'large'} onClick={onCloseOpen}>Close</DangerButton>
+        </Box>
+        </Flex>
+      <Grid
+        w={'100%'}
+        gridTemplateRows={'1fr 1fr'}
+        templateColumns={{base: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)'}}
+        mb={'8'}
+        mt={'4'}
+        gap={10}
+      >
         <GridItem colSpan={1}>
           <Heading2>Asset</Heading2>
           <Text>{position?.name}</Text>
         </GridItem>
         <GridItem colSpan={1}>
+          <Box>
           <Heading2>Underlying Tokens</Heading2>
           {
             position?.underlying.map((token)=> <Text>{token}</Text>)
           }
+          </Box>
         </GridItem>
-        <GridItem rowStart={3} colSpan={1}>
+        <GridItem rowStart={2} colSpan={1}>
           <Heading2>Position Size</Heading2>
-          <Text>{position?.positionData.amountDecimal||0}</Text>
+          <Text>{nFormatter(position?.positionData.amountDecimal||0, 3)}</Text>
         </GridItem>
-        <GridItem rowStart={3} colSpan={1}>
+        <GridItem rowStart={2} colSpan={1}>
           <Heading2>Value USD</Heading2>
-          <Text fontSize='l'>${position?.usdcValue.toFixed(4)}</Text>
-        </GridItem>
-        <GridItem rowStart={3} colSpan={1}>
-          <>
-          <Heading2>Rewards</Heading2>
-          {
-            rewards.length>0?
-            rewards.map((reward) => {
-              return (
-                <Flex mb={'3'}>
-                  <Text mr={'2'}>{reward.name}:</Text>
-                  <Text>{reward.rewardAmount}</Text>
-                </Flex>
-              )
-            }):<Text>None</Text>
-          }
-          {
-            rewards.length>0?
-            
-            <Flex>
-            <Button mr={'3'} isLoading={isHarvesting} colorScheme={'blue'} maxW={'100'} size={'sm'} onClick={harvestPosition}>Harvest</Button>
-            <Button isLoading={isCompounding} colorScheme={'blue'} maxW={'100'} size={'sm'} onClick={compoundPosition}>Compound</Button>
-            </Flex>:<></>
-          }
-          </>
+          <Text fontSize='l'>${nFormatter(position?.usdcValue, 3)}</Text>
         </GridItem>
       </Grid>
       <Heading2>Liquidation Conditions</Heading2>
-      {/* @ts-ignore */}
-      <LiquidationConditions assetPrice={position?.usdcValue} initialLiquidationPoints={initialLiquidationPoints} resetFlag={resetFlag} ref={childStateRef}></LiquidationConditions>
+      <Flex margin={'auto'} marginTop={{base:'0px', sm: '-40px'}}>
+      <LiquidationConditions
+      assetPrice={position?.usdcValue} initialLiquidationPoints={initialLiquidationPoints}
+      liquidationPoints={liquidationConditions} onChangeConditions={setLiquidationConditions} resetFlag={resetFlag}></LiquidationConditions>
+      </Flex>
       <Flex mt={'4'} justifyContent={'center'}>
         <PrimaryButton isLoading={isAdjusting} mr={'4'} onClick={updateConditions}>Update Conditions</PrimaryButton>
         <SecondaryButton rounded={'full'} onClick={resetConditions}>Reset Conditions</SecondaryButton>
       </Flex>
     </Box>
-    <Modal isCentered size={'3xl'} isOpen={isDepositOpen} onClose={onDepositClose}>
+    <Modal isCentered size={'md'} isOpen={isDepositOpen} onClose={onDepositClose}>
       <ModalOverlay
         bg='blackAlpha.300'
         backdropFilter='blur(10px)'
       />
-      <ModalContent padding={'5'}>
+      <ModalContent paddingBlock={'5'} margin={'3'}>
         <ModalHeader>Deposit</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
@@ -377,7 +333,27 @@ const EditPosition = () => {
         </ModalBody>
       </ModalContent>
     </Modal>
-    </Flex>
+      <Modal size={'sm'} isCentered isOpen={errorOpen} onClose={closeError}>
+        <ModalOverlay
+          bg='blackAlpha.300'
+          backdropFilter='blur(10px)'
+        />
+        <ModalContent>
+          <ModalHeader>
+            <Flex alignItems={'center'}>
+              {<BiErrorAlt color='red' fontSize={'2rem'}/>}
+              <Text ml={'4'}>Error</Text>
+            </Flex>
+          </ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Text>{error}</Text>
+          </ModalBody>
+          <ModalFooter>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    </Box>
   )
 }
 

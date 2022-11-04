@@ -1,30 +1,168 @@
 import { DeleteIcon, AddIcon } from "@chakra-ui/icons";
-import { useDisclosure, Flex, TableContainer, Table, Text, Thead, Tr, Th, Tbody, Td, NumberInput, NumberInputField, Button, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, Box } from "@chakra-ui/react";
-import Select from "react-select";
+import { useDisclosure, Flex, Text, NumberInput, NumberInputField, Button, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, Box, Input, Skeleton } from "@chakra-ui/react";
 import { ethers } from "ethers";
-import { forwardRef, useState, useImperativeHandle } from "react"
+import { useState, useEffect } from "react"
 import { useAppContext } from "./Provider";
+import { ChevronDownIcon } from "@chakra-ui/icons";
+import { AiOutlineReload } from "react-icons/ai";
 
-export const SupplyAssets = forwardRef((props, _ref) => {
-  const {userAssets} = useAppContext()
-  const [error, setError] = useState("")
+export const SelectAsset = ({assets, asset, onSelect, placeHolder='Select'}) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  
-  const filteredAssets = userAssets.filter(asset=>asset.quote>0)
-  const [assetsToConvert, setAssetsToConvert] = useState<any>([{asset: undefined, tokenDecimals: undefined, tokensAvailable: undefined, usdcValue: undefined, tokensSupplied: undefined}])
-  const assetOptions = filteredAssets.map(asset=>{
-    return {
-      value: asset.contract_address,
-      label: asset.contract_name
-    }
-  })
-  const addAsset = () => {
-    setAssetsToConvert([...assetsToConvert, {asset: undefined, tokenDecimals: undefined, tokensAvailable: undefined, usdcValue: undefined, tokensSupplied: undefined}])
+  const [filter, setFilter] = useState('')
+  const [filteredAssets, setFitleredAssets] = useState(assets)
+
+  const onSelected = (asset) => {
+    onSelect(asset)
+    closeModal()
   }
 
+  const closeModal = () => {
+    setFilter('')
+    onClose()
+  }
+
+  useEffect(() => {
+    if (assets.length>0) {
+      const newFiltered = assets.filter(asset=> {
+        if (asset.contract_name.toLowerCase().includes(filter.toLowerCase()) || asset.contract_address.toLowerCase().includes(filter.toLowerCase())) {
+          return true
+        }
+        return false
+      })
+      setFitleredAssets(newFiltered)
+    }
+  }, [filter, assets])
+
+  const onInput = (input:string) => {
+    setFilter(input)
+  }
+
+  return (
+    <Box>
+      <Box _hover={{cursor:'pointer'}} onClick={onOpen}>
+      {
+        asset?.contract_ticker_symbol?
+        <Flex alignItems={'center'} backgroundColor={'gray.200'} justifyContent={'center'}
+        _hover={{backgroundColor: 'gray.300'}} paddingInline='2' paddingBlock={'1'} borderRadius={'2xl'}>
+          <img src={asset.logo_url} style={{width: "20px", height: "20px"}}/>
+          <Text ml={'3'} fontSize={'l'}>{asset.contract_ticker_symbol} <ChevronDownIcon/></Text>
+        </Flex>:
+        <Flex alignItems={'center'} backgroundColor={'gray.200'} justifyContent={'center'}
+        _hover={{backgroundColor: 'gray.300'}} paddingInline='2' paddingBlock={'1'} borderRadius={'2xl'}>
+          <Text fontSize={'l'}>{placeHolder} <ChevronDownIcon/></Text>
+        </Flex>
+      }
+      </Box>
+      <Modal isCentered isOpen={isOpen} onClose={closeModal}>
+      <ModalOverlay
+        bg='blackAlpha.300'
+        backdropFilter='blur(10px)'
+      />
+        <ModalContent>
+          <ModalHeader>Select {placeHolder==='Select'?'asset':placeHolder}</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody padding={'6'}>
+          <Input mb={'4'} placeholder='Search asset by name or address' onChange={(event)=>onInput(event.target.value)}/>
+          <Box overflow={'auto'} maxHeight={'400px'} marginTop={'3'}>
+            {
+              filteredAssets.map(asset=> {
+                return (
+                  <Flex _hover={{cursor:'pointer', backgroundColor: 'gray.100'}} padding='2' onClick={()=>onSelected(asset)}>
+                    <img src={asset.logo_url} style={{width: "20px", height: "20px"}}/>
+                    <Text ml={'3'}>{asset.contract_name}</Text>
+                  </Flex>
+                )
+              })
+            }
+            </Box>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+    </Box>
+  )
+}
+
+const Asset = ({i, asset, assets, setAsset, setSupply, removeAsset}) => {
+  const {userAssets:{loading}} = useAppContext()
+
+  const onChangeSupply = (tokens) => {
+    if (!asset.balance) return
+    setSupply(i, tokens)
+  }
+
+  const setMax = () => {
+    if (!asset.balance) return
+    onChangeSupply(+ethers.utils.formatUnits(asset.balance, asset.contract_decimals))
+  }
+
+  const onSelect = (asset) => {
+    setAsset(i, asset)
+  }
+
+  return (
+    <Flex width={'100%'} marginBlock={'2'} padding={'4'} justifyContent={'space-between'} alignItems={'center'} borderRadius={'2xl'} backgroundColor={'#f7f7f7'}>
+      <Box>
+        <SelectAsset asset={asset} onSelect={onSelect} assets={assets}/>
+        <Flex alignItems={'center'} mt={'3'}>
+        <Text textAlign={'center'} borderRadius={'lg'} width={'2rem'} padding={'1'}
+        onClick={()=>removeAsset(i)}
+        _hover={{cursor: 'pointer', backgroundColor: 'red.400'}} backgroundColor='red.300'><DeleteIcon/></Text>
+        </Flex>
+      </Box>
+      <Flex flexDirection={'column'} alignItems={'end'} textAlign={'end'}>
+        <Flex>
+          Balance: {!loading?(+ethers.utils.formatUnits(asset?.balance||0, asset?.contract_decimals||1)).toFixed(3):<Skeleton ml={'2'}>Temporary</Skeleton>}
+          <Text paddingInline={'1'} backgroundColor='blue.500' color={'white'} ml={'2'} _hover={{cursor: 'pointer', backgroundColor:'blue.300'}} onClick={setMax}>Max</Text>
+        </Flex>
+        <NumberInput value={asset.tokensSupplied} size='lg' maxW={32} borderStyle='hidden'
+        min={0} max={+ethers.utils.formatUnits(asset?.balance||0, asset?.contract_decimals||1)}
+        defaultValue={0} onChange={(valueAsNumber)=>onChangeSupply(valueAsNumber)}>
+          <NumberInputField fontSize={'2xl'} textAlign={'end'} pr={'0'}
+          boxShadow='none' outline={'none'} borderStyle='hidden'
+          _hover={{borderStyle: 'hidden'}} _active={{borderStyle: 'hidden', borderTopColor: 'pink.100', borderColor: 'gray.100', boxShadow: 'none'}}/>
+        </NumberInput>
+        {!loading?<Text>${(asset.usdcValue||0).toFixed(3)}</Text>:<Skeleton>Temporary</Skeleton>}
+      </Flex>
+    </Flex>
+  )
+}
+
+export const SupplyAssets = ({onChange}) => {
+  const {userAssets, reloadAssets} = useAppContext()
+  const {data:assets, loading, error:userAssetsError} = userAssets
+
+  const [assetsToConvert, setAssetsToConvert] = useState<any>([{}])
+  const filteredAssets = assets?.filter(asset=>!(assetsToConvert.filter(toConvert=>toConvert.contract_address===asset.contract_address).length>0))
+
+  useEffect(() => {
+    if (assets.length>0 && !loading && !userAssetsError) {
+      const newAssets = assetsToConvert.map(asset=> {
+        const matchingAsset = assets.find(reloadedAsset=>reloadedAsset.contract_address===asset.contract_address)
+        if (matchingAsset && matchingAsset.balance) {
+          const balance = ethers.utils.formatUnits(matchingAsset.balance, matchingAsset.contract_decimals)
+          const usdAvailable = matchingAsset.quote
+          const usdSupplied = (usdAvailable*asset.tokensSupplied/parseFloat(balance))
+          return {...asset, balance:matchingAsset.balance, quote:matchingAsset.quote, usdcValue: usdSupplied}
+        } else {return {}}
+      })
+      setAssetsToConvert(newAssets)
+    } else {
+
+    }
+  }, [userAssets])
+
+  useEffect(() => {
+    onChange(assetsToConvert)
+  }, [assetsToConvert])
+
+  const addAsset = () => {
+    setAssetsToConvert([...assetsToConvert, {}])
+  }
   const removeAsset = (i: number) => {
     if (assetsToConvert.length===1) return
     const tempAssets = [...assetsToConvert]
+    tempAssets[i].tokensSupplied = 0
+    tempAssets[i].usdcValue = 0
     tempAssets.splice(i, 1)
     setAssetsToConvert(tempAssets)
   }
@@ -32,7 +170,7 @@ export const SupplyAssets = forwardRef((props, _ref) => {
   const setSupply = (i:number, tokens: number) => {
     const temp = [...assetsToConvert]
     temp[i].tokensSupplied = tokens
-    const assetDetails = filteredAssets.find(asset=>asset.contract_address===temp[i].asset)
+    const assetDetails = temp[i]
     const balance = ethers.utils.formatUnits(assetDetails.balance, assetDetails.contract_decimals)
     const usdAvailable = assetDetails.quote
     const usdSupplied = (usdAvailable*tokens/parseFloat(balance))
@@ -42,88 +180,30 @@ export const SupplyAssets = forwardRef((props, _ref) => {
 
   const setAsset = (i:number, asset:string) => {
     const temp = [...assetsToConvert]
-    temp[i].asset = asset
-    const assetDetails = filteredAssets.find(asset=>asset.contract_address===temp[i].asset)
+    temp[i] = asset
+    const assetDetails = temp[i]
     const balance = ethers.utils.formatUnits(assetDetails.balance, assetDetails.contract_decimals)
     temp[i].tokensAvailable = balance
     temp[i].tokenDecimals = assetDetails.contract_decimals
+    temp[i].tokensSupplied = 0
     setAssetsToConvert(temp)
+    reloadAssets()
   }
 
-  useImperativeHandle(_ref, () => ({
-    getFormattedConditions: () => {
-      for (const asset of assetsToConvert) {
-        if (!asset.asset || !asset.tokensSupplied || !asset.usdcValue) {
-          setError(`Invalid data`)
-          onOpen()
-          return
-        }
-        asset.tokensBn = ethers.utils.parseUnits(asset.tokensSupplied.toString(), asset.tokenDecimals)
-      }
-      return assetsToConvert
-    }
-  }))
-
   return (
-    <Flex>
-      <div style={{ overflowY: 'auto', maxWidth: "100vw", maxHeight: "400px" }}>
-        <Table size='lg'>
-          <Thead backgroundColor={'cyan.50'}>
-            <Tr>
-              <Th>Asset</Th>
-              <Th>USD Supplied</Th>
-              <Th>Tokens Supplied</Th>
-              <Th>Action</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {
-              assetsToConvert.map((asset, index) => asset?(
-                <Tr>
-                  <Td>
-                    <Select
-                    menuPosition="fixed"
-                    options={assetOptions}
-                    onChange={(newValue)=>setAsset(index, newValue.value)}
-                    />
-                  </Td>
-                  <Td>${(asset?.usdcValue || 0).toFixed(3)}</Td>
-                  <Td>
-                    <NumberInput isDisabled={asset.asset==undefined} maxW={32} min={0} max={asset?.tokensAvailable||99999999}
-                    onChange={(valueString)=>setSupply(index, parseFloat(valueString))}>
-                      <NumberInputField backgroundColor={'white'}></NumberInputField>
-                    </NumberInput>
-                  </Td>
-                  <Td>
-                    <Flex justifyContent={'center'}>
-                    <DeleteIcon _hover={{cursor: 'pointer'}} onClick={()=>removeAsset(index)}/>
-                    </Flex>
-                  </Td>
-                </Tr>
-              ):<></>)
-            }
-            <Tr>
-              <Td></Td>
-              <Td></Td>
-              <Td></Td>
-              <Td><Button onClick={addAsset}><AddIcon/></Button></Td>
-            </Tr>
-          </Tbody>
-        </Table>
-      </div>
-      <Modal isCentered isOpen={isOpen} onClose={onClose}>
-      <ModalOverlay
-        bg='blackAlpha.300'
-        backdropFilter='blur(10px)'
-      />
-        <ModalContent>
-          <ModalHeader>Error</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <Text mb={4}>{error}</Text>
-          </ModalBody>
-        </ModalContent>
-      </Modal>
-    </Flex>
+      <Flex padding={'5'} direction={'column'} width={'100%'} maxWidth='450px' alignItems={'center'} backgroundColor='white' borderRadius={'2xl'}>
+        <Flex width={'100%'} justifyContent='space-between' alignItems={'center'}>
+          <Button onClick={addAsset} paddingInline={'4'} colorScheme={'blue'}><AddIcon/></Button>
+        <Text>USD Supplied: ${assetsToConvert.reduce((a, b)=>a+(b.usdcValue||0), 0)?.toFixed(3)||0}</Text>
+        <Flex p={'2'} borderRadius={'lg'} ml={'3'} backgroundColor={'gray.100'} _hover={{cursor:'pointer', backgroundColor: 'gray.300'}} onClick={reloadAssets}>
+        <AiOutlineReload fontSize={'1.2rem'}></AiOutlineReload>
+        </Flex>
+        </Flex>
+        {
+          assetsToConvert.map((asset, index) => asset?(
+            <Asset asset={asset} i={index} assets={filteredAssets} removeAsset={removeAsset} setSupply={setSupply} setAsset={setAsset}></Asset>
+          ):<></>)
+        }
+      </Flex>
   )
-})
+}

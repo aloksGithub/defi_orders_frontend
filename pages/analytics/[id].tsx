@@ -7,6 +7,7 @@ import { fetchPosition, getGraphData } from "../../contractCalls/dataFetching";
 import { fetchImportantPoints } from "../../contractCalls/dataFetching";
 import { LineChart, Line, CartesianGrid, Tooltip, XAxis, YAxis } from 'recharts';
 import { Heading2 } from "../../components/Typography";
+import { nFormatter } from "../../utils";
 
 const Analytics = () => {
   const {contracts} = useAppContext()
@@ -18,8 +19,6 @@ const Analytics = () => {
   const [roi, setRoi] = useState<string>()
   const [pnl, setPnl] = useState<string>()
   const [graphData, setGraphData] = useState(undefined)
-
-  console.log(graphData)
 
   useEffect(() => {
     const fetch = async () => {
@@ -49,36 +48,51 @@ const Analytics = () => {
   }, [contracts, provider, id])
 
   return (
-    <Flex>
+    <Box maxWidth={'600px'} margin={'auto'}>
     <Box
       maxWidth={'100vw'}
       marginInline={'auto'}
-      marginBlock={'10'}
       justifyContent={'space-between'}
       bg={useColorModeValue('white', 'gray.900')}
       boxShadow={'2xl'}
       rounded={'lg'}
-      p={10}>
-      <StatGroup mb={'10'}>
-        <Stat>
+      p={{base: 3, sm: 6, md: 10}}>
+      <Grid gridTemplateColumns={{base: '1fr', sm: 'repeat(2, 1fr)'}} gap={'4'} mb={'6'}>
+        <Stat display='flex' padding={'4'} backgroundColor='gray.100' borderRadius={'xl'}>
           <StatLabel fontSize={'l'}>Asset Value</StatLabel>
-          <StatNumber fontSize={{base: 'xl', md: '2xl'}}>${position?.usdcValue.toFixed(3)}</StatNumber>
+          {
+            position?.usdcValue?<StatNumber fontSize={{base: 'xl', md: '2xl'}}>${nFormatter(position?.usdcValue, 3)}</StatNumber>:
+            <Skeleton>Temporary</Skeleton>
+          }
         </Stat>
-        <Stat>
+        <Stat display='flex' padding={'4'} backgroundColor='gray.100' borderRadius={'xl'}>
           <StatLabel fontSize={'l'}>PnL</StatLabel>
-          <Flex direction={{base: 'column', md: 'row'}} >
-          <StatNumber fontSize={{base: 'xl', md: '2xl'}} mr={'3'}>${pnl}</StatNumber>
-          <StatHelpText display={'flex'} alignItems={'end'} justifyContent={'start'}>
-            <StatArrow type={+roi<0?'decrease':'increase'} />
-            {roi}%
-          </StatHelpText>
+          <Flex>
+          {
+            roi?<Flex>
+              <StatNumber fontSize={{base: 'xl', md: '2xl'}} mr={'3'}>${pnl}</StatNumber>
+              <StatHelpText display={'flex'} alignItems={'end'} justifyContent={'start'}>
+                <StatArrow type={+roi<0?'decrease':'increase'} />
+                {roi}%
+              </StatHelpText>
+            </Flex>:
+            <Skeleton>Temporary</Skeleton>
+          }
           </Flex>
         </Stat>
-        <Stat>
+        <Stat display='flex' padding={'4'} backgroundColor='gray.100' borderRadius={'xl'}>
           <StatLabel fontSize={'l'}>Projected APY</StatLabel>
-          <StatNumber fontSize={{base: 'xl', md: '2xl'}}>0%</StatNumber>
+          {
+            position?.usdcValue?<StatNumber fontSize={{base: 'xl', md: '2xl'}}>0%</StatNumber>:
+            <Skeleton>Temporary</Skeleton>
+          }
+          
         </Stat>
-      </StatGroup>
+        <Stat display='flex' padding={'4'} backgroundColor='gray.100' borderRadius={'xl'}>
+          <StatLabel fontSize={'l'}>Advertised APY</StatLabel>
+          Coming soon
+        </Stat>
+      </Grid>
       <Heading2>Historical Position Value</Heading2>
       <Box style={{ overflow: 'auto', maxWidth: '80vw'}} mt={'6'} mb={'12'}>
       {
@@ -100,11 +114,11 @@ const Analytics = () => {
       <Grid
         w={'100%'}
         gridTemplateRows={'80px'}
-        templateColumns='repeat(3, 1fr)'
+        templateColumns={{md: 'repeat(3, 1fr)', base: 'repeat(2, 1fr)'}}
         mb={'8'}
         gap={10}
       >
-        <GridItem colSpan={1}>
+        <GridItem>
           <Heading2>Asset</Heading2>
           {
             position?<Text>{position?.name}</Text>:
@@ -112,7 +126,7 @@ const Analytics = () => {
           }
           
         </GridItem>
-        <GridItem colSpan={1}>
+        <GridItem>
           <Heading2>Underlying Tokens</Heading2>
           {
             position?position.underlying.map((token)=> <Text>{token}</Text>):
@@ -141,8 +155,8 @@ const Analytics = () => {
                   <Tr>
                     <Td>{transaction.date}</Td>
                     <Td>{transaction.transactionType}</Td>
-                    <Td>{transaction.tokens}</Td>
-                    <Td>${transaction.usdc.toFixed(5)}</Td>
+                    <Td>{nFormatter(transaction.tokens, 3)}</Td>
+                    <Td>${nFormatter(transaction.usdc, 3)}</Td>
                   </Tr>
                 )
               })
@@ -151,7 +165,7 @@ const Analytics = () => {
         </Table>
       </TableContainer>
     </Box>
-    </Flex>
+    </Box>
   )
 }
 

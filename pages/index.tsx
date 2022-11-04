@@ -19,25 +19,28 @@ import {
   Heading,
   Stack,
   useColorModeValue,
+  ModalFooter,
 } from '@chakra-ui/react'
 import { useEffect, useState, useRef } from "react"
 import { ArrowBackIcon } from "@chakra-ui/icons"
 import { ethers } from "ethers";
-import positionManagerAbi from "../constants/abis/PositionManager.json"
 import erc20Abi from "../constants/abis/ERC20.json"
 import bankAbi from "../constants/abis/BankBase.json"
-import deploymentAddresses from "../constants/deployments.json"
 import { useWeb3React } from "@web3-react/core";
 import { depositNew } from "../contractCalls/transactions";
 import LiquidationConditions from "../components/LiquidationConditions";
 import { useRouter } from "next/router";
 import { Pagination } from "../components/Pagination";
-import { Heading1, Heading2 } from "../components/Typography";
+import { Heading2 } from "../components/Typography";
+import { getBlockExplorerUrl, nFormatter } from "../utils";
+import { BiErrorAlt } from "react-icons/bi"
 
 const Card = ({asset, index, setSecuring}) => {
+  const {chainId} = useAppContext()
+
   return (
-    <Box py={6} marginInline={'4'} minW={'300px'}>
-      <Flex direction={'column'}
+    <Box _hover={{transform: 'scale(1.05)'}} margin={'6'} minW={'300px'} sx={{'transition': '0.4s'}}>
+      <Flex _hover={{backgroundColor: '#f5f5f5'}} direction={'column'}
         justifyContent={'space-between'}
         h={'100%'}
         w={'full'}
@@ -46,26 +49,52 @@ const Card = ({asset, index, setSecuring}) => {
         rounded={'lg'}
         p={6}
         textAlign={'center'}>
-        <Flex mb={'3'} justifyContent={'center'} alignItems={'center'}>
-        <img src={asset.logo_url} style={{width: "20px", height: "20px"}}/>
-        <Heading ml={'3'} fontSize={'xl'} fontFamily={'body'}>
-        {asset.contract_name}
+        <Flex mb={'3'} pb={'3'} justifyContent={'center'} alignItems={'center'}>
+        <img src={asset.logo_url} style={{width: "30px", height: "30px"}}/>
+        <a href={getBlockExplorerUrl(chainId, asset.contract_address)} target="_blank" rel="noopener noreferrer">
+        <Heading _hover={{color: 'blue.500'}} ml={'3'} fontSize={'xl'}>
+        {asset.contract_ticker_symbol}
         </Heading>
+        </a>
         </Flex>
-        <Flex mb={'3'} flexDir={'column'} alignItems={'start'}>
-        <Heading fontSize={'m'} >
-        Balance
-        </Heading>
-        {(asset.balance/10**asset.contract_decimals).toFixed(3)}
-        </Flex>
-        <Flex mb={'3'} flexDir={'column'} alignItems={'start'}>
-        <Heading fontSize={'m'} >
-        USD Value
-        </Heading>
-        ${asset.quote.toFixed(3)}
+        <Flex justifyContent={'space-between'}>
+          <Box>
+          <Flex mb={'3'} flexDir={'column'} alignItems={'start'}>
+            <Text as='b'>
+              Balance
+            </Text>
+            {nFormatter((asset.balance/10**asset.contract_decimals), 3)}
+          </Flex>
+          <Flex mb={'3'} flexDir={'column'} alignItems={'start'}>
+            <Text as='b'>
+            USD Value
+            </Text>
+            ${nFormatter(asset.quote, 2)}
+          </Flex>
+          </Box>
+          {
+            asset.underlying.length>0?
+            <Box>
+              <Text textAlign={'start'} as='b'>Underlying</Text>
+              {
+                asset.underlying.map(token=> {
+                  return (
+                    <Flex alignItems={'center'} paddingBlock={'1'} marginBlock={'1'} >
+                      <img src={token.logo_url} style={{width: "20px", height: "20px", borderRadius: '15px'}}/>
+                      <a href={getBlockExplorerUrl(chainId, token.address)} target="_blank" rel="noopener noreferrer">
+                      <Text _hover={{color: 'blue.500', cursor: 'pointer'}} display={'flex'} alignItems={'center'} ml={'2'} mr={'1'}>
+                        {token.symbol}
+                      </Text>
+                      </a>
+                    </Flex>
+                  )
+                })
+              }
+            </Box>:<></>
+          }
         </Flex>
 
-        <Stack mt={8} direction={'row'} spacing={4}>
+        <Stack margin={'auto'} width={'60%'} mt={8} direction={'row'} spacing={4}>
         <Button
           onClick={()=>setSecuring(index)}
           flex={1}
@@ -82,7 +111,7 @@ const Card = ({asset, index, setSecuring}) => {
           _focus={{
             bg: 'blue.500',
           }}>
-          Secure
+          Open Position
         </Button>
         </Stack>
       </Flex>
@@ -103,6 +132,20 @@ const SecureAsset = ({asset, setSecuring}) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [currentUsd, setCurrentUsd] = useState('0')
   const [processing, setProcessing] = useState(false)
+  const [liquidationConditions, setLiquidationConditions] = useState([{
+    watchedAsset: {
+      "value": "0x0000000000000000000000000000000000000000",
+      "label": "Value of self",
+      "contract_name": "Value of self",
+      "contract_ticker_symbol": "Self",
+      "contract_address": "0x0000000000000000000000000000000000000000",
+      "underlying": [],
+      "logo_url": "https://www.svgrepo.com/show/99387/dollar.svg"
+    },
+    convertTo: undefined,
+    lessThan: false,
+    liquidationPoint: 0
+  }])
   const router = useRouter()
 
   useEffect(() => {
@@ -156,8 +199,25 @@ const SecureAsset = ({asset, setSecuring}) => {
 
   const secure = async () => {
     setProcessing(true)
-    // @ts-ignore
-    const formattedConditions = childStateRef.current.getFormattedConditions()
+    let invalidConditions = false
+    const formattedConditions = liquidationConditions.map((condition, index) => {
+      try {
+        return {
+          watchedToken: condition.watchedAsset.contract_address,
+          liquidateTo: condition.convertTo.contract_address,
+          lessThan: condition.lessThan,
+          liquidationPoint: condition.liquidationPoint
+        }
+      } catch {
+        invalidConditions = true
+        setError(`Invalid data for liquidation condition ${index+1}`)
+      }
+    })
+    if (invalidConditions) {
+      onOpen()
+      setProcessing(false)
+      return
+    }
     const bank = banks.find(bank=>bank.value.toString()===selectedBank)
     if (!bank) {
       setError(`Bank is not specified`)
@@ -198,7 +258,7 @@ const SecureAsset = ({asset, setSecuring}) => {
     bg={useColorModeValue('white', 'gray.900')}
     boxShadow={'2xl'}
     rounded={'lg'}
-    p={10}>
+    p={{base:4, md: 8}}>
       <Grid
         w={'100%'}
         gridTemplateRows={'30px 1fr 1fr'}
@@ -241,22 +301,37 @@ const SecureAsset = ({asset, setSecuring}) => {
         </GridItem>
       </Grid>
       <Heading2>Liquidation Conditions</Heading2>
-      {/* @ts-ignore */}
-      <LiquidationConditions ref={childStateRef} assetPrice={currentUsd}></LiquidationConditions>
-      <Flex mt={'10'} justifyContent={'end'}>
-      <Button colorScheme='blue' isLoading={processing} rounded={'full'} mr={'4'} size='lg' onClick={secure}>Secure</Button>
+      <Flex maxWidth={'500px'} margin={'auto'} marginTop={'-40px'}>
+        <LiquidationConditions
+        liquidationPoints = {liquidationConditions}
+        onChangeConditions={setLiquidationConditions} resetFlag={undefined} assetPrice={currentUsd}></LiquidationConditions>
       </Flex>
-      <Modal isCentered isOpen={isOpen} onClose={onClose}>
-      <ModalOverlay
-        bg='blackAlpha.300'
-        backdropFilter='blur(10px)'
-      />
+      <Flex marginBlock={'10'} justifyContent={'center'}>
+      <Button height={'20'} bgGradient='linear(to-l, #822bd9, #3db0f2)' width={'70%'} maxWidth={'300px'}
+      justifyContent={'center'} alignItems={'center'} borderRadius={'2xl'} boxShadow={'dark-lg'}
+      _hover={{cursor: 'pointer', bgGradient: 'linear(to-l, #6823ad, #3db0f2)'}}
+      onClick={secure}>
+        <Text fontSize={'3xl'} color={'white'}>Secure</Text>
+      </Button>
+      </Flex>
+      <Modal size={'sm'} isCentered isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay
+          bg='blackAlpha.300'
+          backdropFilter='blur(10px)'
+        />
         <ModalContent>
-          <ModalHeader>Error</ModalHeader>
+          <ModalHeader>
+            <Flex alignItems={'center'}>
+              {<BiErrorAlt color='red' fontSize={'2rem'}/>}
+              <Text ml={'4'}>Error</Text>
+            </Flex>
+          </ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <Text mb={4}>{error}</Text>
+            <Text>{error}</Text>
           </ModalBody>
+          <ModalFooter>
+          </ModalFooter>
         </ModalContent>
       </Modal>
     </Box>
@@ -264,20 +339,20 @@ const SecureAsset = ({asset, setSecuring}) => {
 }
 
 const Assets = () => {
-  const {userAssets} = useAppContext()
-  const filteredAssets = userAssets.filter(asset=>asset.quote>0)
+  const {userAssets, supportedAssets} = useAppContext()
+  const {data:assets, loading, error} = userAssets
   const [securing, setSecuring] = useState<number>()
 
   return (
-    <Flex marginBlock={10} justifyContent={'center'}>
+    <Flex justifyContent={'center'}>
       {
         securing!=undefined?
-        <SecureAsset asset={userAssets[securing]} setSecuring={setSecuring} />:        
+        <SecureAsset asset={assets[securing]} setSecuring={setSecuring} />:        
         <Flex direction={'column'} justifyContent={'center'}>
-          <Heading1 textAlign={'center'}>Your Assets</Heading1>
           <Pagination
-          cards={filteredAssets?.map((asset, index)=><Card asset={asset} index={index} setSecuring={setSecuring}></Card>)}
-          placeholder={<Text mt={'20'}>No Assets detected</Text>}></Pagination>
+          cards={assets?.map((asset, index)=><Card asset={asset} index={index} setSecuring={setSecuring}></Card>)}
+          placeholder={<Text mt={'20'}>{!('ERC20' in supportedAssets)?'Website still deploying, try reloading in a minute':'No Assets detected'}</Text>}
+          loading={loading}></Pagination>
           <Flex wrap={'wrap'} justifyContent={'center'} alignContent={'stretch'} maxW={'1000px'}>
           </Flex>
         </Flex>

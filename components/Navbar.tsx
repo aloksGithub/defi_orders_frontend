@@ -37,16 +37,16 @@ import {CSSTransition} from 'react-transition-group'
 
 const Links = [
   {
-    label: "Your Assets",
+    label: "Swap",
+    href: "/UniversalSwap"
+  },
+  {
+    label: "Assets",
     href: "/"
   },
   {
-    label: "Your Positions",
+    label: "Positions",
     href: "/Positions"
-  },
-  {
-    label: "Get Assets",
-    href: "/UniversalSwap"
   }
 ];
 
@@ -56,9 +56,8 @@ const NavLink = ({ children }: { children: any }) => {
     <Link href={children.href}>
       <Flex
       alignItems={'center'}
-      height='100%'
-      minHeight={'50px'}
-      px={5}
+      py={2}
+      px={3}
       rounded={'md'}
       bg={children.href===asPath?useColorModeValue('gray.200', 'gray.700'):undefined}
       _hover={{
@@ -121,10 +120,10 @@ const Wallet = () => {
             </MenuButton>
             <MenuList>
               {
-                supportedChains.map(id => {
+                supportedChains.map((id, index) => {
                   const logoUrl = chainLogos[id]
                   return (
-                    <MenuItem onClick={()=>activateController(connector, id)} paddingBlock={2}>
+                    <MenuItem key={`menuItem_${index}`} onClick={()=>activateController(connector, id)} paddingBlock={2}>
                       <Flex alignItems={"center"}>
                         <img src={logoUrl} style={{width: "20px", height: "20px"}}/>
                         <Text paddingLeft={3}>{chainNames[id]}</Text>
@@ -167,11 +166,11 @@ const Wallet = () => {
         <ModalHeader>Connect Wallet</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          {connectors.map(connector=>{
+          {connectors.map((connector, index)=>{
             const walletName = getName(connector)
             const logoUrl = walletLogos[walletName]
             return (
-              <Flex marginBlock={5} cursor={"pointer"} padding={3} rounded={'md'}
+              <Flex key={`wallet_${index}`} marginBlock={5} cursor={"pointer"} padding={3} rounded={'md'}
               onClick={()=>activateController(connector, undefined)}
               _hover={{
                 textDecoration: 'none',
@@ -206,25 +205,25 @@ export function Navbar() {
     onCloseSettings()
   }
   const wrapperRef = useRef(null);
-  useOutsideAlerter(wrapperRef);
+  // useOutsideAlerter(wrapperRef);
   
-  function useOutsideAlerter(ref) {
-    useEffect(() => {
-      function handleClickOutside(event) {
-        if (ref.current && !ref.current.contains(event.target)) {
-          onClose()
-        }
-      }
-      document.addEventListener("mousedown", handleClickOutside);
-      return () => {
-        document.removeEventListener("mousedown", handleClickOutside);
-      };
-    }, [ref]);
-  }
+  // function useOutsideAlerter(ref) {
+  //   useEffect(() => {
+  //     function handleClickOutside(event) {
+  //       if (ref.current && !ref.current.contains(event.target)) {
+  //         onClose()
+  //       }
+  //     }
+  //     document.addEventListener("mousedown", handleClickOutside);
+  //     return () => {
+  //       document.removeEventListener("mousedown", handleClickOutside);
+  //     };
+  //   }, [ref]);
+  // }
 
   return (
     <>
-      <Box style={{width: '100vw'}} bg={useColorModeValue('gray.100', 'gray.900')} px={4}>
+      <Box position={'fixed'} zIndex={100} style={{width: '100vw'}} bg={useColorModeValue('gray.100', 'gray.900')} px={4}>
         <Flex h={16} alignItems={'center'} justifyContent={'space-between'}>
           <IconButton
             size={'md'}
@@ -234,11 +233,11 @@ export function Navbar() {
             onClick={isOpen ? onClose : onOpen}
           />
           <HStack spacing={4} height='100%' alignItems={'center'}>
-            <Box>Logo</Box>
+            <Box mr={'5'}>Logo</Box>
             <HStack
               as={'nav'}
               height='100%'
-              spacing={0}
+              spacing={5}
               display={{ base: 'none', md: 'flex' }}>
               {Links.map((link) => (
                 <NavLink key={link.href}>{link}</NavLink>
@@ -293,17 +292,16 @@ export function Navbar() {
           }
         }}>
       <CSSTransition classNames="my-node" nodeRef={wrapperRef} in={isOpen} timeout={300} unmountOnExit>
-        <Box zIndex={3} ref={wrapperRef} position={'absolute'} width={'100%'} background={'gray.100'} pb={2} display={{ md: 'none' }}
+        <Box zIndex={3} ref={wrapperRef} position={'fixed'} width={'100%'} background={'gray.100'} pb={2} display={{ md: 'none' }}
         onClick={onClose}>
-          <Stack spacing={0} as={'nav'}>
+          <Stack pt={'68px'} spacing={0} as={'nav'}>
             {Links.map((link) => (
-              <NavLink>{link}</NavLink>
+              <NavLink key={link.href}>{link}</NavLink>
             ))}
             <Flex
             alignItems={'center'}
-            height='100%'
-            minHeight={'50px'}
-            px={5}
+            px={3}
+            py={2}
             rounded={'md'}
             onClick={onOpenSettings}
             _hover={{

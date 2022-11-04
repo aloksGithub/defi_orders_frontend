@@ -25,7 +25,6 @@ export const fetchPositions = async (contracts, signer) => {
       let underlying = await contracts.universalSwap.callStatic.getUnderlying(bankDetails[0])
       underlying = await Promise.all(underlying.map(async (token) => {
         const contract = new ethers.Contract(token, erc20Abi, signer)
-        const decimals = await contract.decimals()
         const name = await contract.name()
         return name
       }))

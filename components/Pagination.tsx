@@ -1,8 +1,8 @@
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons"
-import { Box, Text, Flex, Skeleton, SkeletonText, Button } from "@chakra-ui/react"
+import { Box, Text, Flex, Skeleton, SkeletonText, Button, Grid, GridItem } from "@chakra-ui/react"
 import { useEffect, useState } from "react"
 
-export const Pagination = ({cards, placeholder}) => {
+export const Pagination = ({cards, placeholder, loading}) => {
   const cardsPerPage = 6
   const numPages = 1+(cards?.length-cards?.length%cardsPerPage)/cardsPerPage
   const [currentPage, setCurrentPage] = useState(0)
@@ -10,6 +10,7 @@ export const Pagination = ({cards, placeholder}) => {
   const [pageNumbersToShow, setNumbersToShow] = useState([])
 
   useEffect(() => {
+    window.scrollTo(0, 0)
     const surroundingPages = []
     if (currentPage-1>0) {
       surroundingPages.push(0)
@@ -34,50 +35,48 @@ export const Pagination = ({cards, placeholder}) => {
   }, [cards, currentPage])
 
   return (
-    <>
-    <Box>
-    <Flex wrap={'wrap'} justifyContent={'center'} alignContent={'stretch'} maxW={'1000px'}>
-      {
-        cardsToShow&&cardsToShow.length>0?cardsToShow:
-        !cardsToShow?
-        Array.from(Array(6).keys()).map(()=> {
-          return (
-          <Box py={6} px={'10'} m={'4'} boxShadow='lg' bg='white' minW={'300px'} height={'300'}>
-          <Skeleton
-            width={'80%'}
-            height='40px'
-            color='white'
-            mb={'8'}
-          />
-            <SkeletonText mt='4' noOfLines={7} spacing='4'/>
-          </Box>)
-        }):placeholder
-      }
-    </Flex>
-    {
-      numPages&&numPages>1?
-      <Flex mt={'4'} justifyContent={'center'}>
-        <Button colorScheme={'blackAlpha'} padding={'0'} size={'sm'} onClick={()=>setCurrentPage(currentPage===0?0:currentPage-1)}>
-        <ChevronLeftIcon fontSize={'2xl'}></ChevronLeftIcon>
-        </Button>
+    <Box width={'100%'}>
+      <Grid width={'100%'} gridTemplateColumns={{base:`1fr`, md: `repeat(min(2, ${cardsToShow?.length||2}), 1fr)`, xl: `repeat(min(3, ${cardsToShow?.length||3}), 1fr)`}}>
         {
-          pageNumbersToShow?.map((page, index)=> {
+          cardsToShow&&cardsToShow.length>0?cardsToShow:
+          loading?
+          Array.from(Array(6).keys()).map((i)=> {
             return (
-              <Flex marginInline={'1'}>
-              {
-                index>0&&pageNumbersToShow[index-1]<page-1?<Text mr={'1'}>...</Text>:<></>
-              }
-              <Button colorScheme={page===currentPage?'blue':undefined} padding={'0'} size={'sm'} onClick={()=>setCurrentPage(page)}>{page+1}</Button>
-              </Flex>
-            )
-          })
+                <Box key={`paginationSkeleton_${i}`} py={6} px={'10'} m={'4'} boxShadow='lg' bg='white' minW={'300px'} height={'300'}>
+                <Skeleton
+                  width={'80%'}
+                  height='40px'
+                  color='white'
+                  mb={'8'}
+                />
+                  <SkeletonText mt='4' noOfLines={7} spacing='4'/>
+                </Box>)
+          }):placeholder
         }
-        <Button colorScheme={'blackAlpha'} padding={'0'} size={'sm'} onClick={()=>setCurrentPage(currentPage===numPages-1?numPages-1:currentPage+1)}>
-        <ChevronRightIcon fontSize={'2xl'}></ChevronRightIcon>
-        </Button>
-      </Flex>:<></>
-    }
+      </Grid>
+      {
+        numPages&&numPages>1?
+        <Flex mt={'4'} justifyContent={'center'}>
+          <Button colorScheme={'blackAlpha'} padding={'0'} size={'sm'} onClick={()=>setCurrentPage(currentPage===0?0:currentPage-1)}>
+          <ChevronLeftIcon fontSize={'2xl'}></ChevronLeftIcon>
+          </Button>
+          {
+            pageNumbersToShow?.map((page, index)=> {
+              return (
+                <Flex marginInline={'1'}>
+                {
+                  index>0&&pageNumbersToShow[index-1]<page-1?<Text mr={'1'}>...</Text>:<></>
+                }
+                <Button colorScheme={page===currentPage?'blue':undefined} padding={'0'} size={'sm'} onClick={()=>setCurrentPage(page)}>{page+1}</Button>
+                </Flex>
+              )
+            })
+          }
+          <Button colorScheme={'blackAlpha'} padding={'0'} size={'sm'} onClick={()=>setCurrentPage(currentPage===numPages-1?numPages-1:currentPage+1)}>
+          <ChevronRightIcon fontSize={'2xl'}></ChevronRightIcon>
+          </Button>
+        </Flex>:<></>
+      }
     </Box>
-    </>
   )
 }

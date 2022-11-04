@@ -3,7 +3,6 @@ import erc20Abi from "../constants/abis/ERC20.json"
 
 export const depositNew = async (contracts, signer, position, asset) => {
   const account = await signer.getAddress()
-  console.log(asset.contract_address)
   if (asset.contract_address!=ethers.constants.AddressZero) {
     const contract = new ethers.Contract(asset.contract_address, erc20Abi, signer)
     const currentApproval = await contract.allowance(account, contracts.positionManager.address)
@@ -18,8 +17,32 @@ export const depositNew = async (contracts, signer, position, asset) => {
   }
 }
 
+export const swap = async (contracts, signer, assetsToConvert, wantedAssets, slippage) => {
+  const account = await signer.getAddress()
+  const inputTokens = []
+  const inputTokenAmounts = []
+  const outputTokens = []
+  const outputRatios = []
+  const minAmountsOut = []
+  for (const asset of assetsToConvert) {
+    const assetContract = new ethers.Contract(asset.contract_address, erc20Abi, signer)
+    const tokensSupplied = ethers.utils.parseUnits(asset.tokensSupplied, asset.contract_decimals)
+    const currentAllowance = await assetContract.allowance(account, contracts.universalSwap.address)
+    if (currentAllowance<tokensSupplied) {
+      await assetContract.approve(contracts.universalSwap.address, tokensSupplied)
+    }
+    inputTokens.push(asset.contract_address)
+    inputTokenAmounts.push(tokensSupplied)
+  }
+  for (const asset of wantedAssets) {
+    outputTokens.push(asset.contract_address)
+    minAmountsOut.push(ethers.utils.parseUnits(asset.minOut, asset.contract_decimals))
+    outputRatios.push(asset.percentage*10000)
+  }
+  await contracts.universalSwap.swap(inputTokens, inputTokenAmounts, outputTokens, outputRatios, minAmountsOut)
+}
+
 export const depositAgain = async (contracts, signer, position, assetsToConvert, chainId, slippage) => {
-  console.log(assetsToConvert)
   if (assetsToConvert[0].asset!=ethers.constants.AddressZero) {
     const account = await signer.getAddress()
     const usdTotal = assetsToConvert.reduce((a, b)=>a+b.usdcValue, 0)
@@ -52,8 +75,6 @@ export const depositAgain = async (contracts, signer, position, assetsToConvert,
 }
 
 export const adjustLiquidationPoints = async (contracts, positionId, liquidationConditions) => {
-  console.log(contracts.positionManager)
-  console.log(positionId, liquidationConditions)
   await contracts.positionManager.adjustLiquidationPoints(positionId, liquidationConditions)
 }
 

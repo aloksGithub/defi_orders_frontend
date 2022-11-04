@@ -1,4 +1,4 @@
-import { ChakraProvider, Flex, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, useDisclosure, Text } from '@chakra-ui/react'
+import { ChakraProvider, Flex, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, useDisclosure, Text, Box } from '@chakra-ui/react'
 import { CoinbaseWallet } from '@web3-react/coinbase-wallet'
 import { useWeb3React, Web3ReactHooks, Web3ReactProvider } from '@web3-react/core'
 import { MetaMask } from '@web3-react/metamask'
@@ -20,15 +20,18 @@ import erc20Abi from "../constants/abis/ERC20.json"
 import uniswapV3PoolInteractorAbi from "../constants/abis/UniswapV3PoolInteractor.json"
 import deploymentAddresses from "../constants/deployments.json"
 import theme from './Theme'
+import {GrCircleInformation} from 'react-icons/gr'
+import { Footer } from './Footer'
 
 const AppContext = createContext({
-  userAssets: [],
+  userAssets: {data: [], loading: false, error: false},
   account: undefined,
   chainId: undefined,
   connector: undefined,
   supportedAssets: {},
   contracts: undefined,
   slippageControl: {slippage:0.5, setSlippage: undefined},
+  reloadAssets: ()=>{},
   onError: (error:Error)=>{}
 });
 
@@ -40,20 +43,15 @@ export function AppWrapper({ children }) {
   const { isOpen: errorHappened, onOpen: triggerError, onClose: closeErrorModal } = useDisclosure();
   const { isOpen: alertOpen, onOpen: openAlert, onClose: closeAlert } = useDisclosure();
   const [errorMessage, setErrorMessage] = useState('')
-  const [userData, setUserData] = useState({
-    userAssets: [],
-    account: undefined,
-    chainId: undefined,
-    connector: undefined
-  })
+  const [reloadTrigger, setReloadTrigger] = useState(false)
+  const [userAssets, setUserAssets] = useState({data: [], loading:true, error:false})
   const [supportedAssets, setSupportedAssets] = useState({})
-  const [contracts, setContracts] = useState<{
-    positionManager: ethers.Contract,
-    banks: ethers.Contract[],
-    universalSwap: ethers.Contract,
-    usdcContract: ethers.Contract
-    uniswapV3PoolInteractor: ethers.Contract
-  }>()
+  const [contracts, setContracts] = useState<any>()
+
+  const reloadAssets = () => {
+    setUserAssets({...userAssets, loading:true})
+    setReloadTrigger(!reloadTrigger)
+  }
 
   useEffect(() => {
     void connector.connectEagerly?.()
@@ -100,17 +98,20 @@ export function AppWrapper({ children }) {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const {data} = await (await fetch(`/api/userAssets?chainId=${usedChainId}&address=${account}`)).json()
-      const assets = data?data.items:[]
-      console.log(assets)
-      setUserData({
-        userAssets: assets, account, chainId: usedChainId, connector
-      })
+      try {
+        const {data} = await (await fetch(`/api/userAssets?chainId=${usedChainId}&address=${account}`)).json()
+        const assets = data?data.items:[]
+        setUserAssets({
+          data: assets, loading:false, error:false
+        })
+      } catch (error) {
+        setUserAssets({data:[], loading:false, error:true})
+      }
     }
     if (account && usedChainId) {
       fetchUserData()
     }
-  }, [account, usedChainId, provider, contracts])
+  }, [account, usedChainId, provider, contracts, reloadTrigger])
 
   const onError = (error:Error) => {
     console.log(error)
@@ -124,7 +125,7 @@ export function AppWrapper({ children }) {
   }
 
   return (
-    <AppContext.Provider value={{supportedAssets, ...userData, contracts, slippageControl: {slippage, setSlippage}, onError}}>
+    <AppContext.Provider value={{supportedAssets, userAssets, account, chainId: usedChainId, connector, contracts, slippageControl: {slippage, setSlippage}, onError, reloadAssets}}>
       {children}
       <Modal size={'sm'} isCentered isOpen={isOpen} onClose={onClose}>
         <ModalOverlay
@@ -162,7 +163,12 @@ export function AppWrapper({ children }) {
           backdropFilter='blur(10px)'
         />
         <ModalContent>
-          <ModalHeader>Welcome</ModalHeader>
+          <ModalHeader>
+            <Flex>
+              {<GrCircleInformation color='yellow' fontSize={'2rem'}/>}
+              <Text ml={'4'}>Welcome</Text>
+            </Flex>
+          </ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <Text mb={'3'}>Welcome to the alpha version of Delimit. Please do not use a large
@@ -194,7 +200,10 @@ export default function Provider({children}) {
     <Web3ReactProvider connectors={connectors}>
       <AppWrapper>
       <Navbar></Navbar>
+      <Box boxSizing='border-box' position={'absolute'} width={'100%'} minHeight={'100vh'} paddingTop={'24'} paddingBottom={'10'} paddingInline='5' bgGradient='linear(to-b, gray.100, #edfdff)'>
       {children}
+      {/* <Footer/> */}
+      </Box>
       </AppWrapper>
     </Web3ReactProvider>
     </ChakraProvider>
