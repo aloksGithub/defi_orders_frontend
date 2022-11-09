@@ -1,319 +1,519 @@
+import { AddIcon, DeleteIcon, ArrowForwardIcon } from '@chakra-ui/icons'
 import { useAppContext } from "../components/Provider"
 import {
+  NumberInput,
+  NumberInputField,
   Text,
   Button,
   Flex,
   Box,
-  Grid,
-  GridItem,
-  Select as DefaultSelect,
-  NumberInput,
-  NumberInputField,
-  useDisclosure,
-  ModalBody,
-  Modal,
-  ModalCloseButton,
-  ModalContent,
-  ModalHeader,
-  ModalOverlay,
-  Heading,
-  Stack,
-  useColorModeValue,
-  ModalFooter,
+  useDisclosure, NumberDecrementStepper, NumberIncrementStepper, NumberInputStepper, Skeleton, Input, Grid, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay
 } from '@chakra-ui/react'
-import { useEffect, useState, useRef } from "react"
-import { ArrowBackIcon } from "@chakra-ui/icons"
-import { ethers } from "ethers";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import { useWeb3React } from '@web3-react/core'
+import { ethers } from 'ethers'
 import erc20Abi from "../constants/abis/ERC20.json"
-import bankAbi from "../constants/abis/BankBase.json"
-import { useWeb3React } from "@web3-react/core";
-import { depositNew } from "../contractCalls/transactions";
-import LiquidationConditions from "../components/LiquidationConditions";
-import { useRouter } from "next/router";
-import { Pagination } from "../components/Pagination";
-import { Heading2 } from "../components/Typography";
-import { getBlockExplorerUrl, nFormatter } from "../utils";
+import poolAbi from "../constants/abis/IUniswapV3Pool.json"
+import { SupplyAssets, SelectAsset } from '../components/selectAssets';
+import { TickMath, encodeSqrtRatioX96 } from '@uniswap/v3-sdk';
+import JSBI from 'jsbi';
+import Fraction from 'fraction.js'
+import { getPrice, nFormatter } from '../utils';
+import { swap } from '../contractCalls/transactions'
 import { BiErrorAlt } from "react-icons/bi"
+import { FancyButton } from '../components/Buttons'
+import { useRouter } from "next/router";
 
-const Card = ({asset, index, setSecuring}) => {
-  const {chainId} = useAppContext()
+  // @ts-ignore
+const TickPicker = forwardRef(({pool, usdSupplied}, _ref) => {
+  const {chainId, slippageControl: {slippage}} = useAppContext()
+  const {provider} = useWeb3React()
+  const [token0, setToken0] = useState()
+  const [token1, setToken1] = useState()
+  const [loading, setLoading] = useState(true)
+  const [token0Name, setToken0Name] = useState('')
+  const [token1Name, setToken1Name] = useState('')
+  const [decimals0, setDecimals0] = useState(18)
+  const [decimals1, setDecimals1] = useState(18)
+  const [token0Main, setToken0Main] = useState(false)
+  const [priceLower, setPriceLower] = useState(undefined)
+  const [priceUpper, setPriceUpper] = useState(undefined)
+  const [tickLower, setTickLower] = useState<number>()
+  const [tickUpper, setTickUpper] = useState<number>()
+  const [currentSqrtRatio, setCurrentSqrtRatio] = useState(undefined)
+  const [currentPrice, setCurrentPrice] = useState(undefined)
+  const [ratio, setRatio] = useState([undefined, undefined])
+  const [minAmount0, setMinAmount0] = useState(undefined)
+  const [minAmount1, setMinAmount1] = useState(undefined)
+  const [tickSpacing, seTickSpacing] = useState(10)
+
+  useImperativeHandle(_ref, () => ({
+    getUniV3Data: () => {
+      return {
+        minAmount0,
+        minAmount1,
+        tickLower,
+        tickUpper,
+        token0,
+        token1,
+        decimals0,
+        decimals1
+      }
+    }
+  }))
+
+  const getNearestUsableTick = (currentTick: number) => {
+    if(currentTick == 0){
+        return 0
+    }
+    const direction = (currentTick >= 0) ? 1 : -1
+    currentTick *= direction
+    let nearestTick = (currentTick%tickSpacing <= tickSpacing/2) ? currentTick - (currentTick%tickSpacing) : currentTick + (tickSpacing-(currentTick%tickSpacing))
+    nearestTick *= direction
+    return nearestTick
+  }
+
+  const amount0ForLiquidity = (sqrtRatioAX96:JSBI, sqrtRatioBX96:JSBI, liquidity:JSBI) => {
+    return JSBI.divide(
+      JSBI.divide(
+        JSBI.multiply(JSBI.multiply(liquidity, JSBI.BigInt(2**96)), JSBI.subtract(sqrtRatioBX96, sqrtRatioAX96)),
+        sqrtRatioBX96
+      ),
+      sqrtRatioAX96
+    )
+  }
+
+  const amount1ForLiquidity = (sqrtRatioAX96:JSBI, sqrtRatioBX96:JSBI, liquidity:JSBI) => {
+    return JSBI.divide(
+      JSBI.multiply(liquidity, JSBI.subtract(sqrtRatioBX96, sqrtRatioAX96)),
+      JSBI.BigInt('79228162514264337593543950336')
+    )
+  }
+
+  const getAmountsForLiquidity = (sqrtRatioX96:JSBI, sqrtRatioAX96:JSBI, sqrtRatioBX96:JSBI, liquidity:JSBI) => {
+    let ratio0:JSBI = JSBI.BigInt('0')
+    let ratio1:JSBI = JSBI.BigInt('0')
+    if (JSBI.lessThanOrEqual(sqrtRatioX96, sqrtRatioAX96)) {
+      ratio0 = amount0ForLiquidity(sqrtRatioAX96, sqrtRatioBX96, liquidity);
+      ratio0 = JSBI.divide(ratio0, JSBI.BigInt(10**decimals0!))
+    } else if (JSBI.lessThan(sqrtRatioX96, sqrtRatioBX96)) {
+      ratio0 = amount0ForLiquidity(sqrtRatioX96, sqrtRatioBX96, liquidity);
+      ratio0 = JSBI.divide(ratio0, JSBI.BigInt(10**decimals0!))
+      ratio1 = amount1ForLiquidity(sqrtRatioAX96, sqrtRatioX96, liquidity);
+      ratio1 = JSBI.divide(ratio1, JSBI.BigInt(10**decimals1!))
+    } else {
+      ratio1 = amount1ForLiquidity(sqrtRatioAX96, sqrtRatioBX96, liquidity);
+      ratio1 = JSBI.divide(ratio1, JSBI.BigInt(10**decimals1!))
+    }
+    return {ratio0:+ratio0?.toString(), ratio1:+ratio1?.toString()}
+  }
+
+  useEffect(() => {
+    const calculateMinAmounts = async () => {
+      // const {data:{price:price0}} = await (await fetch(`/api/tokenPrice?chainId=${chainId}&address=${token0}`)).json()
+      // const {data:{price:price1}} = await (await fetch(`/api/tokenPrice?chainId=${chainId}&address=${token1}`)).json()
+      // const amount0Usd = usdSupplied*ratio[0]/(ratio[0]+ratio[1])
+      // const amount1Usd = usdSupplied*ratio[1]/(ratio[0]+ratio[1])
+      // const amount0 = amount0Usd/price0
+      // const amount1 = amount1Usd/price1
+      // setMinAmount0((10**decimals0!*amount0*(100-slippage)/100).toFixed(0))
+      // setMinAmount1((10**decimals1!*amount1*(100-slippage)/100).toFixed(0))
+      // setLoading(false)
+    }
+    calculateMinAmounts()
+  }, [ratio, token0, token1])
+
+  const calculateSqrtRatio = (price) => {
+    let ratio
+    if (token0Main) {
+      ratio = (1/price)*10**(decimals0-decimals1)
+    } else {
+      ratio = (price)*10**(decimals0-decimals1)
+    }
+    let frac = new Fraction(ratio)
+    let amount0 = frac.n
+    let amount1 = frac.d
+    if (frac.n===0) {
+      ratio = ratio*10**18
+      frac = new Fraction(ratio)
+      amount0 = frac.n
+      amount1 = frac.d*10**18
+    }
+    const sqrtPriceX96 = encodeSqrtRatioX96(amount1, amount0)
+    return sqrtPriceX96
+  }
+
+  useEffect(() => {
+    if (priceLower && priceLower>0 && priceUpper && priceUpper>0) {
+      const sqrtPriceAX96 = calculateSqrtRatio(priceLower)
+      const sqrtPriceBX96 = calculateSqrtRatio(priceUpper)
+      if (sqrtPriceAX96 && sqrtPriceBX96) {
+        const tickLower = TickMath.getTickAtSqrtRatio(sqrtPriceAX96)
+        setTickLower(getNearestUsableTick(tickLower))
+        const tickUpper = TickMath.getTickAtSqrtRatio(sqrtPriceBX96)
+        setTickUpper(getNearestUsableTick(tickUpper))
+        const {ratio0, ratio1} = getAmountsForLiquidity(currentSqrtRatio, sqrtPriceAX96, sqrtPriceBX96, JSBI.BigInt('1000000000000000000'))
+        setRatio([ratio0, ratio1?ratio1/currentPrice:0])
+      }
+    }
+  }, [priceLower, priceUpper])
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const poolContract = new ethers.Contract(pool, poolAbi, provider)
+      const tickSpacing = await poolContract.tickSpacing()
+      seTickSpacing(tickSpacing)
+      const token0 = await poolContract.token0()
+      const token1 = await poolContract.token1()
+      setToken0(token0)
+      setToken1(token1)
+      const token0Contract = new ethers.Contract(token0, erc20Abi, provider)
+      const token1Contract = new ethers.Contract(token1, erc20Abi, provider)
+      const decimals0 = await token0Contract.decimals()
+      const decimals1 = await token1Contract.decimals()
+      setDecimals0(decimals0)
+      setDecimals1(decimals1)
+      const token0Name = await token0Contract.symbol()
+      const token1Name = await token1Contract.symbol()
+      const {sqrtPriceX96, tick} = await poolContract.slot0()
+      const token1Price = (2 ** 192 / sqrtPriceX96 ** 2)/10**(decimals0-decimals1)
+      const token0Price = (sqrtPriceX96 ** 2 / 2 ** 192)/10**(decimals1-decimals0)
+      const token0Main = token0Price>token1Price
+      setCurrentSqrtRatio(JSBI.BigInt(sqrtPriceX96))
+      setCurrentPrice(token1Price)
+      setToken0Main(token0Main)
+      setToken0Name(token0Name)
+      setToken1Name(token1Name)
+      setPriceLower(token0Main?(token0Price-0.001).toFixed(3):(token1Price-0.001).toFixed(3))
+      setPriceUpper(token0Main?(token0Price+0.001).toFixed(3):(token1Price+0.001).toFixed(3))
+    }
+    try {
+      setLoading(true)
+      fetchData()
+    } catch {
+      console.log("ERROR")
+    }
+  }, [pool])
 
   return (
-    <Box _hover={{transform: 'scale(1.05)'}} margin={'6'} minW={'300px'} sx={{'transition': '0.4s'}}>
-      <Flex _hover={{backgroundColor: '#f5f5f5'}} direction={'column'}
-        justifyContent={'space-between'}
-        h={'100%'}
-        w={'full'}
-        bg={useColorModeValue('white', 'gray.900')}
-        boxShadow={'2xl'}
-        rounded={'lg'}
-        p={6}
-        textAlign={'center'}>
-        <Flex mb={'3'} pb={'3'} justifyContent={'center'} alignItems={'center'}>
-        <img src={asset.logo_url} style={{width: "30px", height: "30px"}}/>
-        <a href={getBlockExplorerUrl(chainId, asset.contract_address)} target="_blank" rel="noopener noreferrer">
-        <Heading _hover={{color: 'blue.500'}} ml={'3'} fontSize={'xl'}>
-        {asset.contract_ticker_symbol}
-        </Heading>
-        </a>
+    <>
+      {
+        loading?
+        <Flex mt={'4'} justifyContent={'space-around'}>
+        <Skeleton width={'150px'} height='40px' />
+        <Skeleton width={'150px'} height='40px' />
+        </Flex>:
+        <Flex mt={'4'} justifyContent={'space-around'}>
+        <Box>
+        <Text>Min {token0Main?token0Name:token1Name} per {token0Main?token1Name:token0Name}</Text>
+        <NumberInput min={0} max={priceUpper} maxW={'150px'} value={priceLower} precision={3} step={0.001} onChange={(valueAsNumber)=>setPriceLower(valueAsNumber)}>
+          <NumberInputField />
+          <NumberInputStepper>
+            <NumberIncrementStepper />
+            <NumberDecrementStepper />
+          </NumberInputStepper>
+        </NumberInput>
+        </Box>
+        <Box>
+        <Text>Max {token0Main?token0Name:token1Name} per {token0Main?token1Name:token0Name}</Text>
+        <NumberInput min={priceLower} maxW={'150px'} value={priceUpper} precision={3} step={0.001} onChange={(valueAsNumber)=>setPriceUpper(valueAsNumber)}>
+          <NumberInputField />
+          <NumberInputStepper>
+            <NumberIncrementStepper />
+            <NumberDecrementStepper />
+          </NumberInputStepper>
+        </NumberInput>
+        </Box>
         </Flex>
-        <Flex justifyContent={'space-between'}>
-          <Box>
-          <Flex mb={'3'} flexDir={'column'} alignItems={'start'}>
-            <Text as='b'>
-              Balance
-            </Text>
-            {nFormatter((asset.balance/10**asset.contract_decimals), 3)}
-          </Flex>
-          <Flex mb={'3'} flexDir={'column'} alignItems={'start'}>
-            <Text as='b'>
-            USD Value
-            </Text>
-            ${nFormatter(asset.quote, 2)}
-          </Flex>
-          </Box>
-          {
-            asset.underlying.length>0?
-            <Box>
-              <Text textAlign={'start'} as='b'>Underlying</Text>
-              {
-                asset.underlying.map(token=> {
-                  return (
-                    <Flex alignItems={'center'} paddingBlock={'1'} marginBlock={'1'} >
-                      <img src={token.logo_url} style={{width: "20px", height: "20px", borderRadius: '15px'}}/>
-                      <a href={getBlockExplorerUrl(chainId, token.address)} target="_blank" rel="noopener noreferrer">
-                      <Text _hover={{color: 'blue.500', cursor: 'pointer'}} display={'flex'} alignItems={'center'} ml={'2'} mr={'1'}>
-                        {token.symbol}
-                      </Text>
-                      </a>
-                    </Flex>
-                  )
-                })
-              }
-            </Box>:<></>
-          }
-        </Flex>
+      }
+    </>
+  )
+})
 
-        <Stack margin={'auto'} width={'60%'} mt={8} direction={'row'} spacing={4}>
-        <Button
-          onClick={()=>setSecuring(index)}
-          flex={1}
-          fontSize={'sm'}
-          rounded={'full'}
-          bg={'blue.400'}
-          color={'white'}
-          boxShadow={
-            '0px 1px 25px -5px rgb(66 153 225 / 48%), 0 10px 10px -5px rgb(66 153 225 / 43%)'
-          }
-          _hover={{
-            bg: 'blue.500',
-          }}
-          _focus={{
-            bg: 'blue.500',
-          }}>
-          Open Position
-        </Button>
-        </Stack>
+const WantedAsset = ({usdSupplied, selected, setSelected, updateExpected, changePercentage, deleteSelf}) => {
+  const {supportedAssets, chainId} = useAppContext()
+  const {slippageControl: {slippage}} = useAppContext()
+  const assetsArray = [].concat.apply([], Object.values(supportedAssets))
+  const [expected, setExpected] = useState(0)
+  const [price, setPrice] = useState(0)
+  const [loadingSelf, setLoadingSelf] = useState(false)
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLoadingSelf(true)
+      reload()
+    }, 60000);
+    return () => clearInterval(interval)
+  }, [])
+  
+  const minOut = (expected||0)*(100-slippage)/100
+  const minUsd = (minOut*price)
+
+  const reload = async () => {
+    if (selected.contract_address) {
+      const price = await getPrice(chainId, selected.contract_address)
+      const expected = (usdSupplied*selected.percentage/100)/price
+      setExpected(expected)
+      setPrice(price)
+      updateExpected(expected)
+    }
+    setLoadingSelf(false)
+  }
+
+  useEffect(() => {
+    setLoadingSelf(true)
+    reload()
+  }, [selected.contract_address])
+
+  useEffect(() => {
+    if (price>0) {
+      const expected = (usdSupplied*selected.percentage/100)/price
+      setExpected(expected)
+      updateExpected(expected)
+    } else {
+      setExpected(0)
+      updateExpected(0)
+    }
+  }, [selected.percentage, usdSupplied])
+
+  return (
+    <Flex width={'100%'} mt='4' padding={'4'} justifyContent={'space-between'} alignItems={'center'} borderRadius={'2xl'} backgroundColor={'#f7f7f7'}>
+      <Box>
+      <SelectAsset assets={assetsArray} asset={selected} onSelect={setSelected}></SelectAsset>
+        <Flex alignItems={'center'} mt={'3'}>
+          <Text onClick={deleteSelf} mr={'3'} textAlign={'center'} borderRadius={'lg'} width={'2rem'} padding={'1'}
+          _hover={{cursor: 'pointer', backgroundColor: 'red.400'}} backgroundColor='red.300'><DeleteIcon/></Text>
+          <NumberInput backgroundColor={'white'} maxWidth={'100'} min={0} max={100} value={selected.percentage+'%'} onChange={(valueAsString)=>changePercentage(valueAsString.replace(/^\%/, ''))}>
+            <NumberInputField></NumberInputField>
+          </NumberInput>
+        </Flex>
+      </Box>
+      <Flex flexDirection={'column'} alignItems={'end'} textAlign={'end'}>
+        <Flex>Price: ${!loadingSelf?<Text>{nFormatter(price, 3)}</Text>:<Skeleton>Temp</Skeleton>}</Flex>
+        {!loadingSelf?<Input height={'48px'} textAlign={'end'} variant='unstyled' fontSize={'2xl'} size={'lg'} maxWidth='150px' value={expected}></Input>:<Skeleton>Temporary Temporary</Skeleton>}
+        {!loadingSelf?<Text>Min: ~{minOut.toFixed(5)} (${minUsd.toFixed(3)})</Text>:<Skeleton>Temporary</Skeleton>}
       </Flex>
+    </Flex>
+  )
+}
+
+const ConvertTo = ({usdSupplied, updateWantedAssets}) => {
+  const {slippageControl: {slippage}} = useAppContext()
+  const [wantedAssets, setWantedAssets] = useState<any>([{percentage: 100, expected:0, minOut:0}])
+
+  useEffect(() => {
+    updateWantedAssets(wantedAssets)
+  }, [wantedAssets])
+
+  const addWanted = () => {
+    setWantedAssets([...wantedAssets, {percentage: 0, expected:0, minOut:0}])
+  }
+
+  const select = (index, asset) => {
+    const temp = [...wantedAssets]
+    temp[index] = {...temp[index], ...asset}
+    setWantedAssets(temp)
+  }
+
+  const setExpected = (index, expected) => {
+    const temp = [...wantedAssets]
+    temp[index].expected = expected
+    temp[index].minOut = expected*(100-slippage)/100
+  }
+
+  const removeWanted = (index) => {
+    if (wantedAssets.length===1) return
+    const tempAssets = [...wantedAssets]
+    tempAssets.splice(index, 1)
+    setWantedAssets(tempAssets)
+  }
+  
+  const updatePercentages = (index:number, percentage:number) => {
+    const temp = [...wantedAssets]
+    temp[index].percentage = percentage
+    setWantedAssets(temp)
+  }
+
+  return (
+    <Box padding={'5'} width={'100%'} maxWidth='450px' alignItems={'center'} backgroundColor='white' borderRadius={'2xl'}>
+      <Flex width={'100%'} justifyContent='space-between' alignItems={'center'}>
+          <Button onClick={addWanted} paddingInline={'3'} colorScheme={'blue'}><AddIcon/></Button>
+          <Text textAlign={'end'}>Slippage: {slippage}%</Text>
+      </Flex>
+    {
+      wantedAssets.map((asset, index)=>
+      <WantedAsset key={`wantedAsset_${index}`} usdSupplied={usdSupplied}
+      selected={asset} setSelected={(asset)=>select(index, asset)}
+      changePercentage={(percentage)=>updatePercentages(index, percentage)}
+      updateExpected={(expected)=>setExpected(index, expected)}
+      deleteSelf={()=>removeWanted(index)}/>
+      )
+    }
     </Box>
   )
 }
 
-const SecureAsset = ({asset, setSecuring}) => {
-  const childStateRef = useRef()
-  const {account, contracts, onError} = useAppContext()
-  const {provider, chainId} = useWeb3React()
-  const signer = provider.getSigner(account)
-  const [tokens, setTokens] = useState(0)
-  const [banks, setBanks] = useState([])
-  const [selectedBank, selectBank] = useState(undefined)
-  const [rewards, setRewards] = useState([])
-  const [error, setError] = useState("")
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const [currentUsd, setCurrentUsd] = useState('0')
-  const [processing, setProcessing] = useState(false)
-  const [liquidationConditions, setLiquidationConditions] = useState([{
-    watchedAsset: {
-      "value": "0x0000000000000000000000000000000000000000",
-      "label": "Value of self",
-      "contract_name": "Value of self",
-      "contract_ticker_symbol": "Self",
-      "contract_address": "0x0000000000000000000000000000000000000000",
-      "underlying": [],
-      "logo_url": "https://www.svgrepo.com/show/99387/dollar.svg"
-    },
-    convertTo: undefined,
-    lessThan: false,
-    liquidationPoint: 0
-  }])
+const UniversalSwap = () => {
+  const [assetsToConvert, setAssetsToConvert] = useState([])
+  const [wantedAssets, setWantedAssets] = useState([])
+  const [usdSupplied, setUsdSupplied] = useState(0)
+  const {isOpen, onOpen, onClose} = useDisclosure()
+  const [error, setError] = useState('')
+  const {contracts, onError, hardRefreshAssets} = useAppContext()
+  const {provider, account} = useWeb3React()
+  const signer = provider?.getSigner(account)
+  const [swapping, setSwapping] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
-    setCurrentUsd((asset.quote*tokens/(asset.balance/10**asset.contract_decimals)||0).toFixed(3))
-  }, [tokens])
+    const usdSupplied = assetsToConvert.reduce((a, b)=>a+(b.usdcValue||0), 0)
+    setUsdSupplied(usdSupplied)
+  }, [assetsToConvert])
 
-  useEffect(() => {
-    const getBanks = async () => {
-      if (!contracts.positionManager) {
+  const createError = (error:string) => {
+    setError(error)
+    onOpen()
+  }
+
+  const proceed = () => {
+    setSwapping(true)
+    if (!contracts.universalSwap) {
+      createError('Looks like Delimit contracts have not yet been deployed on this chain, please switch to BSC')
+      return
+    }
+    if (usdSupplied===0) {
+      createError(`No USD supplied`)
+      return
+    }
+    for (let i = 0; i<assetsToConvert.length; i++) {
+      const asset = assetsToConvert[i]
+      if (!asset.contract_address) {
+        createError(`Please select asset for supplied asset ${i+1}`)
         return
       }
-      const [bankIds, bankNames, tokenIds] = await contracts.positionManager.functions.recommendBank(asset.contract_address)
-      const banks = []
-      for (let [index, bank] of bankIds.entries()) {
-        banks.push({
-          value: bank,
-          label: bankNames[index],
-          tokenId: tokenIds[index]
-        })
-      setBanks(banks)
+      if (!asset.tokensSupplied) {
+        createError(`Please specify tokens supplied for supplied asset ${i+1}`)
+        return
+      }
+      if (asset.tokensSupplied===0) {
+        createError(`Tokens supplied for asset ${i+1} are 0`)
+        return
       }
     }
-    getBanks()
-  }, [])
-
-  useEffect(() => {
-    const getRewards = async () => {
-      const bank = banks.find(bank=>bank.value.toString()===selectedBank)
-      const bankAddress = await contracts.positionManager.functions.banks(selectedBank)
-      const bankContract = new ethers.Contract(bankAddress[0], bankAbi, provider)
-      const rewards = await bankContract.functions.getRewards(bank.tokenId)
-      const rewardNames = []
-      for (const reward of rewards.rewardsArray) {
-        const contract = new ethers.Contract(reward, erc20Abi, provider)
-        const name = await contract.name()
-        rewardNames.push(name)
+    let percentageTotal = 0
+    for (let i = 0; i<wantedAssets.length; i++) {
+      const asset = wantedAssets[i]
+      percentageTotal+=+asset.percentage
+      if (!asset.contract_address) {
+        createError(`Please select asset for wanted asset ${i+1}`)
+        return
       }
-      setRewards(rewardNames)
-    }
-    if (selectedBank) {
-      getRewards()
-    } else {
-      setRewards([])
-    }
-  }, [selectedBank])
-
-  const exitSecuring = () => {
-    setSecuring(undefined)
-    setTokens(0)
-  }
-
-  const secure = async () => {
-    setProcessing(true)
-    let invalidConditions = false
-    const formattedConditions = liquidationConditions.map((condition, index) => {
-      try {
-        return {
-          watchedToken: condition.watchedAsset.contract_address,
-          liquidateTo: condition.convertTo.contract_address,
-          lessThan: condition.lessThan,
-          liquidationPoint: condition.liquidationPoint
-        }
-      } catch {
-        invalidConditions = true
-        setError(`Invalid data for liquidation condition ${index+1}`)
+      if (!asset.percentage) {
+        createError(`Please specify percentage for wanted asset ${i+1}`)
+        return
       }
-    })
-    if (invalidConditions) {
-      onOpen()
-      setProcessing(false)
+      if (asset.percentage===0) {
+        createError(`Percentage for wanted asset ${i+1} is 0`)
+        return
+      }
+    }
+    if (percentageTotal!=100) {
+      console.log(percentageTotal)
+      createError('Total percentage is not 100%')
       return
     }
-    const bank = banks.find(bank=>bank.value.toString()===selectedBank)
-    if (!bank) {
-      setError(`Bank is not specified`)
-      onOpen()
-      setProcessing(false)
-      return
-    }
-    if (!tokens) {
-      setError(`Deposit amount not specified`)
-      onOpen()
-      setProcessing(false)
-      return
-    }
-    const position = {
-      user: account,
-      bankId: bank.value,
-      bankToken: bank.tokenId,
-      amount: ethers.utils.parseUnits(tokens.toString(), asset.contract_decimals),
-      liquidationPoints: formattedConditions
-    }
-    console.log(position, [asset.contract_address], [ethers.utils.parseUnits(tokens.toString(), asset.contract_decimals)], [0])
-    depositNew(contracts, signer, position, asset).then(() => {
-      setTimeout(() => {
-        setProcessing(false)
-        ethers.getDefaultProvider().getBlockNumber()
-        router.push("/Positions")
-      }, 10000);
-    }).catch((error)=>{
-      setProcessing(false)
-      onError(error)
-      console.log("Transaction failed", error)
+    swap(contracts, signer, assetsToConvert, wantedAssets).then(()=>{
+      setSwapping(false)
+      hardRefreshAssets()
+      router.push("/Positions")
+    },
+    (reason)=>{
+      onError(reason)
+      setSwapping(false)
     })
   }
 
+  // const swap = async () => {
+    // if (!wantedAsset) return
+    // if (!contracts.positionManager) return
+    // setConverting(true)
+    // @ts-ignore
+    // let assetsToConvert = childStateRef.current.getFormattedConditions()
+    // const etherSupplied = assetsToConvert.find(asset=>[ethers.constants.AddressZero].includes(asset.asset))?.tokensBn || 0
+    // assetsToConvert = assetsToConvert.filter(asset=>![ethers.constants.AddressZero].includes(asset.asset))
+    // const erc20Supplied = assetsToConvert.map(asset=>asset.asset)
+    // const erc20Amounts = assetsToConvert.map(asset=>asset.tokensBn)
+    // for (let [index, token] of erc20Supplied.entries()) {
+    //   const contract = new ethers.Contract(token, erc20Abi, provider.getSigner(account))
+    //   const currentApproval = await contract.allowance(account, contracts.universalSwap.address)
+    //   if (currentApproval.gte(erc20Amounts[index])) {
+    //     continue
+    //   }
+    //   try {
+    //     await contract.functions.approve(contracts.universalSwap.address, erc20Amounts[index])
+    //   } catch (error) {
+    //     onError(error)
+    //     return
+    //   }
+    // }
+    // if (uniV3Pool) {
+    //   try {
+    //     // @ts-ignore
+    //     const {tickLower, tickUpper, token0, token1, decimals0, decimals1} = childStateRef2.current.getUniV3Data()
+    //     const ratio = await contracts.uniswapV3PoolInteractor.getRatio(wantedAsset.value, tickLower, tickUpper)
+    //     const {data:{price:price0}} = await (await fetch(`/api/tokenPrice?chainId=${chainId}&address=${token0}`)).json()
+    //     const {data:{price:price1}} = await (await fetch(`/api/tokenPrice?chainId=${chainId}&address=${token1}`)).json()
+    //     const amount0Usd = ratio[0].mul((totalToConvert*10**6).toFixed(0)).div(ratio[0].add(ratio[1]))
+    //     const amount1Usd = ratio[1].mul((totalToConvert*10**6).toFixed(0)).div(ratio[0].add(ratio[1]))
+    //     const amount0 = amount0Usd/(price0*10**6)
+    //     const amount1 = amount1Usd/(price1*10**6)
+    //     const minAmount0 = (10**decimals0!*amount0*(100-slippage)/100).toFixed(0)
+    //     const minAmount1 = (10**decimals1!*amount1*(100-slippage)/100).toFixed(0)
+    //     const abi = ethers.utils.defaultAbiCoder;
+    //     const data = abi.encode(
+    //       ["int24","int24","uint256","uint256"],
+    //       [tickLower, tickUpper, minAmount0, minAmount1]);
+    //     await contracts.universalSwap.swapERC721(erc20Supplied, erc20Amounts,
+    //       [], {pool:wantedAsset.value, manager:wantedAsset.manager, tokenId: 0, liquidity:0, data},
+    //       {value: etherSupplied})
+    //     setConverting(false)
+    //     onClose()
+    //   } catch (err) {
+    //     onError(err)
+    //     setConverting(false)
+    //   }
+    // } else {
+    //   const {data:{price, decimals}} = await (await fetch(`/api/tokenPrice?chainId=${chainId}&address=${wantedAsset.value}`)).json()
+    //   const expectedTokens = totalToConvert/price
+    //   const allowedSlippage = expectedTokens*(1-slippage/100)
+    //   const minAmount = ethers.utils.parseUnits(allowedSlippage.toFixed(decimals).toString(), decimals)
+    //   contracts.universalSwap.swapERC20(erc20Supplied, erc20Amounts, [], wantedAsset.value, minAmount, {value: etherSupplied}).then(() => {
+    //     setTimeout(() => {
+    //       setConverting(false)
+    //       ethers.getDefaultProvider().getBlockNumber()
+    //       onClose()
+    //     }, 6000);
+    //   }).catch((error)=>{
+    //     setConverting(false)
+    //     onClose()
+    //     onError(error)
+    //   })
+    // }
+  // }
   return (
-    <Box
-    justifyContent={'space-between'}
-    bg={useColorModeValue('white', 'gray.900')}
-    boxShadow={'2xl'}
-    rounded={'lg'}
-    p={{base:4, md: 8}}>
-      <Grid
-        w={'100%'}
-        gridTemplateRows={'30px 1fr 1fr'}
-        // templateRows='repeat(3, 1fr)'
-        templateColumns={{base: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)'}}
-        mb={'8'}
-        gap={10}
-      >
-        <GridItem colSpan={{base:1, md: 2}}>
-        <Heading2>Secure {asset.contract_name}</Heading2>
-        </GridItem>
-        <GridItem colStart={{base: 2, md: 3}} colSpan={1} display='flex' justifyContent={'end'}>
-        <Button onClick={exitSecuring} alignSelf={'start'} marginBottom={3}><ArrowBackIcon/>Back</Button>
-        </GridItem>
-        <GridItem rowStart={2} colSpan={1}>
-          <Heading2>Bank</Heading2>
-          <DefaultSelect size={'sm'} w={'60%'} placeholder='Select Bank' onChange={(event)=>selectBank(event.target.value)}>
-            {
-              banks.map(bank=> (<option value={bank.value}>{bank.label}</option>))
-            }
-          </DefaultSelect>
-        </GridItem>
-        <GridItem rowStart={2} colSpan={1}>
-          <Heading2>Expected Rewards</Heading2>
-          { rewards.length>0?
-            rewards.map(reward=> <Text fontSize='l'>{reward}</Text>):
-            <Text fontSize='l'>None</Text>
-          }
-        </GridItem>
-        <GridItem rowStart={3} colSpan={1}>
-          <Heading2>Tokens To Secure</Heading2>
-          <NumberInput size={'sm'} w={'60%'} min={0} max={asset.balance/10**asset.contract_decimals}
-          onChange={(valueString)=>setTokens(parseFloat(valueString))}>
-            <NumberInputField backgroundColor={'white'}></NumberInputField>
-          </NumberInput>
-        </GridItem>
-        <GridItem rowStart={3} colSpan={1}>
-          <Heading2>Secured USD</Heading2>
-          <Text fontSize='l'>${currentUsd}</Text>
-        </GridItem>
+    <Flex marginBlock={10} alignItems={'center'} direction={'column'}>
+      <Grid width={'100%'} templateColumns={{base: '1fr', lg: '6fr 1fr 6fr'}}>
+        <Flex justifyContent={{lg: 'end', base:'center'}}>
+          <SupplyAssets onChange={setAssetsToConvert}/>
+        </Flex>
+        <Flex marginBlock={{lg: '24', base: '5'}} justifyContent={'center'} >
+          <ArrowForwardIcon transform={{base:'rotate(90deg)', lg: 'rotate(0deg)'}} fontSize={'2rem'}/>
+        </Flex>
+        <Flex justifyContent={{lg: 'start', base:'center'}}>
+          <ConvertTo usdSupplied={usdSupplied} updateWantedAssets={setWantedAssets}></ConvertTo>
+        </Flex>
       </Grid>
-      <Heading2>Liquidation Conditions</Heading2>
-      <Flex maxWidth={'500px'} margin={'auto'} marginTop={'-40px'}>
-        <LiquidationConditions
-        liquidationPoints = {liquidationConditions}
-        onChangeConditions={setLiquidationConditions} resetFlag={undefined} assetPrice={currentUsd}></LiquidationConditions>
-      </Flex>
-      <Flex marginBlock={'10'} justifyContent={'center'}>
-      <Button height={'20'} bgGradient='linear(to-l, #822bd9, #3db0f2)' width={'70%'} maxWidth={'300px'}
-      justifyContent={'center'} alignItems={'center'} borderRadius={'2xl'} boxShadow={'dark-lg'}
-      _hover={{cursor: 'pointer', bgGradient: 'linear(to-l, #6823ad, #3db0f2)'}}
-      onClick={secure}>
-        <Text fontSize={'3xl'} color={'white'}>Secure</Text>
-      </Button>
-      </Flex>
+      <FancyButton isLoading={swapping} mt='20' height='85px' width='70%' onClick={proceed}><Text fontSize={'3xl'} color={'white'}>Swap</Text></FancyButton>
       <Modal size={'sm'} isCentered isOpen={isOpen} onClose={onClose}>
         <ModalOverlay
           bg='blackAlpha.300'
@@ -334,32 +534,8 @@ const SecureAsset = ({asset, setSecuring}) => {
           </ModalFooter>
         </ModalContent>
       </Modal>
-    </Box>
-  )
-}
-
-const Assets = () => {
-  const {userAssets, supportedAssets} = useAppContext()
-  const {data:assets, loading, error} = userAssets
-  const [securing, setSecuring] = useState<number>()
-
-  return (
-    <Flex justifyContent={'center'}>
-      {
-        securing!=undefined?
-        <SecureAsset asset={assets[securing]} setSecuring={setSecuring} />:        
-        <Flex direction={'column'} justifyContent={'center'}>
-          <Pagination
-          cards={assets?.map((asset, index)=><Card asset={asset} index={index} setSecuring={setSecuring}></Card>)}
-          placeholder={<Text mt={'20'}>{!('ERC20' in supportedAssets)?'Website still deploying, try reloading in a minute':'No Assets detected'}</Text>}
-          loading={loading}></Pagination>
-          <Flex wrap={'wrap'} justifyContent={'center'} alignContent={'stretch'} maxW={'1000px'}>
-          </Flex>
-        </Flex>
-      }
-      
     </Flex>
   )
 }
 
-export default Assets
+export default UniversalSwap

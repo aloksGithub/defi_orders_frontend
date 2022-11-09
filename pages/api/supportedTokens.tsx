@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import cacheData from "memory-cache";
 import supportedProtocols from '../../constants/supportedProtocols.json'
-import { chainLogos } from "../../utils";
+import { chainLogos, getLogoUrl } from "../../utils";
 
 const getTokenUrl = (chainId:number, token:string) => {
   const defaultUrl = `https://logos.covalenthq.com/tokens/${chainId}/${token}.png`
@@ -38,6 +38,14 @@ const logos = {
   'Uniswap V3': 'https://cryptologos.cc/logos/uniswap-uni-logo.svg?v=023',
   Sushiswap: 'https://cryptologos.cc/logos/sushiswap-sushi-logo.svg?v=023',
   AAVE: 'https://cryptologos.cc/logos/aave-aave-logo.svg?v=023',
+}
+
+const protocolSymbols = {
+  Pancakeswap: 'Pancake LP',
+  Biswap: 'Biswap LP',
+  'Uniswap V2': 'Uniswap LP',
+  Sushiswap: 'Sushi LP',
+
 }
 
 const nativeTokens = {
@@ -87,6 +95,7 @@ const dataExtractorUniV2 = (data, chainId, protocol, manager) => {
       label: `${protocol} ${asset.token0.symbol}-${asset.token1.symbol} LP`,
       contract_name: `${protocol} ${asset.token0.symbol}-${asset.token1.symbol} LP`,
       contract_address: asset.id,
+      contract_ticker_symbol: protocolSymbols[protocol],
       underlying: [{
         address: asset.token0.id, symbol: asset.token0.symbol, decimals: asset.token0.decimals, name: asset.token0.name, logo_url: `https://logos.covalenthq.com/tokens/${chainId}/${asset.token0.id}.png`},
         {address: asset.token1.id, symbol: asset.token1.symbol, decimals: asset.token1.decimals, name: asset.token1.name, logo_url: `https://logos.covalenthq.com/tokens/${chainId}/${asset.token1.id}.png`
@@ -123,6 +132,7 @@ const dataExtractorVenus = (data, chainId, protocol, manager) => {
       value: asset.id,
       label: asset.name,
       contract_name: asset.name,
+      contract_ticker_symbol: asset.symbol,
       contract_address: asset.id,
       underlying: [{
         address: asset.underlyingAddress,
@@ -131,6 +141,7 @@ const dataExtractorVenus = (data, chainId, protocol, manager) => {
         decimals: asset.underlyingDecimals,
         logo_url: `https://logos.covalenthq.com/tokens/${chainId}/${asset.underlyingAddress}.png`
       }],
+      logo_url: getLogoUrl(asset.name, asset.id, chainId),
       manager
     }
   })
@@ -190,6 +201,24 @@ const getAssets = async (url: string, query: string, protocol: string, manager:s
   }
 }
 
+const processRequest = async (chainId: string) => {
+  const value = cacheData.get(`SupportedAssets_${chainId}`)
+  if (value) return value
+  const protocols = supportedProtocols[chainId]
+  const assets = {}
+  for (const protocol of protocols) {
+    const data = await getAssets(protocol.url, protocol.query, protocol.name, protocol.manager, +chainId)
+    assets[protocol.name] = data
+  }
+  cacheData.put(`SupportedAssets_${chainId}`, assets);
+  cacheData.put(`${chainId}_${ethers.constants.AddressZero}`, nativeTokens[chainId])
+  return assets
+}
+
+for (const chainId of Object.keys(supportedProtocols)) {
+  processRequest(chainId)
+}
+
 export default async function serverSideCall(req, res) {
   const {
     query: { chainId },
@@ -200,14 +229,7 @@ export default async function serverSideCall(req, res) {
       data: value,
     })
   } else {
-    const protocols = supportedProtocols[chainId]
-    const assets = {}
-    for (const protocol of protocols) {
-      const data = await getAssets(protocol.url, protocol.query, protocol.name, protocol.manager, chainId)
-      assets[protocol.name] = data
-    }
-    cacheData.put(`SupportedAssets_${chainId}`, assets);
-    cacheData.put(`${chainId}_${ethers.constants.AddressZero}`, nativeTokens[chainId])
+    const assets = processRequest(chainId)
     res.status(200).json({
       data: assets,
     })

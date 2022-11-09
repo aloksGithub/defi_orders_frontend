@@ -9,7 +9,7 @@ import { coinbaseWallet, hooks as coinbaseWalletHooks } from '../connectors/coin
 import { hooks as metaMaskHooks, metaMask } from '../connectors/metaMask'
 import { hooks as networkHooks, network } from '../connectors/network'
 import { hooks as walletConnectHooks, walletConnect } from '../connectors/walletConnect'
-import { getName } from '../utils'
+import { getPrice } from '../utils'
 import { Navbar } from './Navbar'
 import { createContext, useContext } from 'react';
 import { ethers } from 'ethers'
@@ -21,22 +21,22 @@ import uniswapV3PoolInteractorAbi from "../constants/abis/UniswapV3PoolInteracto
 import deploymentAddresses from "../constants/deployments.json"
 import theme from './Theme'
 import {GrCircleInformation} from 'react-icons/gr'
-import { Footer } from './Footer'
+import { BiErrorAlt } from "react-icons/bi"
 
 const AppContext = createContext({
   userAssets: {data: [], loading: false, error: false},
+  hardRefreshAssets: ()=>{}, softRefreshAssets: ()=>{},
   account: undefined,
   chainId: undefined,
   connector: undefined,
   supportedAssets: {},
   contracts: undefined,
   slippageControl: {slippage:0.5, setSlippage: undefined},
-  reloadAssets: ()=>{},
   onError: (error:Error)=>{}
 });
 
 export function AppWrapper({ children }) {
-  const {isActive, account, chainId, connector, provider} = useWeb3React()
+  const {account, chainId, connector, provider} = useWeb3React()
   const [slippage, setSlippage] = useState(0.5)
   const usedChainId = chainId==1337?parseInt(process.env.NEXT_PUBLIC_CURRENTLY_FORKING):chainId
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -44,13 +44,47 @@ export function AppWrapper({ children }) {
   const { isOpen: alertOpen, onOpen: openAlert, onClose: closeAlert } = useDisclosure();
   const [errorMessage, setErrorMessage] = useState('')
   const [reloadTrigger, setReloadTrigger] = useState(false)
-  const [userAssets, setUserAssets] = useState({data: [], loading:true, error:false})
+  const [softReloadTrigger, setSoftReloadTrigger] = useState(false)
+
+  const [userAssets, setUserAssets] = useState<any>({data: [], loading: true, error: false})
   const [supportedAssets, setSupportedAssets] = useState({})
   const [contracts, setContracts] = useState<any>()
 
-  const reloadAssets = () => {
+  const [time, setTime] = useState(0);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setTime(time + 1);
+    }, 60000);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [time]);
+
+  useEffect(() => {
+    softRefreshAssets()
+  }, [time])
+
+  const hardRefreshAssets = async () => {
+    if (userAssets.loading) return
     setUserAssets({...userAssets, loading:true})
     setReloadTrigger(!reloadTrigger)
+  }
+
+  useEffect(() => {
+    const updateQuotes = async () => {
+      const temp = [...userAssets?.data||[]]
+      for (let i = 0; i<temp.length; i++) {
+        const price = await getPrice(usedChainId, temp[i].contract_address)
+        temp[i].quote = +ethers.utils.formatUnits(temp[i].balance, temp[i].contract_decimals)*price
+      }
+      setUserAssets({...userAssets, data: temp, loading: false})
+    }
+    updateQuotes()
+  }, [softReloadTrigger])
+
+  const softRefreshAssets = async () => {
+    setUserAssets({...userAssets, loading:true})
+    setSoftReloadTrigger(!softReloadTrigger)
   }
 
   useEffect(() => {
@@ -84,7 +118,7 @@ export function AppWrapper({ children }) {
     if (provider && chainId) {
       getContracts()
     }
-  }, [provider, chainId])
+  }, [provider, chainId, account])
 
   useEffect(() => {
     const fetchSupportedAssets = async () => {
@@ -101,31 +135,30 @@ export function AppWrapper({ children }) {
       try {
         const {data} = await (await fetch(`/api/userAssets?chainId=${usedChainId}&address=${account}`)).json()
         const assets = data?data.items:[]
-        setUserAssets({
-          data: assets, loading:false, error:false
-        })
+        setUserAssets({...userAssets, data: assets, loading:false, error:false})
       } catch (error) {
-        setUserAssets({data:[], loading:false, error:true})
+        setUserAssets({...userAssets, data:[], loading:false, error:true})
       }
     }
     if (account && usedChainId) {
+      setUserAssets({...userAssets, data: undefined, loading:true})
       fetchUserData()
     }
-  }, [account, usedChainId, provider, contracts, reloadTrigger])
-
+  }, [account, usedChainId, provider, reloadTrigger])
+  
   const onError = (error:Error) => {
     console.log(error)
     // @ts-ignore
     if (error.reason?.includes('slippage')) {
       setErrorMessage("Transaction failed due to high slippage. You can try setting a higher slippage threshold from the settings")
     } else {
-      setErrorMessage("Transaction failed with no revert reason. Please contact us at ...")
+      setErrorMessage("Transaction failed with no revert reason. Please contact us at info@de-limit.com")
     }
     triggerError()
   }
 
   return (
-    <AppContext.Provider value={{supportedAssets, userAssets, account, chainId: usedChainId, connector, contracts, slippageControl: {slippage, setSlippage}, onError, reloadAssets}}>
+    <AppContext.Provider value={{supportedAssets, userAssets, hardRefreshAssets, softRefreshAssets, account, chainId: usedChainId, connector, contracts, slippageControl: {slippage, setSlippage}, onError}}>
       {children}
       <Modal size={'sm'} isCentered isOpen={isOpen} onClose={onClose}>
         <ModalOverlay
@@ -133,7 +166,12 @@ export function AppWrapper({ children }) {
           backdropFilter='blur(10px)'
         />
         <ModalContent>
-          <ModalHeader>Unsupported chain</ModalHeader>
+          <ModalHeader>
+          <Flex alignItems={'center'}>
+              {<BiErrorAlt color='red' fontSize={'2rem'}/>}
+              <Text ml={'4'}>Unsupported Chain</Text>
+            </Flex>
+          </ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <Text>Selected chain is not currently supported, please switch to BSC</Text>

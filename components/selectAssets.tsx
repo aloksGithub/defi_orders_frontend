@@ -1,15 +1,21 @@
 import { DeleteIcon, AddIcon } from "@chakra-ui/icons";
 import { useDisclosure, Flex, Text, NumberInput, NumberInputField, Button, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, Box, Input, Skeleton } from "@chakra-ui/react";
 import { ethers } from "ethers";
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useAppContext } from "./Provider";
 import { ChevronDownIcon } from "@chakra-ui/icons";
-import { AiOutlineReload } from "react-icons/ai";
+import { Reload } from "./Reload";
 
 export const SelectAsset = ({assets, asset, onSelect, placeHolder='Select'}) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [filter, setFilter] = useState('')
   const [filteredAssets, setFitleredAssets] = useState(assets)
+
+  useEffect(() => {
+    if (isOpen) {
+      setTimeout(()=>ref.current?.scrollIntoView(), 100)
+    }
+  }, [isOpen])
 
   const onSelected = (asset) => {
     onSelect(asset)
@@ -22,7 +28,7 @@ export const SelectAsset = ({assets, asset, onSelect, placeHolder='Select'}) => 
   }
 
   useEffect(() => {
-    if (assets.length>0) {
+    if (assets?.length>0) {
       const newFiltered = assets.filter(asset=> {
         if (asset.contract_name.toLowerCase().includes(filter.toLowerCase()) || asset.contract_address.toLowerCase().includes(filter.toLowerCase())) {
           return true
@@ -37,6 +43,8 @@ export const SelectAsset = ({assets, asset, onSelect, placeHolder='Select'}) => 
     setFilter(input)
   }
 
+  const ref = useRef(null)
+
   return (
     <Box>
       <Box _hover={{cursor:'pointer'}} onClick={onOpen}>
@@ -44,7 +52,7 @@ export const SelectAsset = ({assets, asset, onSelect, placeHolder='Select'}) => 
         asset?.contract_ticker_symbol?
         <Flex alignItems={'center'} backgroundColor={'gray.200'} justifyContent={'center'}
         _hover={{backgroundColor: 'gray.300'}} paddingInline='2' paddingBlock={'1'} borderRadius={'2xl'}>
-          <img src={asset.logo_url} style={{width: "20px", height: "20px"}}/>
+          <img  src={asset.logo_url} style={{width: "20px", height: "20px", borderRadius:'15px'}}/>
           <Text ml={'3'} fontSize={'l'}>{asset.contract_ticker_symbol} <ChevronDownIcon/></Text>
         </Flex>:
         <Flex alignItems={'center'} backgroundColor={'gray.200'} justifyContent={'center'}
@@ -65,11 +73,15 @@ export const SelectAsset = ({assets, asset, onSelect, placeHolder='Select'}) => 
           <Input mb={'4'} placeholder='Search asset by name or address' onChange={(event)=>onInput(event.target.value)}/>
           <Box overflow={'auto'} maxHeight={'400px'} marginTop={'3'}>
             {
-              filteredAssets.map(asset=> {
+              filteredAssets.map(selectableAsset=> {
+                const chosenOne = selectableAsset.contract_address?.toLowerCase()===asset?.contract_address?.toLowerCase()
                 return (
-                  <Flex _hover={{cursor:'pointer', backgroundColor: 'gray.100'}} padding='2' onClick={()=>onSelected(asset)}>
-                    <img src={asset.logo_url} style={{width: "20px", height: "20px"}}/>
-                    <Text ml={'3'}>{asset.contract_name}</Text>
+                  <Flex _hover={{cursor:'pointer', backgroundColor: 'gray.100'}}
+                  ref={chosenOne?ref:undefined}
+                  backgroundColor={chosenOne?'gray.100':'white'} padding='2'
+                  onClick={()=>onSelected(selectableAsset)}>
+                    <img src={selectableAsset.logo_url} style={{width: "20px", height: "20px", borderRadius:'15px'}}/>
+                    <Text ml={'3'}>{selectableAsset.contract_name}</Text>
                   </Flex>
                 )
               })
@@ -100,7 +112,7 @@ const Asset = ({i, asset, assets, setAsset, setSupply, removeAsset}) => {
   }
 
   return (
-    <Flex width={'100%'} marginBlock={'2'} padding={'4'} justifyContent={'space-between'} alignItems={'center'} borderRadius={'2xl'} backgroundColor={'#f7f7f7'}>
+    <Flex width={'100%'} mt='4' padding={'4'} justifyContent={'space-between'} alignItems={'center'} borderRadius={'2xl'} backgroundColor={'#f7f7f7'}>
       <Box>
         <SelectAsset asset={asset} onSelect={onSelect} assets={assets}/>
         <Flex alignItems={'center'} mt={'3'}>
@@ -128,14 +140,16 @@ const Asset = ({i, asset, assets, setAsset, setSupply, removeAsset}) => {
 }
 
 export const SupplyAssets = ({onChange}) => {
-  const {userAssets, reloadAssets} = useAppContext()
-  const {data:assets, loading, error:userAssetsError} = userAssets
+  const {userAssets, hardRefreshAssets} = useAppContext()
+  const assets = userAssets?.data
+  const loading = userAssets?.loading
+  const userAssetsError = userAssets?.error
 
   const [assetsToConvert, setAssetsToConvert] = useState<any>([{}])
   const filteredAssets = assets?.filter(asset=>!(assetsToConvert.filter(toConvert=>toConvert.contract_address===asset.contract_address).length>0))
 
   useEffect(() => {
-    if (assets.length>0 && !loading && !userAssetsError) {
+    if (assets?.length>0 && !loading && !userAssetsError) {
       const newAssets = assetsToConvert.map(asset=> {
         const matchingAsset = assets.find(reloadedAsset=>reloadedAsset.contract_address===asset.contract_address)
         if (matchingAsset && matchingAsset.balance) {
@@ -187,21 +201,18 @@ export const SupplyAssets = ({onChange}) => {
     temp[i].tokenDecimals = assetDetails.contract_decimals
     temp[i].tokensSupplied = 0
     setAssetsToConvert(temp)
-    reloadAssets()
   }
 
   return (
       <Flex padding={'5'} direction={'column'} width={'100%'} maxWidth='450px' alignItems={'center'} backgroundColor='white' borderRadius={'2xl'}>
         <Flex width={'100%'} justifyContent='space-between' alignItems={'center'}>
-          <Button onClick={addAsset} paddingInline={'4'} colorScheme={'blue'}><AddIcon/></Button>
+          <Button onClick={addAsset} paddingInline={'3'} colorScheme={'blue'}><AddIcon/></Button>
         <Text>USD Supplied: ${assetsToConvert.reduce((a, b)=>a+(b.usdcValue||0), 0)?.toFixed(3)||0}</Text>
-        <Flex p={'2'} borderRadius={'lg'} ml={'3'} backgroundColor={'gray.100'} _hover={{cursor:'pointer', backgroundColor: 'gray.300'}} onClick={reloadAssets}>
-        <AiOutlineReload fontSize={'1.2rem'}></AiOutlineReload>
-        </Flex>
+        <Reload onReload={hardRefreshAssets} loading={loading} />
         </Flex>
         {
           assetsToConvert.map((asset, index) => asset?(
-            <Asset asset={asset} i={index} assets={filteredAssets} removeAsset={removeAsset} setSupply={setSupply} setAsset={setAsset}></Asset>
+            <Asset key={`SuppliedAsset_${index}`} asset={asset} i={index} assets={filteredAssets} removeAsset={removeAsset} setSupply={setSupply} setAsset={setAsset}></Asset>
           ):<></>)
         }
       </Flex>

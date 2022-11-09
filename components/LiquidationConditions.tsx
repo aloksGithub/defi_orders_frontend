@@ -1,16 +1,14 @@
-import { MinusIcon, AddIcon, DeleteIcon } from "@chakra-ui/icons"
-import { TableContainer, Table, Thead, Tr, Th, Tbody, Text, Td, Flex, NumberInput, NumberInputField, Button, useDisclosure, Box, Modal, ModalBody, ModalCloseButton, ModalContent, ModalHeader, ModalOverlay, Skeleton, Center, Grid } from "@chakra-ui/react"
-import {Select} from "chakra-react-select";
+import { AddIcon, DeleteIcon } from "@chakra-ui/icons"
+import { Text, Flex, NumberInput, NumberInputField, Button, Box, Skeleton } from "@chakra-ui/react"
 import { ethers } from "ethers"
-import { forwardRef, useEffect, useState, useImperativeHandle } from "react"
+import { useEffect, useState } from "react"
 import { useAppContext } from "./Provider"
-import { Heading3 } from "./Typography";
 import { SelectAsset } from "./selectAssets";
 import { getPrice } from "../utils";
-import { AiOutlineReload } from "react-icons/ai";
+import { Reload } from "./Reload";
 
-const Condition = ({i, condition, setWatchedAsset, setConvertTo, removeAsset, setLiquidationPoint, setPrice}) => {
-  const {supportedAssets, chainId} = useAppContext()
+const Condition = ({i, condition, setWatchedAsset, setConvertTo, removeAsset, setLiquidationPoint, loading}) => {
+  const {supportedAssets} = useAppContext()
   const self = {
     value: ethers.constants.AddressZero,
     label: 'Value of self',
@@ -19,13 +17,6 @@ const Condition = ({i, condition, setWatchedAsset, setConvertTo, removeAsset, se
     contract_address: ethers.constants.AddressZero,
     underlying:[],
     logo_url: 'https://www.svgrepo.com/show/99387/dollar.svg'
-  }
-
-  const onSelectWatched = (asset) => {
-    if (asset.contract_address!=ethers.constants.AddressZero) {
-      getPrice(chainId, asset.contract_address).then(price=>setPrice(price))
-    }
-    setWatchedAsset(asset)
   }
 
   const onSelectConvertTo = (asset) => {
@@ -37,7 +28,7 @@ const Condition = ({i, condition, setWatchedAsset, setConvertTo, removeAsset, se
       <Box marginBlock={'auto'}>
         <Flex mb={'4'}>
           {/* @ts-ignore */}
-          <SelectAsset asset={condition.watchedAsset} onSelect={onSelectWatched} assets={[self, ...supportedAssets.ERC20]} placeHolder={'Watched price'}/>
+          <SelectAsset asset={condition.watchedAsset} onSelect={setWatchedAsset} assets={[self, ...supportedAssets.ERC20]} placeHolder={'Watched price'}/>
         </Flex>
         <Flex alignItems={'center'}>
           {/* @ts-ignore */}
@@ -51,7 +42,12 @@ const Condition = ({i, condition, setWatchedAsset, setConvertTo, removeAsset, se
           onChange={(valueAsNumber)=>setLiquidationPoint(valueAsNumber)}>
             <NumberInputField backgroundColor={'white'}></NumberInputField>
           </NumberInput>
-          <Text mt={'3'}>Current Price: ${(+(condition.price)||0).toFixed(3)}</Text>
+          <Flex>
+          <Text>Current Price:&nbsp;</Text>
+          {
+            !loading?<Text>${(+(condition.price)||0).toFixed(3)}</Text>:<Skeleton><Text>TEMP</Text></Skeleton>
+          }
+          </Flex>
         </Flex>
         <Flex alignItems={'center'} paddingBlock={'8'} pl={'3'} borderLeft={'1px'} borderColor={'white'}>
           <Text textAlign={'center'} borderRadius={'lg'} width={'2rem'} padding={'1'}
@@ -64,12 +60,23 @@ const Condition = ({i, condition, setWatchedAsset, setConvertTo, removeAsset, se
 }
 
   // @ts-ignore
-const LiquidationConditions = ({assetPrice, initialLiquidationPoints=undefined, liquidationPoints, onChangeConditions, resetFlag}) => {
+const LiquidationConditions = ({assetPrice, initialLiquidationPoints=undefined, liquidationPoints, onChangeConditions, resetFlag, onReload, loading}) => {
+  const {chainId} = useAppContext()
+  
+  const [initialized, setInitialized] = useState(false)
+
+  useEffect(()=> {
+    if (initialLiquidationPoints && initialLiquidationPoints.length>0 && !initialized) {
+      setInitialized(true)
+      onChangeConditions(JSON.parse(JSON.stringify(initialLiquidationPoints)))
+    }
+  }, [initialLiquidationPoints])
+
   useEffect(()=> {
     if (initialLiquidationPoints) {
       onChangeConditions(JSON.parse(JSON.stringify(initialLiquidationPoints)))
     }
-  }, [resetFlag, initialLiquidationPoints])
+  }, [resetFlag])
 
   useEffect(() => {
     if (liquidationPoints) {
@@ -84,6 +91,16 @@ const LiquidationConditions = ({assetPrice, initialLiquidationPoints=undefined, 
     }
   }, [assetPrice])
 
+  const reload = async () => {
+    onReload()
+    if (liquidationPoints) {
+      // @ts-ignore
+      for (const [index, condition] of liquidationPoints.entries()) {
+        setWatchedAsset(index, condition.watchedAsset)
+      }
+
+    }
+  }
 
   const addCondition = () => {
   const temp = [...liquidationPoints]
@@ -110,13 +127,18 @@ const LiquidationConditions = ({assetPrice, initialLiquidationPoints=undefined, 
     onChangeConditions(temp)
   }
 
-  const setWatchedAsset = (index, asset) => {
+  const setWatchedAsset = async (index, asset) => {
     const temp = [...liquidationPoints]
     temp[index].watchedAsset = asset
-    if (asset.contract_address===ethers.constants.AddressZero) {
+    if (asset?.contract_address===ethers.constants.AddressZero) {
       temp[index].price=assetPrice
+    } else {
+      if (asset?.contract_address) {
+        const price = await getPrice(chainId, asset.contract_address)
+        temp[index].price=price
+      }
     }
-    if (temp[index].liquidationPoint<temp[index].price) {
+    if (+temp[index].liquidationPoint<+temp[index].price) {
       temp[index].lessThan = true
     } else {
       temp[index].lessThan = false
@@ -135,25 +157,12 @@ const LiquidationConditions = ({assetPrice, initialLiquidationPoints=undefined, 
     onChangeConditions(temp)
   }
 
-  const setPrice = (index, price) => {
-    const temp = [...liquidationPoints]
-    temp[index].price = price
-    if (+temp[index].liquidationPoint<+price) {
-      temp[index].lessThan = true
-    } else {
-      temp[index].lessThan = false
-    }
-    onChangeConditions(temp)
-  }
-
   return (
     <Box marginTop={'5'} width={'100%'}>
       <Box margin={'auto'} maxWidth='500px' overflowX={'auto'}>
         <Flex justifyContent={'end'}>
-          <Flex alignItems={'center'} p={'2'} borderRadius={'lg'} mr={'3'} backgroundColor={'gray.100'} _hover={{cursor:'pointer', backgroundColor: 'gray.300'}}>
-          <AiOutlineReload fontSize={'1.2rem'}></AiOutlineReload>
-          </Flex>
-          <Button onClick={addCondition} paddingInline={'4'} colorScheme={'blue'}><AddIcon/></Button>
+          <Reload onReload={reload} loading={loading}/>
+          <Button ml={'2'} onClick={addCondition} paddingInline={'3'} colorScheme={'blue'}><AddIcon/></Button>
         </Flex>
         {
           liquidationPoints&&liquidationPoints.length>0?
@@ -166,7 +175,7 @@ const LiquidationConditions = ({assetPrice, initialLiquidationPoints=undefined, 
               setWatchedAsset={(asset)=>setWatchedAsset(index, asset)}
               removeAsset={()=>removeCondition(index)}
               setLiquidationPoint={(point)=>setLiquidationPoint(index, point)}
-              setPrice={(price)=>setPrice(index, price)}/>
+              loading={loading}/>
           )}):<Skeleton minWidth={'500px'} height='140' marginBlock={'2'} padding={'4'} borderRadius={'2xl'}></Skeleton>
         }
       </Box>

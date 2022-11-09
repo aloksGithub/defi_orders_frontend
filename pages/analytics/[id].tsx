@@ -20,6 +20,8 @@ const Analytics = () => {
   const [pnl, setPnl] = useState<string>()
   const [graphData, setGraphData] = useState(undefined)
 
+  console.log(position)
+
   useEffect(() => {
     const fetch = async () => {
       const data = await getGraphData(contracts, id, provider, -1)
@@ -61,7 +63,7 @@ const Analytics = () => {
         <Stat display='flex' padding={'4'} backgroundColor='gray.100' borderRadius={'xl'}>
           <StatLabel fontSize={'l'}>Asset Value</StatLabel>
           {
-            position?.usdcValue?<StatNumber fontSize={{base: 'xl', md: '2xl'}}>${nFormatter(position?.usdcValue, 3)}</StatNumber>:
+            typeof(position?.usdcValue)==='number'?<StatNumber fontSize={{base: 'xl', md: '2xl'}}>${nFormatter(position?.usdcValue, 3)}</StatNumber>:
             <Skeleton>Temporary</Skeleton>
           }
         </Stat>
@@ -83,7 +85,7 @@ const Analytics = () => {
         <Stat display='flex' padding={'4'} backgroundColor='gray.100' borderRadius={'xl'}>
           <StatLabel fontSize={'l'}>Projected APY</StatLabel>
           {
-            position?.usdcValue?<StatNumber fontSize={{base: 'xl', md: '2xl'}}>0%</StatNumber>:
+            typeof(position?.usdcValue)==='number'?<StatNumber fontSize={{base: 'xl', md: '2xl'}}>0%</StatNumber>:
             <Skeleton>Temporary</Skeleton>
           }
           
@@ -114,7 +116,7 @@ const Analytics = () => {
       <Grid
         w={'100%'}
         gridTemplateRows={'80px'}
-        templateColumns={{md: 'repeat(3, 1fr)', base: 'repeat(2, 1fr)'}}
+        templateColumns={'1fr 1fr'}
         mb={'8'}
         gap={10}
       >

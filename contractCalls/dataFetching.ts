@@ -1,50 +1,54 @@
 import { ethers } from "ethers";
 import erc20Abi from "../constants/abis/ERC20.json"
 
-export const fetchPositions = async (contracts, signer) => {
-  const account = await signer.getAddress()
-  if (!contracts.positionManager) return []
-  const numPositions = await contracts.positionManager.numUserPositions(account)
-  const positions = []
-  const positionsArray = Array.from(Array(numPositions.toNumber()).keys())
-  const positionsData = positionsArray.map(i=> 
-    contracts.positionManager.userPositions(account, i).then(async (position)=>{
-      const positionData = await contracts.positionManager.getPosition(position.toNumber())
-      const usdcValue = await contracts.positionManager.callStatic.closeToUSDC(position.toNumber())
-      const usdcDecimals = await contracts.usdcContract.decimals()
-      const bankDetails = await contracts.banks[positionData.bankId.toNumber()].decodeId(positionData.bankToken)
-      const rewards = await contracts.banks[positionData.bankId.toNumber()].getRewards(positionData.bankToken)
-      let name
-      try {
-        const depositedAsset = new ethers.Contract(bankDetails[0], erc20Abi, signer)
-        name = await depositedAsset.name()
-      } catch {
-        const depositedAsset = new ethers.Contract(bankDetails[1], erc20Abi, signer)
-        name = await depositedAsset.name()
-      }
-      let underlying = await contracts.universalSwap.callStatic.getUnderlying(bankDetails[0])
-      underlying = await Promise.all(underlying.map(async (token) => {
-        const contract = new ethers.Contract(token, erc20Abi, signer)
-        const name = await contract.name()
-        return name
-      }))
-      const newPosition = {positionId: position.toNumber(), positionData, tokenContract:bankDetails[0], name, usdcValue: usdcValue.div(ethers.utils.parseUnits("1.0", usdcDecimals)).toString(), rewards, underlying}
-      positions.push(newPosition)
-    })
-  )
-  try {
-    await Promise.all(positionsData)
-  } catch (error) {
-    console.log(error)
-    return undefined
-  }
-  return positions
-}
+// export const fetchPositions = async (contracts, signer) => {
+//   const account = await signer.getAddress()
+//   if (!contracts.positionManager) return []
+//   const numPositions = await contracts.positionManager.numUserPositions(account)
+//   const positions = []
+//   const positionsArray = Array.from(Array(numPositions.toNumber()).keys())
+//   const positionsData = positionsArray.map(i=> 
+//     contracts.positionManager.userPositions(account, i).then(async (position)=>{
+//       const positionData = await contracts.positionManager.getPosition(position.toNumber())
+//       const usdcValue = await contracts.positionManager.callStatic.closeToUSDC(position.toNumber())
+//       const usdcDecimals = await contracts.usdcContract.decimals()
+//       const bankDetails = await contracts.banks[positionData.bankId.toNumber()].decodeId(positionData.bankToken)
+//       const rewards = await contracts.banks[positionData.bankId.toNumber()].getRewards(positionData.bankToken)
+//       let name
+//       try {
+//         const depositedAsset = new ethers.Contract(bankDetails[0], erc20Abi, signer)
+//         name = await depositedAsset.name()
+//       } catch {
+//         const depositedAsset = new ethers.Contract(bankDetails[1], erc20Abi, signer)
+//         name = await depositedAsset.name()
+//       }
+//       let underlying = await contracts.universalSwap.callStatic.getUnderlying(bankDetails[0])
+//       underlying = await Promise.all(underlying.map(async (token) => {
+//         const contract = new ethers.Contract(token, erc20Abi, signer)
+//         const name = await contract.name()
+//         return name
+//       }))
+//       const newPosition = {positionId: position.toNumber(), positionData, tokenContract:bankDetails[0], name, usdcValue: usdcValue.div(ethers.utils.parseUnits("1.0", usdcDecimals)).toString(), rewards, underlying}
+//       positions.push(newPosition)
+//     })
+//   )
+//   try {
+//     await Promise.all(positionsData)
+//   } catch (error) {
+//     console.log(error)
+//     return undefined
+//   }
+//   return positions
+// }
 
 export const fetchPosition = async (id:number, contracts, signer) => {
+  if (!contracts.positionManager) return
   let positionData = await contracts.positionManager.getPosition(id)
   positionData = {...positionData}
-  const usdcValue = await contracts.positionManager.callStatic.closeToUSDC(id)
+  let usdcValue = '0'
+  try {
+    usdcValue = await contracts.positionManager.callStatic.closeToUSDC(id)
+  } catch {}
   const usdcDecimals = await contracts.usdcContract.decimals()
   const bankDetails = await contracts.banks[positionData.bankId.toNumber()].decodeId(positionData.bankToken)
   const rewards = await contracts.banks[positionData.bankId.toNumber()].getRewards(positionData.bankToken)
@@ -68,6 +72,7 @@ export const fetchPosition = async (id:number, contracts, signer) => {
   positionData.amountDecimal = ethers.utils.formatUnits(positionData.amount, decimals)
   const position = {
     positionId: id, positionData,
+    decimals,
     tokenContract:bankDetails[0],
     name,
     usdcValue: parseFloat(ethers.utils.formatUnits(usdcValue, usdcDecimals)),

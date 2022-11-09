@@ -2,7 +2,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons"
 import { Box, Text, Flex, Skeleton, SkeletonText, Button, Grid, GridItem } from "@chakra-ui/react"
 import { useEffect, useState } from "react"
 
-export const Pagination = ({cards, placeholder, loading}) => {
+export const Pagination = ({cards, placeholder}) => {
   const cardsPerPage = 6
   const numPages = 1+(cards?.length-cards?.length%cardsPerPage)/cardsPerPage
   const [currentPage, setCurrentPage] = useState(0)
@@ -35,14 +35,16 @@ export const Pagination = ({cards, placeholder, loading}) => {
   }, [cards, currentPage])
 
   return (
-    <Box width={'100%'}>
-      <Grid width={'100%'} gridTemplateColumns={{base:`1fr`, md: `repeat(min(2, ${cardsToShow?.length||2}), 1fr)`, xl: `repeat(min(3, ${cardsToShow?.length||3}), 1fr)`}}>
+    <Box>
+      <Grid gridTemplateColumns={{base:`1fr`, md: `repeat(min(2, ${cardsToShow?.length||2}), 1fr)`, xl: `repeat(min(3, ${cardsToShow?.length||3}), 1fr)`}}
+      gap='10'>
         {
           cardsToShow&&cardsToShow.length>0?cardsToShow:
-          loading?
+          !cardsToShow?
           Array.from(Array(6).keys()).map((i)=> {
             return (
-                <Box key={`paginationSkeleton_${i}`} py={6} px={'10'} m={'4'} boxShadow='lg' bg='white' minW={'300px'} height={'300'}>
+              <Flex key={`paginationSkeleton_${i}`} width={'100%'} justifyContent='center'>
+                <Box py={6} px={'10'} m={'4'} boxShadow='lg' bg='white' width={'300px'} height={'300'}>
                 <Skeleton
                   width={'80%'}
                   height='40px'
@@ -50,8 +52,10 @@ export const Pagination = ({cards, placeholder, loading}) => {
                   mb={'8'}
                 />
                   <SkeletonText mt='4' noOfLines={7} spacing='4'/>
-                </Box>)
-          }):placeholder
+                </Box>
+                </Flex>)
+                // @ts-ignore
+          }):<GridItem margin={'auto'} width={'70%'} colSpan={'3'}>{placeholder}</GridItem>
         }
       </Grid>
       {

@@ -3,7 +3,6 @@ import { useAppContext } from "../components/Provider"
 import { Box, Flex, Table, TableContainer, Tbody, Th, Thead, Tr, Text, Td, Button, Center, Heading, Stack, useColorModeValue, SkeletonText, Skeleton, HStack, VStack } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import Link from 'next/link';
-import { fetchPositions } from "../contractCalls/dataFetching";
 import { Pagination } from "../components/Pagination";
 import { Heading1 } from "../components/Typography";
 import { VscGraphLine } from 'react-icons/vsc'
@@ -13,70 +12,74 @@ import { getBlockExplorerUrl, getLogoUrl, getTokenDetails, nFormatter } from "..
 import erc20Abi from "../constants/abis/ERC20.json"
 import { AiOutlineShrink, AiOutlineExpandAlt } from 'react-icons/ai'
 import { harvest, compound } from "../contractCalls/transactions";
+import { Tooltip } from '@chakra-ui/react'
 
 const Card = ({id}) => {
-  const {contracts, chainId, onError} = useAppContext()
-  const {provider} = useWeb3React()
+  const {contracts, chainId, onError, slippageControl: {slippage}} = useAppContext()
+  const {provider, account} = useWeb3React()
   const [asset, SetAsset] = useState(undefined)
   const [underlying, setUnderlying] = useState(undefined)
   const [rewards, setRewards] = useState(undefined)
   const [usdcValue, setUsdcValue] = useState(undefined)
-  const [contractAddress, setContractAddress] = useState()
   const [expandRewards, setExpandRewards] = useState(false)
   const [isHarvesting, setHarvesting] = useState(false)
   const [isCompounding, setCompounding] = useState(false)
   const [refresh, setRefresh] = useState(false)
+  const [isClosed, setIsClosed] = useState(false)
 
   useEffect(() => {
-    const getAssetData = async () => {
-      const contract = new ethers.Contract(contractAddress, erc20Abi, provider)
-      const symbol = await contract.symbol()
-      SetAsset({contract_ticker_symbol: symbol, contract_address: contractAddress, logo_url: (await getLogoUrl(contract, chainId))})
-    }
-    if (contractAddress) {
-      getAssetData()
-    }
-  }, [contractAddress])
-
-  console.log(rewards)
-
-  useEffect(() => {
-    contracts.usdcContract.decimals().then(usdcDecimals => {
-      contracts.positionManager.callStatic.closeToUSDC(id).then((usdcValue)=> {
-        const usd = ethers.utils.formatUnits(usdcValue, usdcDecimals)
-        setUsdcValue(nFormatter(usd, 3))
-      })
-    })
     contracts.positionManager.getPosition(id).then(async (positionData) => {
-      contracts.positionManager.callStatic.harvestRewards(id).then(async ({rewards, rewardAmounts})=> {
-        const promises = rewards.map(async (token, index)=> {
-          const tokenData = await getTokenDetails(chainId, token)
-          const contract = new ethers.Contract(token, erc20Abi, provider)
-          const amount = +ethers.utils.formatUnits(rewardAmounts[index].toString(), tokenData.decimals)
-          const usdValue = amount*tokenData.price
-          return {
-            contract_ticker_symbol: tokenData.symbol,
-            contract_address: token,
-            logo_url: (await getLogoUrl(contract, chainId)),
-            usdValue,
-            amount
-          }
-        })
-        const rewardData = await Promise.all(promises)
-        setRewards(rewardData)
-      })
       const bankDetails = await contracts.banks[positionData.bankId.toNumber()].decodeId(positionData.bankToken)
-      setContractAddress(bankDetails[0])
+      const getAssetData = async (contractAddress:string) => {
+        const contract = new ethers.Contract(contractAddress, erc20Abi, provider)
+        const symbol = await contract.symbol()
+        const name = await contract.name()
+        SetAsset({contract_ticker_symbol: symbol, contract_address: contractAddress, logo_url: getLogoUrl(name, contract.address, chainId)})
+      }
+      getAssetData(bankDetails[0])
       contracts.universalSwap.callStatic.getUnderlying(bankDetails[0]).then(underlyingAddresses=> {
         const promises = underlyingAddresses.map(async address=> {
           const contract = new ethers.Contract(address, erc20Abi, provider)
           const symbol = await contract.symbol()
-          return {contract_address: address, contract_ticker_symbol: symbol, logo_url: (await getLogoUrl(contract, chainId))}
+          const name = await contract.name()
+          return {contract_address: address, contract_ticker_symbol: symbol, logo_url: getLogoUrl(name, contract.address, chainId)}
         })
         Promise.all(promises).then((underlying)=>setUnderlying(underlying))
       })
     })
-  }, [id, refresh])
+    contracts.positionManager.positionClosed(id).then(positionClosed=> {
+      if (positionClosed) {
+        setIsClosed(true)
+        setUsdcValue(0)
+        setRewards([])
+      } else {
+        contracts.positionManager.callStatic.harvestRewards(id).then(async ({rewards, rewardAmounts})=> {
+          const promises = rewards.map(async (token, index)=> {
+            const tokenData = await getTokenDetails(chainId, token)
+            const contract = new ethers.Contract(token, erc20Abi, provider)
+            const name = await contract.name()
+            const amount = +ethers.utils.formatUnits(rewardAmounts[index].toString(), tokenData.decimals)
+            const usdValue = amount*tokenData.price
+            return {
+              contract_ticker_symbol: tokenData.symbol,
+              contract_address: token,
+              logo_url: getLogoUrl(name, contract.address, chainId),
+              usdValue,
+              amount
+            }
+          })
+          const rewardData = await Promise.all(promises)
+          setRewards(rewardData)
+        }, ()=>{})
+        contracts.usdcContract.decimals().then(usdcDecimals => {
+          contracts.positionManager.callStatic.closeToUSDC(id).then((usdcValue)=> {
+            const usd = ethers.utils.formatUnits(usdcValue, usdcDecimals)
+            setUsdcValue(nFormatter(usd, 3))
+          }, ()=>{})
+        })
+      }
+    })
+  }, [id, refresh, contracts.positionManager.signer])
 
   const harvestPosition = () => {
     setHarvesting(true)
@@ -91,7 +94,7 @@ const Card = ({id}) => {
 
   const compoundPosition = () => {
     setCompounding(true)
-    compound(contracts, id).then(()=>{
+    compound(contracts, id, slippage, chainId).then(()=>{
       setCompounding(false)
       setRefresh(!refresh)
     }).catch((error)=>{
@@ -101,7 +104,7 @@ const Card = ({id}) => {
   }
 
   return (
-    <Box position='relative' margin={'6'} minW={'300px'}>
+    <Box position='relative' minW={'300px'}>
       <Flex direction={'column'}
         justifyContent={'space-between'}
         h={'100%'}
@@ -149,7 +152,7 @@ const Card = ({id}) => {
           <Heading fontSize={'m'} >
           USD Value
           </Heading>
-          <Flex justifyContent={'center'}>${usdcValue?usdcValue:<Skeleton m='1'><Text>Temp</Text></Skeleton>}</Flex>
+          <Flex justifyContent={'center'}>${typeof(+usdcValue)==='number'?usdcValue:<Skeleton m='1'><Text>Temp</Text></Skeleton>}</Flex>
         </Flex>
         </Box>
         {
@@ -177,8 +180,8 @@ const Card = ({id}) => {
               }
               {
                 expandRewards?<Flex margin={'auto'} mt={'6'}>
-                  <Button colorScheme={'blue'} mr={'3'} size={'sm'} onClick={harvestPosition}>Harvest</Button>
-                  <Button colorScheme={'blue'} size={'sm'} onClick={compoundPosition}>Reinvest</Button>
+                  <Button isLoading={isHarvesting} colorScheme={'blue'} mr={'3'} size={'sm'} onClick={harvestPosition}>Harvest</Button>
+                  <Button isLoading={isCompounding} colorScheme={'blue'} size={'sm'} onClick={compoundPosition}>Reinvest</Button>
                   <Box _hover={{cursor: 'pointer'}} onClick={()=>setExpandRewards(false)} position={'absolute'} top='8px' right='8px'>
                     <Text _hover={{color: 'blue.300'}}>
                     <AiOutlineShrink fontSize={'1.3rem'}></AiOutlineShrink>
@@ -194,6 +197,7 @@ const Card = ({id}) => {
         <Stack mt={8} direction={'row'} spacing={4}>
         <Link href={`/editPosition/${id}`}>
           <Button
+            disabled={isClosed}
             flex={1}
             fontSize={'sm'}
             rounded={'full'}
@@ -241,35 +245,35 @@ const Card = ({id}) => {
 const Positions = () => {
   const {contracts} = useAppContext()
   const {account, provider} = useWeb3React()
-  const [positions, setPositions] = useState(undefined)
-  const [numPositions, setNumPositions] = useState(0)
+  const [userPositions, setUserPositions] = useState(undefined)
+
+  console.log()
 
   useEffect(() => {
     if (!contracts?.positionManager) return
-    contracts.positionManager.numUserPositions(account).then(n=>setNumPositions(n.toNumber()))
-  }, [contracts, provider, account])
-
-  useEffect(() => {
-    const fetchUserPositions = async () => {
-      const positions = await fetchPositions(contracts, provider.getSigner(account))
-      setPositions(positions)
+    const getPositions = async () => {
+      const numPositions = await contracts.positionManager.numUserPositions(account)
+      const positions = []
+      for (let i = 0; i<numPositions; i++) {
+        const position = await contracts.positionManager.userPositions(account, i)
+        positions.push(position.toNumber())
+      }
+      setUserPositions(positions)
     }
-    if (contracts && provider) {
-      fetchUserPositions()
-    }
+    getPositions()
   }, [contracts, provider, account])
 
   return <>
     <Flex direction={'column'} justifyContent={'center'}>
       <Flex marginInline={'auto'} wrap={'wrap'} justifyContent={'center'} alignContent={'stretch'} maxW={'1000px'}>
       <Pagination
-      cards={Array.from(Array(numPositions).keys()).map(id=><Card id={id}></Card>)}
+      cards={userPositions?.map(id=><Card id={id}></Card>)}
       placeholder={
         <Text mt={'20'}>
-          No positions detected. <Link href={`/`}><Text color='blue' _hover={{cursor: 'pointer'}} as={'u'}>Click here</Text></Link> to create a position using your assets
+          No positions detected. <Link href={`/`}><Text color='blue' _hover={{cursor: 'pointer'}} as={'u'}>Click here</Text></Link> to create a position using your assets.
+          Note: You might have to reload in a minute to see newly created positions
         </Text>
-      }
-      loading={false}></Pagination>
+      }></Pagination>
       </Flex>
     </Flex>
   </>

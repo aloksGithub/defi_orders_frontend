@@ -74,7 +74,7 @@ export default async function serverSideCall(req, res) {
     const response = await getPriceCovalent(chainId, address)
     let price = response.data[0].items[0].price
     if (['Pancake LPs', 'Biswap LPs', 'SushiSwap LP Token', 'Uniswap V2'].includes(response.data[0].items[0].contract_metadata.contract_name)) {
-      price = getPriceActual(chainId, address, response.data[0].contract_decimals, response.data[0].contract_name)
+      price = await getPriceActual(chainId, address, response.data[0].contract_decimals, response.data[0].contract_name)
     }
     const name = response.data[0].items[0].contract_metadata.contract_name
     const symbol = response.data[0].items[0].contract_metadata.contract_ticker_symbol

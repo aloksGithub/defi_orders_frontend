@@ -4,6 +4,7 @@ import {MetaMask} from "@web3-react/metamask";
 import {Network} from "@web3-react/network";
 import {WalletConnect} from "@web3-react/walletconnect";
 import type {Connector} from "@web3-react/types";
+import { ethers } from "ethers";
 
 export function getName(connector: Connector) {
   if (connector instanceof MetaMask) return "MetaMask";
@@ -56,7 +57,7 @@ export const getPrice = async (chainId, address) => {
   const {
     data: {price},
   } = await (
-    await fetch(`/api/tokenPrice?chainId=${chainId}&address=${address}`)
+    await fetch(`/api/tokenPrice?chainId=${chainId}&address=${ethers.constants.AddressZero===address?"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee":address}`)
   ).json();
   return price;
 };
@@ -81,8 +82,11 @@ export const getBlockExplorerUrl = (chainId: number, token: string) => {
 };
 
 export function nFormatter(num, digits) {
-  if (num < 1) {
-    return num.toFixed(digits);
+  if (num===undefined) {
+    return 0
+  }
+  if (+num < 1) {
+    return (+num).toFixed(digits);
   }
   const lookup = [
     {value: 1, symbol: ""},
@@ -98,10 +102,10 @@ export function nFormatter(num, digits) {
     .slice()
     .reverse()
     .find(function (item) {
-      return num >= item.value;
+      return +num >= item.value;
     });
   return item
-    ? (num / item.value).toFixed(digits).replace(rx, "$1") + item.symbol
+    ? (+num / item.value).toFixed(digits).replace(rx, "$1") + item.symbol
     : "0";
 }
 
@@ -114,8 +118,7 @@ const logos = {
   AAVE: "https://cryptologos.cc/logos/aave-aave-logo.svg?v=023",
 };
 
-export const getLogoUrl = async (contract, chainId) => {
-  const name = await contract.name();
+export const getLogoUrl = (name, address, chainId) => {
   if (name === "Biswap LPs") {
     return logos.Biswap;
   } else if (name === "Pancake LPs") {
@@ -127,5 +130,5 @@ export const getLogoUrl = async (contract, chainId) => {
   } else if (name.includes("Uniswap")) {
     return logos["Uniswap V2"];
   }
-  return `https://logos.covalenthq.com/tokens/${chainId}/${contract.address.toLowerCase()}.png`;
+  return `https://logos.covalenthq.com/tokens/${chainId}/${address.toLowerCase()}.png`;
 };

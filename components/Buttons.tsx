@@ -38,3 +38,12 @@ export const DangerButton = (props) => {
     <Button colorScheme={'red'} rounded={'full'} {...buttonProps}></Button>
   )
 }
+
+export const FancyButton = (props) => {
+  return (
+    <Button paddingBlock={'5'} bgGradient='linear(to-l, #822bd9, #3db0f2)' maxWidth={'300px'}
+    justifyContent={'center'} alignItems={'center'} borderRadius={'2xl'} boxShadow={'dark-lg'}
+    _active={{bgGradient: 'linear(to-l, #531c8a, #308bbf)'}}
+    _hover={{cursor: 'pointer', bgGradient: 'linear(to-l, #6823ad, #3db0f2)'}} {...props}></Button>
+  )
+}

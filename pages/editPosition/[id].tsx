@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from 'next/router'
 import { useWeb3React } from "@web3-react/core";
 import { ethers } from "ethers";
-import erc20Abi from "../../constants/abis/ERC20.json"
 import { fetchPosition } from "../../contractCalls/dataFetching";
 import { depositAgain, close, harvest, compound, withdraw, adjustLiquidationPoints } from "../../contractCalls/transactions";
 import LiquidationConditions from "../../components/LiquidationConditions";
@@ -14,25 +13,25 @@ import { DangerButton, PrimaryButton, SecondaryButton } from "../../components/B
 import { getPrice, nFormatter } from "../../utils";
 import { BiErrorAlt } from "react-icons/bi";
 
-const WithdrawModal = ({position, refreshData, closeSelf}) => {
-  const positionSize = position?.positionData.amount.toString()||0
+const WithdrawModal = ({position, refreshData, closeSelf, onReload, loading}) => {
+  const positionSizeDecimals = position?.positionData.amountDecimal||0
   const {contracts, onError} = useAppContext()
-  const [value, setValue] = useState('0')
+  const [value, setValue] = useState(0)
   const [isWithdrawing, setWithdrawing] = useState(false)
-  const [percentage, setPercentage] = useState(0)
-  const max = ethers.BigNumber.from(positionSize)
-  const usdWithdraw = ethers.BigNumber.from(value).mul(10000).div(max).toNumber()*position.usdcValue/10000
+  const [percentage, setPercentage] = useState('0')
+  const usdWithdraw = (value/positionSizeDecimals)*position.usdcValue
   const handleChange = (value) => {
     setValue(value)
-    setPercentage(ethers.BigNumber.from(value).mul('100').div(max).toNumber())
+    setPercentage((value*100/positionSizeDecimals).toFixed(1))
   }
   const hangleChangeSlider = (value) => {
     setPercentage(value)
-    setValue(max.mul(value).div('100').toString())
+    setValue(positionSizeDecimals*value/100)
   }
   const withdrawFromPostion = () => {
+    if (value===0) return
     setWithdrawing(true)
-    withdraw(contracts, position.positionId, value).then(()=>{
+    withdraw(contracts, position.positionId, ethers.utils.parseUnits(value.toString(), position.decimals)).then(()=>{
       setTimeout(() => {
         setWithdrawing(false)
         ethers.getDefaultProvider().getBlockNumber()
@@ -46,35 +45,40 @@ const WithdrawModal = ({position, refreshData, closeSelf}) => {
   }
   return (
     <Box>
-      <Flex mb={'4'}>
-      <Text as={'b'} mr={'4'}>Available Tokens:</Text>
-      <Text>{positionSize}</Text>
-      </Flex>
-      <Flex mb={'4'}>
-      <Text as={'b'} mr={'4'}>Expected withdrawal worth:</Text>
-      <Text>${usdWithdraw.toFixed(4)}</Text>
-      </Flex>
-      <Box mb={'4'}>
-      <Text as={'b'}>Tokens to Withdraw:</Text>
-      <Flex>
-      <NumberInput width={'50%'} mt={'2'} max={positionSize.toString()} mr='2rem' value={value} onChange={handleChange}>
-        <NumberInputField />
-      </NumberInput>
-      <Slider
-        flex='1'
-        focusThumbOnChange={false}
-        value={percentage}
-        max={100}
-        onChange={hangleChangeSlider}
-      >
-        <SliderTrack>
-          <SliderFilledTrack />
-        </SliderTrack>
-        <SliderThumb fontSize='sm' boxSize='32px' children={percentage} />
-      </Slider>
-      </Flex>
+      <Box backgroundColor={'#f7f7f7'} padding='4' borderRadius={'lg'}>
+        <Flex mb={'4'} justifyContent={'space-between'}>
+          <Box>
+            <Text as={'b'} mr={'4'}>USD Value:</Text>
+            <Flex alignItems={'center'}>
+              <Text>${usdWithdraw.toFixed(4)}</Text>
+            </Flex>
+          </Box>
+          <Box mb={'4'}>
+            <Text as={'b'} mr={'4'}>Available:</Text>
+            <Text>{nFormatter(positionSizeDecimals, 5)}</Text>
+          </Box>
+        </Flex>
+        <Box margin={'auto'} width={'100%'}>
+          <NumberInput min={0} max={positionSizeDecimals} backgroundColor='white' value={value} onChange={handleChange} size='lg'>
+            <NumberInputField/>
+          </NumberInput>
+          <Box width={'93%'} margin='auto'>
+          <Slider
+            flex='1'
+            focusThumbOnChange={false}
+            value={+percentage}
+            max={100}
+            onChange={hangleChangeSlider}
+          >
+            <SliderTrack>
+              <SliderFilledTrack />
+            </SliderTrack>
+            <SliderThumb fontSize='sm' boxSize='32px' children={percentage} />
+          </Slider>
+          </Box>
+        </Box>
       </Box>
-      <Flex justifyContent={'center'}>
+      <Flex mt={'4'} justifyContent={'center'}>
       <Button isLoading={isWithdrawing} colorScheme={'blue'} margin={'auto'} onClick={withdrawFromPostion}>Withdraw</Button>
       </Flex>
     </Box>
@@ -110,7 +114,7 @@ const DepositModal = ({position, refreshData, closeSelf}) => {
           <SupplyAssets onChange={setAssetsToConvert}/>
         </Flex>
         </div>
-        <Flex justifyContent={'center'}><Button isLoading={isDepositing} colorScheme={'blue'} mt={'8'} onClick={supply}>Deposit</Button></Flex>
+        <Flex justifyContent={'center'}><Button isLoading={isDepositing} colorScheme={'blue'} onClick={supply}>Deposit</Button></Flex>
       </Box>
     </Flex>
   )
@@ -136,17 +140,29 @@ const EditPosition = () => {
   // @ts-ignore
   const liquidationPoints = position?.positionData.liquidationPoints
   const [liquidationConditions, setLiquidationConditions] = useState<any>(undefined)
+  const [reloadTrigger, setReloadTrigger] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const wrongUser = position?.positionData.user&&position?.positionData.user!=account
+
+  useEffect(() => {
+    if (wrongUser) {
+      setError(`Wrong wallet address connected`)
+      openError()
+    }
+  }, [wrongUser])
 
   useEffect(() => {
     const fetch = async () => {
       // @ts-ignore
       const position = await fetchPosition(parseInt(id), contracts, provider.getSigner(account))
       setPosition(position)
+      setLoading(false)
     }
     if (contracts && provider) {
+      setLoading(true)
       fetch()
     }
-  }, [contracts, provider, id, refresh])
+  }, [contracts, provider, id, refresh, reloadTrigger])
 
   useEffect(() => {
     const formatLiquidationPoints = async () => {
@@ -166,7 +182,7 @@ const EditPosition = () => {
           }
           price = position?.usdcValue
         } else {
-          watchedAsset = allAssets.find((asset:any)=>asset.contract_address===point.watchedToken)
+          watchedAsset = allAssets.find((asset:any)=>asset.contract_address.toLowerCase()===point.watchedToken.toLowerCase())
           price = await getPrice(chainId, point.watchedToken)
         }
         const convertTo = allAssets.find((asset:any)=>asset.contract_address===point.liquidateTo.toLowerCase())
@@ -203,6 +219,12 @@ const EditPosition = () => {
 
   const updateConditions = () => {
     setAdjusting(true)
+    if (wrongUser) {
+      setError(`Wrong wallet address connected`)
+      openError()
+      setAdjusting(false)
+      return
+    }
     let invalidConditions = false
     const formattedConditions = liquidationConditions.map((condition, index) => {
       try {
@@ -238,26 +260,25 @@ const EditPosition = () => {
   return (
     <Box maxWidth={'700px'} margin={'auto'}>
     <Box
-      justifyContent={'space-between'}
       bg={useColorModeValue('white', 'gray.900')}
       boxShadow={'2xl'}
       rounded={'lg'}
-      p={10}>
-        <Flex>
-        <PrimaryButton size={'large'} mr={'4'} onClick={onDepositOpen}>Deposit</PrimaryButton>
-        <SecondaryButton size={'large'} onClick={onWithdrawOpen}>Withdraw</SecondaryButton>
-        <Box marginLeft={'auto'}>
-          <DangerButton size={'large'} onClick={onCloseOpen}>Close</DangerButton>
-        </Box>
+      p={{base:4, md: 8}}>
+        <Flex mb={'3'}>
+          <PrimaryButton disabled={wrongUser} size={'large'} mr={'4'} onClick={onDepositOpen}>Deposit</PrimaryButton>
+          <SecondaryButton disabled={wrongUser} size={'large'} onClick={onWithdrawOpen}>Withdraw</SecondaryButton>
+          <Box marginLeft={'auto'}>
+            <DangerButton disabled={wrongUser} size={'large'} onClick={onCloseOpen}>Close</DangerButton>
+          </Box>
         </Flex>
-      <Grid
-        w={'100%'}
-        gridTemplateRows={'1fr 1fr'}
-        templateColumns={{base: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)'}}
-        mb={'8'}
-        mt={'4'}
-        gap={10}
-      >
+        <Grid
+          w={'100%'}
+          gridTemplateRows={'1fr 1fr'}
+          templateColumns={{base: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)'}}
+          mb={'8'}
+          mt={'4'}
+          gap={2}
+        >
         <GridItem colSpan={1}>
           <Heading2>Asset</Heading2>
           <Text>{position?.name}</Text>
@@ -281,12 +302,13 @@ const EditPosition = () => {
       </Grid>
       <Heading2>Liquidation Conditions</Heading2>
       <Flex margin={'auto'} marginTop={{base:'0px', sm: '-40px'}}>
-      <LiquidationConditions
-      assetPrice={position?.usdcValue} initialLiquidationPoints={initialLiquidationPoints}
-      liquidationPoints={liquidationConditions} onChangeConditions={setLiquidationConditions} resetFlag={resetFlag}></LiquidationConditions>
+        <LiquidationConditions
+        assetPrice={position?.usdcValue} initialLiquidationPoints={initialLiquidationPoints}
+        liquidationPoints={liquidationConditions} onChangeConditions={setLiquidationConditions} resetFlag={resetFlag}
+        onReload={()=>setReloadTrigger(!reloadTrigger)} loading={loading}/>
       </Flex>
       <Flex mt={'4'} justifyContent={'center'}>
-        <PrimaryButton isLoading={isAdjusting} mr={'4'} onClick={updateConditions}>Update Conditions</PrimaryButton>
+        <PrimaryButton disabled={wrongUser} isLoading={isAdjusting} mr={'4'} onClick={updateConditions}>Update Conditions</PrimaryButton>
         <SecondaryButton rounded={'full'} onClick={resetConditions}>Reset Conditions</SecondaryButton>
       </Flex>
     </Box>
@@ -296,23 +318,24 @@ const EditPosition = () => {
         backdropFilter='blur(10px)'
       />
       <ModalContent paddingBlock={'5'} margin={'3'}>
-        <ModalHeader>Deposit</ModalHeader>
+        <ModalHeader paddingBlock={'0'}>Deposit</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <DepositModal position={position} closeSelf={onDepositClose} refreshData={refreshData}></DepositModal>
         </ModalBody>
       </ModalContent>
     </Modal>
-    <Modal isCentered isOpen={isWithdrawOpen} onClose={onWithdrawClose}>
+    <Modal isCentered isOpen={isWithdrawOpen} onClose={onWithdrawClose} size='sm'>
       <ModalOverlay
         bg='blackAlpha.300'
         backdropFilter='blur(10px)'
       />
-      <ModalContent padding={'5'}>
+      <ModalContent padding={'1'}>
         <ModalHeader>Withdraw</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          <WithdrawModal position={position} closeSelf={onWithdrawClose} refreshData={refreshData}></WithdrawModal>
+          <WithdrawModal position={position} closeSelf={onWithdrawClose} refreshData={refreshData}
+          onReload={()=>setReloadTrigger(!reloadTrigger)} loading={loading}/>
         </ModalBody>
       </ModalContent>
     </Modal>

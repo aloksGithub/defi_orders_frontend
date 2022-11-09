@@ -38,11 +38,11 @@ import {CSSTransition} from 'react-transition-group'
 const Links = [
   {
     label: "Swap",
-    href: "/UniversalSwap"
+    href: "/"
   },
   {
     label: "Assets",
-    href: "/"
+    href: "/Assets"
   },
   {
     label: "Positions",

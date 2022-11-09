@@ -35,20 +35,20 @@
   "56": [
     {
       "name": "ERC20",
-      "url": "https://bsc.streamingfast.io/subgraphs/name/pancakeswap/exchange-v2",
-      "query": "query {\ntokens (first: 100, orderBy: tradeVolumeUSD, orderDirection: desc) {\nid\nsymbol\nname\ndecimals\n}\n}",
+      "url": "https://api.thegraph.com/subgraphs/name/biswapcom/exchange5",
+      "query": "query {tokens (first: 100, orderBy: tradeVolumeUSD, orderDirection: desc) { id symbol name decimals}}",
       "tokenName": ""
     },
     {
       "name": "Biswap",
       "url": "https://api.thegraph.com/subgraphs/name/biswapcom/exchange5",
-      "query": "query {\npairs(first: 3, orderBy: volumeUSD, orderDirection: desc) {\nid\ntoken0 {\nid\nname\nsymbol\ndecimals\n}\ntoken1 {\nid\nname\nsymbol\ndecimals\n}\n}\n}",
+      "query": "query {\npairs(first: 100, orderBy: volumeUSD, orderDirection: desc) {\nid\ntoken0 {\nid\nname\nsymbol\ndecimals\n}\ntoken1 {\nid\nname\nsymbol\ndecimals\n}\n}\n}",
       "tokenName": "Biswap LPs"
     },
     {
       "name": "Venus",
       "url": "https://api.thegraph.com/subgraphs/name/venusprotocol/venus-subgraph",
-      "query": "query {\nmarkets (first: 3, orderBy: totalSupply, orderDirection:desc) {\nid\nname\nsymbol\nunderlyingAddress\nunderlyingSymbol\nunderlyingName\nunderlyingDecimals\n}\n}",
+      "query": "query {\nmarkets (first: 100, orderBy: totalSupply, orderDirection:desc) {\nid\nname\nsymbol\nunderlyingAddress\nunderlyingSymbol\nunderlyingName\nunderlyingDecimals\n}\n}",
       "tokenName": "Venus *"
     }
   ]
