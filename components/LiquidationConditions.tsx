@@ -28,7 +28,7 @@ const Condition = ({i, condition, setWatchedAsset, setConvertTo, removeAsset, se
       <Box marginBlock={'auto'}>
         <Flex mb={'4'}>
           {/* @ts-ignore */}
-          <SelectAsset asset={condition.watchedAsset} onSelect={setWatchedAsset} assets={[self, ...supportedAssets.ERC20]} placeHolder={'Watched price'}/>
+          <SelectAsset asset={condition.watchedAsset} onSelect={setWatchedAsset} assets={[self, ...(supportedAssets.ERC20||[])]} placeHolder={'Watched price'}/>
         </Flex>
         <Flex alignItems={'center'}>
           {/* @ts-ignore */}

@@ -379,24 +379,29 @@ const UniversalSwap = () => {
     setSwapping(true)
     if (!contracts.universalSwap) {
       createError('Looks like Delimit contracts have not yet been deployed on this chain, please switch to BSC')
+      setSwapping(false)
       return
     }
     if (usdSupplied===0) {
       createError(`No USD supplied`)
+      setSwapping(false)
       return
     }
     for (let i = 0; i<assetsToConvert.length; i++) {
       const asset = assetsToConvert[i]
       if (!asset.contract_address) {
         createError(`Please select asset for supplied asset ${i+1}`)
+        setSwapping(false)
         return
       }
       if (!asset.tokensSupplied) {
         createError(`Please specify tokens supplied for supplied asset ${i+1}`)
+        setSwapping(false)
         return
       }
       if (asset.tokensSupplied===0) {
         createError(`Tokens supplied for asset ${i+1} are 0`)
+        setSwapping(false)
         return
       }
     }
@@ -406,26 +411,30 @@ const UniversalSwap = () => {
       percentageTotal+=+asset.percentage
       if (!asset.contract_address) {
         createError(`Please select asset for wanted asset ${i+1}`)
+        setSwapping(false)
         return
       }
       if (!asset.percentage) {
         createError(`Please specify percentage for wanted asset ${i+1}`)
+        setSwapping(false)
         return
       }
       if (asset.percentage===0) {
         createError(`Percentage for wanted asset ${i+1} is 0`)
+        setSwapping(false)
         return
       }
     }
     if (percentageTotal!=100) {
       console.log(percentageTotal)
       createError('Total percentage is not 100%')
+      setSwapping(false)
       return
     }
     swap(contracts, signer, assetsToConvert, wantedAssets).then(()=>{
       setSwapping(false)
       hardRefreshAssets()
-      router.push("/Positions")
+      router.push("/Assets")
     },
     (reason)=>{
       onError(reason)

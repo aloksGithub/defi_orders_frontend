@@ -247,8 +247,6 @@ const Positions = () => {
   const {account, provider} = useWeb3React()
   const [userPositions, setUserPositions] = useState(undefined)
 
-  console.log()
-
   useEffect(() => {
     if (!contracts?.positionManager) return
     const getPositions = async () => {

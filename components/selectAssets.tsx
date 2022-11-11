@@ -73,7 +73,7 @@ export const SelectAsset = ({assets, asset, onSelect, placeHolder='Select'}) => 
           <Input mb={'4'} placeholder='Search asset by name or address' onChange={(event)=>onInput(event.target.value)}/>
           <Box overflow={'auto'} maxHeight={'400px'} marginTop={'3'}>
             {
-              filteredAssets.map(selectableAsset=> {
+              filteredAssets?.map(selectableAsset=> {
                 const chosenOne = selectableAsset.contract_address?.toLowerCase()===asset?.contract_address?.toLowerCase()
                 return (
                   <Flex _hover={{cursor:'pointer', backgroundColor: 'gray.100'}}

@@ -195,43 +195,51 @@ const getAssets = async (url: string, query: string, protocol: string, manager:s
       }
       return await Promise.all(assets)
     } catch (error) {
-      console.log(error)
+      // console.log(error)
       continue
     }
   }
 }
 
+const timeOut = 1000*60*60*24 // Expire cahced supported assets after a day
+
 const processRequest = async (chainId: string) => {
-  const value = cacheData.get(`SupportedAssets_${chainId}`)
-  if (value) return value
   const protocols = supportedProtocols[chainId]
   const assets = {}
   for (const protocol of protocols) {
-    const data = await getAssets(protocol.url, protocol.query, protocol.name, protocol.manager, +chainId)
-    assets[protocol.name] = data
+    const value = cacheData.get(`${protocol.name}_${chainId}`)
+    if (!value) {
+      const data = await getAssets(protocol.url, protocol.query, protocol.name, protocol.manager, +chainId)
+      if (data) {
+        assets[protocol.name] = data
+        cacheData.put(`${protocol.name}_${chainId}`, {data, timeOut: Date.now()+timeOut});
+      } else {
+        console.log(`Failed to fetch data for ${protocol.name}`)
+      }
+    } else {
+      const timeNow = Date.now()
+      if (timeNow>value.timeOut) {
+        getAssets(protocol.url, protocol.query, protocol.name, protocol.manager, +chainId).then(data=> {
+          if (data) {
+            cacheData.put(`${protocol.name}_${chainId}`, {data, timeOut: Date.now()+timeOut});
+          } else {
+            console.log(`Failed to fetch data for ${protocol.name}`)
+          }
+        })
+      }
+      assets[protocol.name] = value.data
+    }
   }
-  cacheData.put(`SupportedAssets_${chainId}`, assets);
   cacheData.put(`${chainId}_${ethers.constants.AddressZero}`, nativeTokens[chainId])
   return assets
-}
-
-for (const chainId of Object.keys(supportedProtocols)) {
-  processRequest(chainId)
 }
 
 export default async function serverSideCall(req, res) {
   const {
     query: { chainId },
   } = req;
-    const value = cacheData.get(`SupportedAssets_${chainId}`)
-  if (value) {
-    res.status(200).json({
-      data: value,
-    })
-  } else {
-    const assets = processRequest(chainId)
-    res.status(200).json({
-      data: assets,
-    })
-  }
+  const assets = await processRequest(chainId)
+  res.status(200).json({
+    data: assets,
+  })
 }

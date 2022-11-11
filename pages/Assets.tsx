@@ -339,6 +339,7 @@ const SecureAsset = ({asset, setSecuring}) => {
 
 const Assets = () => {
   const {userAssets, supportedAssets, softRefreshAssets} = useAppContext()
+  console.log(supportedAssets)
   const assets = userAssets?.data
   const [securing, setSecuring] = useState<number>()
 
@@ -356,7 +357,7 @@ const Assets = () => {
         <Box marginInline={'auto'} maxW={'1000px'}>
           <Pagination
           cards={assets?.map((asset, index)=><Card asset={asset} index={index} setSecuring={setSecuring}></Card>)}
-          placeholder={<Text mt={'20'}>{!('ERC20' in supportedAssets)?'Website still deploying, try reloading in a minute':'No Assets detected'}</Text>}
+          placeholder={<Text textAlign={'center'} mt={'20'}>{!('ERC20' in supportedAssets)?'Website still deploying, try reloading in a minute':'No Assets detected'}</Text>}
           ></Pagination>
           <Flex wrap={'wrap'} justifyContent={'center'} alignContent={'stretch'} maxW={'1000px'}>
           </Flex>

@@ -55,9 +55,11 @@ export const depositAgain = async (contracts, signer, position, assetsToConvert,
   const bankContract = contracts.banks[bankId]
   const underlyingTokens = await bankContract.callStatic.getUnderlyingForRecurringDeposit(position.positionData.bankToken)
   const minAmounts = []
-  for (const token of underlyingTokens[0]) {
+  const totalRatio = underlyingTokens[1].reduce((a, b)=>a.add(b), ethers.BigNumber.from('0'))
+  for (const [index, token] of underlyingTokens[0].entries()) {
     const {data:{price, decimals}} = await (await fetch(`/api/tokenPrice?chainId=${chainId}&address=${token}`)).json()
-    const usd = usdTotal/underlyingTokens.length
+    const percentageAllocated = underlyingTokens[1][index].toNumber()/totalRatio.toNumber()
+    const usd = usdTotal*percentageAllocated
     const expectedTokens = usd/price
     const allowedSlippage = expectedTokens*(1-slippage/100)
     const minAmount = ethers.utils.parseUnits(allowedSlippage.toFixed(decimals).toString(), decimals)
@@ -66,15 +68,15 @@ export const depositAgain = async (contracts, signer, position, assetsToConvert,
   const addresses = []
   let ethSupplied = ethers.BigNumber.from('0')
   const amounts = []
-  for (const [index, asset] of assetsToConvert.entries()) {
+  for (const asset of assetsToConvert) {
     const address = asset.contract_address
     if (address!=ethers.constants.AddressZero) {
       addresses.push(address)
       amounts.push(ethers.utils.parseUnits(asset.tokensSupplied.toString(), asset.tokenDecimals))
       const contract = new ethers.Contract(address, erc20Abi,signer)
       const allowance = await contract.allowance(account, contracts.positionManager.address)
-      if (allowance.toString()<amounts[index].toString()){
-        await contract.approve(contracts.positionManager.address, amounts[index])
+      if (allowance.lt(amounts.slice(-1)[0])){
+        await contract.approve(contracts.positionManager.address, amounts.slice(-1)[0])
       }
     } else {
       ethSupplied = ethers.utils.parseUnits(asset.tokensSupplied.toString(), asset.tokenDecimals)
@@ -107,16 +109,17 @@ export const compound = async (contracts, positionId, slippage, chainId) => {
   const bankContract = contracts.banks[bankId]
   const underlyingTokens = await bankContract.callStatic.getUnderlyingForRecurringDeposit(position.bankToken)
   const minAmounts = []
-  for (const token of underlyingTokens[0]) {
+  const totalRatio = underlyingTokens[1].reduce((a, b)=>a.add(b), ethers.BigNumber.from('0'))
+  for (const [index, token] of underlyingTokens[0].entries()) {
     const {data:{price, decimals}} = await (await fetch(`/api/tokenPrice?chainId=${chainId}&address=${token}`)).json()
-    const usd = usdSupplied/underlyingTokens.length
+    const percentageAllocated = underlyingTokens[1][index].toNumber()/totalRatio.toNumber()
+    const usd = usdSupplied*percentageAllocated
     const expectedTokens = usd/price
     const allowedSlippage = expectedTokens*(1-slippage/100)
     const minAmount = ethers.utils.parseUnits(allowedSlippage.toFixed(decimals).toString(), decimals)
     minAmounts.push(minAmount)
   }
   await contracts.positionManager.harvestAndRecompound(positionId, minAmounts)
-
 }
 
 export const withdraw = async (contracts, positionId, amount) => {
