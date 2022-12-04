@@ -2,9 +2,9 @@
   {
     "inputs": [
       {
-        "internalType": "address[]",
-        "name": "_supportedManagers",
-        "type": "address[]"
+        "internalType": "address",
+        "name": "_supportedManager",
+        "type": "address"
       }
     ],
     "stateMutability": "nonpayable",
@@ -136,6 +136,57 @@
   {
     "inputs": [
       {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "pool",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "manager",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "tokenId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "liquidity",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes",
+            "name": "data",
+            "type": "bytes"
+          }
+        ],
+        "internalType": "struct Asset",
+        "name": "nft",
+        "type": "tuple"
+      }
+    ],
+    "name": "getUnderlyingAmount",
+    "outputs": [
+      {
+        "internalType": "address[]",
+        "name": "underlying",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "amounts",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "address",
         "name": "lpTokenAddress",
         "type": "address"
@@ -195,6 +246,11 @@
         "internalType": "uint256[]",
         "name": "underlyingAmounts",
         "type": "uint256[]"
+      },
+      {
+        "internalType": "address",
+        "name": "receiver",
+        "type": "address"
       }
     ],
     "name": "mint",
@@ -231,14 +287,70 @@
   {
     "inputs": [
       {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "pool",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "manager",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "tokenId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "liquidity",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes",
+            "name": "data",
+            "type": "bytes"
+          }
+        ],
+        "internalType": "struct Asset",
+        "name": "toMint",
+        "type": "tuple"
+      },
+      {
         "internalType": "address[]",
-        "name": "_supportedManagers",
+        "name": "underlyingTokens",
         "type": "address[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "underlyingAmounts",
+        "type": "uint256[]"
       }
     ],
-    "name": "setSupportedManagers",
-    "outputs": [],
-    "stateMutability": "nonpayable",
+    "name": "simulateMint",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "liquidity",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "supportedManager",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {

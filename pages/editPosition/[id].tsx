@@ -10,12 +10,13 @@ import LiquidationConditions from "../../components/LiquidationConditions";
 import { SupplyAssets } from "../../components/selectAssets";
 import { Heading2 } from "../../components/Typography";
 import { DangerButton, PrimaryButton, SecondaryButton } from "../../components/Buttons";
-import { getPrice, nFormatter } from "../../utils";
+import { getBlockExplorerUrlTransaction, getPrice, nFormatter } from "../../utils";
 import { BiErrorAlt } from "react-icons/bi";
+import Link from "next/link";
 
 const WithdrawModal = ({position, refreshData, closeSelf, onReload, loading}) => {
   const positionSizeDecimals = position?.positionData.amountDecimal||0
-  const {contracts, onError} = useAppContext()
+  const {contracts, onError, chainId, successModal} = useAppContext()
   const [value, setValue] = useState(0)
   const [isWithdrawing, setWithdrawing] = useState(false)
   const [percentage, setPercentage] = useState('0')
@@ -31,13 +32,17 @@ const WithdrawModal = ({position, refreshData, closeSelf, onReload, loading}) =>
   const withdrawFromPostion = () => {
     if (value===0) return
     setWithdrawing(true)
-    withdraw(contracts, position.positionId, ethers.utils.parseUnits(value.toString(), position.decimals)).then(()=>{
-      setTimeout(() => {
-        setWithdrawing(false)
-        ethers.getDefaultProvider().getBlockNumber()
-        refreshData()
-        closeSelf()
-      }, 6000);
+    withdraw(contracts, position.positionId, ethers.utils.parseUnits(value.toFixed(position.decimals), position.decimals)).then((hash)=>{
+      setWithdrawing(false)
+      refreshData()
+      closeSelf()
+      successModal("Withdrawal Successful", 
+        <Text>
+          Assets were withdrawn successfully, 
+          View <a href={getBlockExplorerUrlTransaction(chainId, hash)} target="_blank" rel="noopener noreferrer"><Text as='u' textColor={'blue'}>transaction</Text></a>
+          &nbsp;on block explorer.
+        </Text>
+      )
     }).catch((error)=>{
       onError(error)
       setWithdrawing(false)
@@ -86,20 +91,25 @@ const WithdrawModal = ({position, refreshData, closeSelf, onReload, loading}) =>
 }
 
 const DepositModal = ({position, refreshData, closeSelf}) => {
-  const [assetsToConvert, setAssetsToConvert] = useState([])
+  const [assetsToConvert, setAssetsToConvert] = useState([{usdcValue:0, tokensSupplied:0}])
   const {contracts, chainId, slippageControl: {slippage}, onError} = useAppContext()
   const {provider ,account} = useWeb3React()
+  const {successModal} = useAppContext()
   const [isDepositing, setDepositing] = useState(false)
   
   const supply = async () => {
     setDepositing(true)
-    depositAgain(contracts,provider.getSigner(account), position, assetsToConvert, chainId, slippage).then(()=>{
-      setTimeout(() => {
-        setDepositing(false)
-        ethers.getDefaultProvider().getBlockNumber()
-        refreshData()
-        closeSelf()
-      }, 10000);
+    depositAgain(contracts,provider.getSigner(account), position, assetsToConvert, chainId, slippage).then((hash)=>{
+      setDepositing(false)
+      refreshData()
+      closeSelf()
+      successModal("Deposit Successful", 
+        <Text>
+          Asset was deposited successfully, 
+          View <a href={getBlockExplorerUrlTransaction(chainId, hash)} target="_blank" rel="noopener noreferrer"><Text as='u' textColor={'blue'}>transaction</Text></a>
+          &nbsp;on block explorer.
+        </Text>
+      )
     }).catch((error)=>{
       setDepositing(false)
       onError(error)
@@ -111,7 +121,7 @@ const DepositModal = ({position, refreshData, closeSelf}) => {
       <Box width={'100%'}>
         <div style={{overflow: 'auto', maxHeight: '60vh'}}>
         <Flex width={'100%'} justifyContent={'center'}>
-          <SupplyAssets onChange={setAssetsToConvert}/>
+          <SupplyAssets assetsToConvert={assetsToConvert} setAssetsToConvert={setAssetsToConvert}/>
         </Flex>
         </div>
         <Flex justifyContent={'center'}><Button isLoading={isDepositing} colorScheme={'blue'} onClick={supply}>Deposit</Button></Flex>
@@ -121,7 +131,7 @@ const DepositModal = ({position, refreshData, closeSelf}) => {
 }
 
 const EditPosition = () => {
-  const {contracts, chainId, supportedAssets, onError} = useAppContext()
+  const {contracts, chainId, supportedAssets, onError, successModal} = useAppContext()
   const {provider, account} = useWeb3React()
   const router = useRouter()
   const { id } = router.query
@@ -154,7 +164,7 @@ const EditPosition = () => {
   useEffect(() => {
     const fetch = async () => {
       // @ts-ignore
-      const position = await fetchPosition(parseInt(id), contracts, provider.getSigner(account))
+      const position = await fetchPosition(parseInt(id), contracts, provider.getSigner(account), chainId)
       setPosition(position)
       setLoading(false)
     }
@@ -183,7 +193,7 @@ const EditPosition = () => {
           price = position?.usdcValue
         } else {
           watchedAsset = allAssets.find((asset:any)=>asset.contract_address.toLowerCase()===point.watchedToken.toLowerCase())
-          price = await getPrice(chainId, point.watchedToken)
+          price = (await getPrice(chainId, point.watchedToken)).price
         }
         const convertTo = allAssets.find((asset:any)=>asset.contract_address===point.liquidateTo.toLowerCase())
         const lessThan = point.lessThan
@@ -208,9 +218,16 @@ const EditPosition = () => {
 
   const closePosition = () => {
     setClosing(true)
-    close(contracts, id).then(()=>{
+    close(contracts, id).then((hash)=>{
       setClosing(false)
-      router.push("/Positions")
+      successModal("Withdrawal Successful", 
+        <Text>
+          Assets were withdrawn successfully, 
+          View <a href={getBlockExplorerUrlTransaction(chainId, hash)} target="_blank" rel="noopener noreferrer"><Text as='u' textColor={'blue'}>transaction</Text></a>
+          &nbsp;on block explorer.
+        </Text>
+      )
+      
     }).catch((error)=>{
       setClosing(false)
       onError(error)
@@ -245,12 +262,16 @@ const EditPosition = () => {
       setAdjusting(false)
       return
     }
-    adjustLiquidationPoints(contracts, id, formattedConditions).then(() => {
-      setTimeout(() => {
-        setAdjusting(false)
-        ethers.getDefaultProvider().getBlockNumber()
-        refreshData()
-      }, 10000);
+    adjustLiquidationPoints(contracts, id, formattedConditions).then((hash) => {
+      setAdjusting(false)
+      successModal("Update Successful", 
+        <Text>
+          Liquidation conditions updated, 
+          View <a href={getBlockExplorerUrlTransaction(chainId, hash)} target="_blank" rel="noopener noreferrer"><Text as='u' textColor={'blue'}>transaction</Text></a>
+          &nbsp;on block explorer.
+        </Text>
+      )
+      refreshData()
     }).catch((error)=>{
       setAdjusting(false)
       onError(error)
@@ -287,7 +308,7 @@ const EditPosition = () => {
           <Box>
           <Heading2>Underlying Tokens</Heading2>
           {
-            position?.underlying.map((token)=> <Text>{token}</Text>)
+            position?.underlying.map((underlyingAsset)=> <Text>{underlyingAsset.name}</Text>)
           }
           </Box>
         </GridItem>

@@ -139,13 +139,13 @@ const Asset = ({i, asset, assets, setAsset, setSupply, removeAsset}) => {
   )
 }
 
-export const SupplyAssets = ({onChange}) => {
+export const SupplyAssets = ({assetsToConvert, setAssetsToConvert}) => {
   const {userAssets, hardRefreshAssets} = useAppContext()
   const assets = userAssets?.data
   const loading = userAssets?.loading
   const userAssetsError = userAssets?.error
 
-  const [assetsToConvert, setAssetsToConvert] = useState<any>([{}])
+  // const [assetsToConvert, setAssetsToConvert] = useState<any>([{}])
   const filteredAssets = assets?.filter(asset=>!(assetsToConvert.filter(toConvert=>toConvert.contract_address===asset.contract_address).length>0))
 
   useEffect(() => {
@@ -165,9 +165,9 @@ export const SupplyAssets = ({onChange}) => {
     }
   }, [userAssets])
 
-  useEffect(() => {
-    onChange(assetsToConvert)
-  }, [assetsToConvert])
+  // useEffect(() => {
+  //   onChange(assetsToConvert)
+  // }, [assetsToConvert])
 
   const addAsset = () => {
     setAssetsToConvert([...assetsToConvert, {}])

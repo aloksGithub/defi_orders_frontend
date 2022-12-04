@@ -55,11 +55,11 @@ export const getUnderlyingTokens = async (contracts, token) => {
 
 export const getPrice = async (chainId, address) => {
   const {
-    data: {price},
+    data: {price, decimals},
   } = await (
     await fetch(`/api/tokenPrice?chainId=${chainId}&address=${ethers.constants.AddressZero===address?"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee":address}`)
   ).json();
-  return price;
+  return {price, decimals};
 };
 
 export const getTokenDetails = async (chainId, address) => {
@@ -70,16 +70,20 @@ export const getTokenDetails = async (chainId, address) => {
 };
 
 const blockExplorers = {
-  1: "https://etherscan.io/token/",
-  56: "https://bscscan.com/token/",
-  250: "https://ftmscan.com/token/",
-  137: "https://polygonscan.com/token/",
-  97: "https://testnet.bscscan.com/token/",
+  1: "https://etherscan.io",
+  56: "https://bscscan.com",
+  250: "https://ftmscan.com",
+  137: "https://polygonscan.com",
+  97: "https://testnet.bscscan.com",
 };
 
 export const getBlockExplorerUrl = (chainId: number, token: string) => {
-  return `${blockExplorers[chainId]}${token}`;
+  return `${blockExplorers[chainId]}/token/${token}`;
 };
+
+export const getBlockExplorerUrlTransaction = (chainId:number, tx:string) => {
+  return `${blockExplorers[chainId]}/tx/${tx}`
+}
 
 export function nFormatter(num, digits) {
   if (num===undefined) {
@@ -132,3 +136,38 @@ export const getLogoUrl = (name, address, chainId) => {
   }
   return `https://logos.covalenthq.com/tokens/${chainId}/${address.toLowerCase()}.png`;
 };
+
+export const nativeTokens = {
+  56: {
+    contract_name: 'BNB',
+    contract_ticker_symbol: 'BNB',
+    contract_address: ethers.constants.AddressZero,
+    contract_decimals: 18,
+    underlying: [],
+    logo_url: chainLogos[56]
+  },
+  1: {
+    contract_name: 'Ether',
+    contract_ticker_symbol: 'ETH',
+    contract_address: ethers.constants.AddressZero,
+    contract_decimals: 18,
+    underlying: [],
+    logo_url: chainLogos[1]
+  },
+  137: {
+    contract_name: 'Matic',
+    contract_ticker_symbol: 'MATIC',
+    contract_address: ethers.constants.AddressZero,
+    contract_decimals: 18,
+    underlying: [],
+    logo_url: chainLogos[137]
+  },
+  250: {
+    contract_name: 'Fantom',
+    contract_ticker_symbol: 'FTM',
+    contract_address: ethers.constants.AddressZero,
+    contract_decimals: 18,
+    underlying: [],
+    logo_url: chainLogos[250]
+  },
+}

@@ -134,7 +134,7 @@ const LiquidationConditions = ({assetPrice, initialLiquidationPoints=undefined, 
       temp[index].price=assetPrice
     } else {
       if (asset?.contract_address) {
-        const price = await getPrice(chainId, asset.contract_address)
+        const {price} = await getPrice(chainId, asset.contract_address)
         temp[index].price=price
       }
     }

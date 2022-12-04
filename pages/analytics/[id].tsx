@@ -10,7 +10,7 @@ import { Heading2 } from "../../components/Typography";
 import { nFormatter } from "../../utils";
 
 const Analytics = () => {
-  const {contracts} = useAppContext()
+  const {contracts, chainId} = useAppContext()
   const {provider, account} = useWeb3React()
   const router = useRouter()
   const { id } = router.query
@@ -19,8 +19,6 @@ const Analytics = () => {
   const [roi, setRoi] = useState<string>()
   const [pnl, setPnl] = useState<string>()
   const [graphData, setGraphData] = useState(undefined)
-
-  console.log(position)
 
   useEffect(() => {
     const fetch = async () => {
@@ -35,7 +33,7 @@ const Analytics = () => {
   useEffect(() => {
     const fetch = async () => {
       // @ts-ignore
-      const position = await fetchPosition(parseInt(id), contracts, provider.getSigner(account))
+      const position = await fetchPosition(parseInt(id), contracts, provider.getSigner(account), chainId)
       const positionData = await fetchImportantPoints(contracts, id, provider)
       const roi = positionData.usdcWithdrawn+position.usdcValue-positionData.usdcDeposited
       const pnl = roi*100/positionData.usdcDeposited
@@ -131,7 +129,7 @@ const Analytics = () => {
         <GridItem>
           <Heading2>Underlying Tokens</Heading2>
           {
-            position?position.underlying.map((token)=> <Text>{token}</Text>):
+            position?position.underlying.map((underlyingAsset)=> <Text>{underlyingAsset.name}</Text>):
             <Stack>
               <Skeleton width={'60%'} height='20px' />
               <Skeleton width={'60%'} height='20px' />
@@ -156,9 +154,9 @@ const Analytics = () => {
                 return (
                   <Tr>
                     <Td>{transaction.date}</Td>
-                    <Td>{transaction.transactionType}</Td>
-                    <Td>{nFormatter(transaction.tokens, 3)}</Td>
-                    <Td>${nFormatter(transaction.usdc, 3)}</Td>
+                    <Td>{transaction.action}</Td>
+                    <Td>{nFormatter(transaction.sizeChange, 3)}</Td>
+                    <Td>${nFormatter(transaction.usdValue, 3)}</Td>
                   </Tr>
                 )
               })

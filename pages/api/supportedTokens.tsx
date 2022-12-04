@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import cacheData from "memory-cache";
 import supportedProtocols from '../../constants/supportedProtocols.json'
-import { chainLogos, getLogoUrl } from "../../utils";
+import { chainLogos, getLogoUrl, nativeTokens } from "../../utils";
 
 const getTokenUrl = (chainId:number, token:string) => {
   const defaultUrl = `https://logos.covalenthq.com/tokens/${chainId}/${token}.png`
@@ -48,29 +48,6 @@ const protocolSymbols = {
 
 }
 
-const nativeTokens = {
-  56: {
-    contract_name: 'BNB',
-    underlying: [],
-    logo_url: chainLogos[56]
-  },
-  1: {
-    contract_name: 'Ether',
-    underlying: [],
-    logo_url: chainLogos[1]
-  },
-  137: {
-    contract_name: 'Matic',
-    underlying: [],
-    logo_url: chainLogos[137]
-  },
-  250: {
-    contract_name: 'Fantom',
-    underlying: [],
-    logo_url: chainLogos[250]
-  },
-}
-
 const dataExtractorERC20 = (data, chainId, protocol, manager) => {
   const assets = data.tokens.map(token=> {
     return {
@@ -85,6 +62,7 @@ const dataExtractorERC20 = (data, chainId, protocol, manager) => {
       manager
     }
   })
+  assets.unshift({...nativeTokens[chainId]})
   return assets
 }
 

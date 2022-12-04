@@ -8,7 +8,7 @@
       },
       {
         "internalType": "address",
-        "name": "_usdc",
+        "name": "_stableToken",
         "type": "address"
       },
       {
@@ -386,7 +386,7 @@
     "name": "banks",
     "outputs": [
       {
-        "internalType": "address",
+        "internalType": "address payable",
         "name": "",
         "type": "address"
       }
@@ -407,25 +407,123 @@
         "type": "uint256"
       },
       {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "amountIn",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "valueIn",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amountOut",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "valueOut",
+            "type": "uint256"
+          },
+          {
+            "internalType": "int256",
+            "name": "slippage",
+            "type": "int256"
+          },
+          {
+            "internalType": "address",
+            "name": "tokenIn",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "swapper",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "tokenOut",
+            "type": "address"
+          },
+          {
+            "internalType": "address[]",
+            "name": "path",
+            "type": "address[]"
+          }
+        ],
+        "internalType": "struct SwapPoint[]",
+        "name": "swaps",
+        "type": "tuple[]"
+      },
+      {
+        "components": [
+          {
+            "components": [
+              {
+                "internalType": "address",
+                "name": "pool",
+                "type": "address"
+              },
+              {
+                "internalType": "address",
+                "name": "manager",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "tokenId",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "liquidity",
+                "type": "uint256"
+              },
+              {
+                "internalType": "bytes",
+                "name": "data",
+                "type": "bytes"
+              }
+            ],
+            "internalType": "struct Asset",
+            "name": "desiredERC721",
+            "type": "tuple"
+          },
+          {
+            "internalType": "address",
+            "name": "desiredERC20",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "value",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address[]",
+            "name": "underlying",
+            "type": "address[]"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "underlyingValues",
+            "type": "uint256[]"
+          }
+        ],
+        "internalType": "struct Conversion[]",
+        "name": "conversions",
+        "type": "tuple[]"
+      },
+      {
         "internalType": "uint256",
         "name": "minAmountOut",
         "type": "uint256"
       }
     ],
     "name": "botLiquidate",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "positionId",
-        "type": "uint256"
-      }
-    ],
-    "name": "claimDevFee",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -451,14 +549,8 @@
         "type": "uint256"
       }
     ],
-    "name": "closeToUSDC",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
+    "name": "computeDevFee",
+    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -548,24 +640,217 @@
         "type": "uint256"
       },
       {
-        "internalType": "address[]",
-        "name": "suppliedTokens",
-        "type": "address[]"
+        "components": [
+          {
+            "internalType": "address[]",
+            "name": "tokens",
+            "type": "address[]"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "amounts",
+            "type": "uint256[]"
+          },
+          {
+            "components": [
+              {
+                "internalType": "address",
+                "name": "pool",
+                "type": "address"
+              },
+              {
+                "internalType": "address",
+                "name": "manager",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "tokenId",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "liquidity",
+                "type": "uint256"
+              },
+              {
+                "internalType": "bytes",
+                "name": "data",
+                "type": "bytes"
+              }
+            ],
+            "internalType": "struct Asset[]",
+            "name": "nfts",
+            "type": "tuple[]"
+          }
+        ],
+        "internalType": "struct Provided",
+        "name": "provided",
+        "type": "tuple"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "amountIn",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "valueIn",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amountOut",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "valueOut",
+            "type": "uint256"
+          },
+          {
+            "internalType": "int256",
+            "name": "slippage",
+            "type": "int256"
+          },
+          {
+            "internalType": "address",
+            "name": "tokenIn",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "swapper",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "tokenOut",
+            "type": "address"
+          },
+          {
+            "internalType": "address[]",
+            "name": "path",
+            "type": "address[]"
+          }
+        ],
+        "internalType": "struct SwapPoint[]",
+        "name": "swaps",
+        "type": "tuple[]"
+      },
+      {
+        "components": [
+          {
+            "components": [
+              {
+                "internalType": "address",
+                "name": "pool",
+                "type": "address"
+              },
+              {
+                "internalType": "address",
+                "name": "manager",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "tokenId",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "liquidity",
+                "type": "uint256"
+              },
+              {
+                "internalType": "bytes",
+                "name": "data",
+                "type": "bytes"
+              }
+            ],
+            "internalType": "struct Asset",
+            "name": "desiredERC721",
+            "type": "tuple"
+          },
+          {
+            "internalType": "address",
+            "name": "desiredERC20",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "value",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address[]",
+            "name": "underlying",
+            "type": "address[]"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "underlyingValues",
+            "type": "uint256[]"
+          }
+        ],
+        "internalType": "struct Conversion[]",
+        "name": "conversions",
+        "type": "tuple[]"
       },
       {
         "internalType": "uint256[]",
-        "name": "suppliedAmounts",
-        "type": "uint256[]"
-      },
-      {
-        "internalType": "uint256[]",
-        "name": "minAmountsUsed",
+        "name": "minAmounts",
         "type": "uint256[]"
       }
     ],
-    "name": "deposit",
+    "name": "depositInExisting",
     "outputs": [],
     "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "devShare",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "positionId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "inTermsOf",
+        "type": "address"
+      }
+    ],
+    "name": "estimateValue",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -600,55 +885,119 @@
       {
         "components": [
           {
-            "internalType": "address",
-            "name": "user",
-            "type": "address"
-          },
-          {
-            "internalType": "uint256",
-            "name": "bankId",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "bankToken",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "amount",
-            "type": "uint256"
+            "components": [
+              {
+                "internalType": "address",
+                "name": "user",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "bankId",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "bankToken",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+              },
+              {
+                "components": [
+                  {
+                    "internalType": "address",
+                    "name": "watchedToken",
+                    "type": "address"
+                  },
+                  {
+                    "internalType": "address",
+                    "name": "liquidateTo",
+                    "type": "address"
+                  },
+                  {
+                    "internalType": "bool",
+                    "name": "lessThan",
+                    "type": "bool"
+                  },
+                  {
+                    "internalType": "uint256",
+                    "name": "liquidationPoint",
+                    "type": "uint256"
+                  }
+                ],
+                "internalType": "struct LiquidationCondition[]",
+                "name": "liquidationPoints",
+                "type": "tuple[]"
+              }
+            ],
+            "internalType": "struct Position",
+            "name": "position",
+            "type": "tuple"
           },
           {
             "components": [
               {
                 "internalType": "address",
-                "name": "watchedToken",
+                "name": "lpToken",
                 "type": "address"
               },
               {
                 "internalType": "address",
-                "name": "liquidateTo",
+                "name": "manager",
                 "type": "address"
               },
               {
-                "internalType": "bool",
-                "name": "lessThan",
-                "type": "bool"
-              },
-              {
                 "internalType": "uint256",
-                "name": "liquidationPoint",
+                "name": "idInManager",
                 "type": "uint256"
               }
             ],
-            "internalType": "struct LiquidationCondition[]",
-            "name": "liquidationPoints",
-            "type": "tuple[]"
+            "internalType": "struct BankTokenInfo",
+            "name": "bankTokenInfo",
+            "type": "tuple"
+          },
+          {
+            "internalType": "address[]",
+            "name": "underlyingTokens",
+            "type": "address[]"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "underlyingAmounts",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "underlyingValues",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "address[]",
+            "name": "rewardTokens",
+            "type": "address[]"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "rewardAmounts",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "rewardValues",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "uint256",
+            "name": "usdValue",
+            "type": "uint256"
           }
         ],
-        "internalType": "struct Position",
-        "name": "position",
+        "internalType": "struct PositionData",
+        "name": "data",
         "type": "tuple"
       }
     ],
@@ -666,9 +1015,133 @@
     "name": "getPositionInteractions",
     "outputs": [
       {
-        "internalType": "uint256[3][]",
+        "components": [
+          {
+            "internalType": "string",
+            "name": "action",
+            "type": "string"
+          },
+          {
+            "internalType": "uint256",
+            "name": "timestamp",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "blockNumber",
+            "type": "uint256"
+          },
+          {
+            "components": [
+              {
+                "internalType": "address[]",
+                "name": "tokens",
+                "type": "address[]"
+              },
+              {
+                "internalType": "uint256[]",
+                "name": "amounts",
+                "type": "uint256[]"
+              },
+              {
+                "components": [
+                  {
+                    "internalType": "address",
+                    "name": "pool",
+                    "type": "address"
+                  },
+                  {
+                    "internalType": "address",
+                    "name": "manager",
+                    "type": "address"
+                  },
+                  {
+                    "internalType": "uint256",
+                    "name": "tokenId",
+                    "type": "uint256"
+                  },
+                  {
+                    "internalType": "uint256",
+                    "name": "liquidity",
+                    "type": "uint256"
+                  },
+                  {
+                    "internalType": "bytes",
+                    "name": "data",
+                    "type": "bytes"
+                  }
+                ],
+                "internalType": "struct Asset[]",
+                "name": "nfts",
+                "type": "tuple[]"
+              }
+            ],
+            "internalType": "struct Provided",
+            "name": "assets",
+            "type": "tuple"
+          },
+          {
+            "internalType": "uint256",
+            "name": "usdValue",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "positionSizeChange",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct PositionInteraction[]",
         "name": "",
-        "type": "uint256[3][]"
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "positionId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getPositionRewards",
+    "outputs": [
+      {
+        "internalType": "address[]",
+        "name": "rewards",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "rewardAmounts",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "positionId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getPositionTokens",
+    "outputs": [
+      {
+        "internalType": "address[]",
+        "name": "tokens",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "amounts",
+        "type": "uint256[]"
       }
     ],
     "stateMutability": "view",
@@ -682,8 +1155,119 @@
         "type": "uint256"
       },
       {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "amountIn",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "valueIn",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amountOut",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "valueOut",
+            "type": "uint256"
+          },
+          {
+            "internalType": "int256",
+            "name": "slippage",
+            "type": "int256"
+          },
+          {
+            "internalType": "address",
+            "name": "tokenIn",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "swapper",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "tokenOut",
+            "type": "address"
+          },
+          {
+            "internalType": "address[]",
+            "name": "path",
+            "type": "address[]"
+          }
+        ],
+        "internalType": "struct SwapPoint[]",
+        "name": "swaps",
+        "type": "tuple[]"
+      },
+      {
+        "components": [
+          {
+            "components": [
+              {
+                "internalType": "address",
+                "name": "pool",
+                "type": "address"
+              },
+              {
+                "internalType": "address",
+                "name": "manager",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "tokenId",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "liquidity",
+                "type": "uint256"
+              },
+              {
+                "internalType": "bytes",
+                "name": "data",
+                "type": "bytes"
+              }
+            ],
+            "internalType": "struct Asset",
+            "name": "desiredERC721",
+            "type": "tuple"
+          },
+          {
+            "internalType": "address",
+            "name": "desiredERC20",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "value",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address[]",
+            "name": "underlying",
+            "type": "address[]"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "underlyingValues",
+            "type": "uint256[]"
+          }
+        ],
+        "internalType": "struct Conversion[]",
+        "name": "conversions",
+        "type": "tuple[]"
+      },
+      {
         "internalType": "uint256[]",
-        "name": "minAmountsUsed",
+        "name": "minAmounts",
         "type": "uint256[]"
       }
     ],
@@ -738,6 +1322,19 @@
     "name": "migrateBank",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "networkToken",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -828,18 +1425,116 @@
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
+      }
+    ],
+    "name": "positionInteractions",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "action",
+        "type": "string"
       },
+      {
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "blockNumber",
+        "type": "uint256"
+      },
+      {
+        "components": [
+          {
+            "internalType": "address[]",
+            "name": "tokens",
+            "type": "address[]"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "amounts",
+            "type": "uint256[]"
+          },
+          {
+            "components": [
+              {
+                "internalType": "address",
+                "name": "pool",
+                "type": "address"
+              },
+              {
+                "internalType": "address",
+                "name": "manager",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "tokenId",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "liquidity",
+                "type": "uint256"
+              },
+              {
+                "internalType": "bytes",
+                "name": "data",
+                "type": "bytes"
+              }
+            ],
+            "internalType": "struct Asset[]",
+            "name": "nfts",
+            "type": "tuple[]"
+          }
+        ],
+        "internalType": "struct Provided",
+        "name": "assets",
+        "type": "tuple"
+      },
+      {
+        "internalType": "uint256",
+        "name": "usdValue",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "positionSizeChange",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
       {
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
       }
     ],
-    "name": "positionInteractions",
+    "name": "positions",
     "outputs": [
       {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
         "internalType": "uint256",
-        "name": "",
+        "name": "bankId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "bankToken",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
         "type": "uint256"
       }
     ],
@@ -935,6 +1630,32 @@
     "inputs": [
       {
         "internalType": "address",
+        "name": "_universalSwap",
+        "type": "address"
+      }
+    ],
+    "name": "setUniversalSwap",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "stableToken",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
         "name": "newOwner",
         "type": "address"
       }
@@ -998,5 +1719,9 @@
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
+  },
+  {
+    "stateMutability": "payable",
+    "type": "receive"
   }
 ]

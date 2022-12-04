@@ -1,7 +1,7 @@
 {
   "1337": {
-    "positionsManager": "0x2538a10b7fFb1B78c890c870FC152b10be121f04",
-    "universalSwap": "0x707531c9999AaeF9232C8FEfBA31FBa4cB78d84a",
+    "positionsManager": "0x8115D53243634C9E22717913FadDF94D8d0DC490",
+    "universalSwap": "0x5B9085757Bb99599a8516CdE0eBbC1b1497306ec",
     "uniswapV3PoolInteractor": "0xB9d9e972100a1dD01cd441774b45b5821e136043",
     "usdc": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
   },

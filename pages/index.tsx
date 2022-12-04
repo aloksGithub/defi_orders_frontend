@@ -7,6 +7,7 @@ import {
   Button,
   Flex,
   Box,
+  Tooltip,
   useDisclosure, NumberDecrementStepper, NumberIncrementStepper, NumberInputStepper, Skeleton, Input, Grid, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay
 } from '@chakra-ui/react'
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
@@ -21,8 +22,10 @@ import Fraction from 'fraction.js'
 import { getPrice, nFormatter } from '../utils';
 import { swap } from '../contractCalls/transactions'
 import { BiErrorAlt } from "react-icons/bi"
-import { FancyButton } from '../components/Buttons'
+import { FancyButton, PrimaryButton, SecondaryButton } from '../components/Buttons'
 import { useRouter } from "next/router";
+import { getAmountsOut } from '../contractCalls/dataFetching'
+import { getBlockExplorerUrlTransaction } from '../utils'
 
   // @ts-ignore
 const TickPicker = forwardRef(({pool, usdSupplied}, _ref) => {
@@ -231,31 +234,31 @@ const TickPicker = forwardRef(({pool, usdSupplied}, _ref) => {
 })
 
 const WantedAsset = ({usdSupplied, selected, setSelected, updateExpected, changePercentage, deleteSelf}) => {
-  const {supportedAssets, chainId} = useAppContext()
+  const {supportedAssets, chainId, counter} = useAppContext()
   const {slippageControl: {slippage}} = useAppContext()
   const assetsArray = [].concat.apply([], Object.values(supportedAssets))
-  const [expected, setExpected] = useState(0)
-  const [price, setPrice] = useState(0)
   const [loadingSelf, setLoadingSelf] = useState(false)
   
   useEffect(() => {
-    const interval = setInterval(() => {
-      setLoadingSelf(true)
+    if (counter%10===0) {
       reload()
-    }, 60000);
-    return () => clearInterval(interval)
-  }, [])
+    }
+  }, [counter])
+
+  useEffect(() => {
+    reload()
+  }, [selected])
   
-  const minOut = (expected||0)*(100-slippage)/100
-  const minUsd = (minOut*price)
+  const minOut = (selected.expected||0)*(100-slippage)/100
+  const minUsd = (minOut*selected.price)
 
   const reload = async () => {
     if (selected.contract_address) {
-      const price = await getPrice(chainId, selected.contract_address)
+      const {price} = await getPrice(chainId, selected.contract_address)
       const expected = (usdSupplied*selected.percentage/100)/price
-      setExpected(expected)
-      setPrice(price)
-      updateExpected(expected)
+      updateExpected(expected, price)
+    } else {
+      updateExpected(0, 0)
     }
     setLoadingSelf(false)
   }
@@ -266,13 +269,11 @@ const WantedAsset = ({usdSupplied, selected, setSelected, updateExpected, change
   }, [selected.contract_address])
 
   useEffect(() => {
-    if (price>0) {
-      const expected = (usdSupplied*selected.percentage/100)/price
-      setExpected(expected)
-      updateExpected(expected)
+    if (selected.price>0) {
+      const expected = (usdSupplied*selected.percentage/100)/selected.price
+      updateExpected(expected, selected.price)
     } else {
-      setExpected(0)
-      updateExpected(0)
+      updateExpected(0, selected.price)
     }
   }, [selected.percentage, usdSupplied])
 
@@ -289,49 +290,54 @@ const WantedAsset = ({usdSupplied, selected, setSelected, updateExpected, change
         </Flex>
       </Box>
       <Flex flexDirection={'column'} alignItems={'end'} textAlign={'end'}>
-        <Flex>Price: ${!loadingSelf?<Text>{nFormatter(price, 3)}</Text>:<Skeleton>Temp</Skeleton>}</Flex>
-        {!loadingSelf?<Input height={'48px'} textAlign={'end'} variant='unstyled' fontSize={'2xl'} size={'lg'} maxWidth='150px' value={expected}></Input>:<Skeleton>Temporary Temporary</Skeleton>}
+        <Flex>Price: ${!loadingSelf?<Text>{nFormatter(selected.price, 3)}</Text>:<Skeleton>Temp</Skeleton>}</Flex>
+        {!loadingSelf?<Input isReadOnly height={'48px'} textAlign={'end'} variant='unstyled' fontSize={'2xl'} size={'lg'} maxWidth='150px' value={selected.expected}></Input>:<Skeleton>Temporary Temporary</Skeleton>}
         {!loadingSelf?<Text>Min: ~{minOut.toFixed(5)} (${minUsd.toFixed(3)})</Text>:<Skeleton>Temporary</Skeleton>}
       </Flex>
     </Flex>
   )
 }
 
-const ConvertTo = ({usdSupplied, updateWantedAssets}) => {
+const ConvertTo = ({usdSupplied, wantedAssets, updateWantedAssets}) => {
   const {slippageControl: {slippage}} = useAppContext()
-  const [wantedAssets, setWantedAssets] = useState<any>([{percentage: 100, expected:0, minOut:0}])
 
   useEffect(() => {
-    updateWantedAssets(wantedAssets)
-  }, [wantedAssets])
+    const temp = [...wantedAssets]
+    // @ts-ignore
+    for (const [index, asset] of temp.entries()) {
+      temp[index].minOut = temp[index].expected*(100-slippage)/100
+    }
+    updateWantedAssets(temp)
+  }, [slippage])
 
   const addWanted = () => {
-    setWantedAssets([...wantedAssets, {percentage: 0, expected:0, minOut:0}])
+    updateWantedAssets([...wantedAssets, {percentage: 0, expected:0, minOut:0, price: 0}])
   }
 
   const select = (index, asset) => {
     const temp = [...wantedAssets]
     temp[index] = {...temp[index], ...asset}
-    setWantedAssets(temp)
+    updateWantedAssets(temp)
   }
 
-  const setExpected = (index, expected) => {
+  const setExpected = (index, expected, price) => {
     const temp = [...wantedAssets]
     temp[index].expected = expected
     temp[index].minOut = expected*(100-slippage)/100
+    temp[index].price = price
   }
 
   const removeWanted = (index) => {
     if (wantedAssets.length===1) return
     const tempAssets = [...wantedAssets]
     tempAssets.splice(index, 1)
-    setWantedAssets(tempAssets)
+    updateWantedAssets(tempAssets)
   }
   
   const updatePercentages = (index:number, percentage:number) => {
     const temp = [...wantedAssets]
     temp[index].percentage = percentage
-    setWantedAssets(temp)
+    updateWantedAssets(temp)
   }
 
   return (
@@ -345,7 +351,7 @@ const ConvertTo = ({usdSupplied, updateWantedAssets}) => {
       <WantedAsset key={`wantedAsset_${index}`} usdSupplied={usdSupplied}
       selected={asset} setSelected={(asset)=>select(index, asset)}
       changePercentage={(percentage)=>updatePercentages(index, percentage)}
-      updateExpected={(expected)=>setExpected(index, expected)}
+      updateExpected={(expected, price)=>setExpected(index, expected, price)}
       deleteSelf={()=>removeWanted(index)}/>
       )
     }
@@ -354,16 +360,25 @@ const ConvertTo = ({usdSupplied, updateWantedAssets}) => {
 }
 
 const UniversalSwap = () => {
-  const [assetsToConvert, setAssetsToConvert] = useState([])
-  const [wantedAssets, setWantedAssets] = useState([])
+  const [assetsToConvert, setAssetsToConvert] = useState([{usdcValue:0, tokensSupplied:0}])
+  const [wantedAssets, setWantedAssets] = useState([{percentage: 100, expected:0, minOut:0, price:0}])
+  const updateWantedAssets = (assets) => {
+    console.log(assets)
+    setWantedAssets(assets)
+  }
   const [usdSupplied, setUsdSupplied] = useState(0)
   const {isOpen, onOpen, onClose} = useDisclosure()
+  const {isOpen: isPreviewOpen, onOpen: onOpenPreview, onClose:onClosePreview} = useDisclosure()
+  const {isOpen: isFinalOpen, onOpen: onOpenFinal, onClose:onCloseFinal} = useDisclosure()
   const [error, setError] = useState('')
-  const {contracts, onError, hardRefreshAssets} = useAppContext()
+  const {contracts, onError, hardRefreshAssets, chainId, counter} = useAppContext()
   const {provider, account} = useWeb3React()
   const signer = provider?.getSigner(account)
   const [swapping, setSwapping] = useState(false)
-  const router = useRouter()
+  const [swapData, setSwapData] = useState<any>()
+  const [deadline, setDeadline] = useState(0)
+  const [obtainedAssets, setObtainedAssets] = useState<any[]>()
+  const [hash, setHash] = useState('')
 
   useEffect(() => {
     const usdSupplied = assetsToConvert.reduce((a, b)=>a+(b.usdcValue||0), 0)
@@ -375,7 +390,8 @@ const UniversalSwap = () => {
     onOpen()
   }
 
-  const proceed = () => {
+
+  const preview = async () => {
     setSwapping(true)
     if (!contracts.universalSwap) {
       createError('Looks like Delimit contracts have not yet been deployed on this chain, please switch to BSC')
@@ -389,7 +405,7 @@ const UniversalSwap = () => {
     }
     for (let i = 0; i<assetsToConvert.length; i++) {
       const asset = assetsToConvert[i]
-      if (!asset.contract_address) {
+      if (!('contract_address' in asset)) {
         createError(`Please select asset for supplied asset ${i+1}`)
         setSwapping(false)
         return
@@ -409,7 +425,7 @@ const UniversalSwap = () => {
     for (let i = 0; i<wantedAssets.length; i++) {
       const asset = wantedAssets[i]
       percentageTotal+=+asset.percentage
-      if (!asset.contract_address) {
+      if (!('contract_address' in asset)) {
         createError(`Please select asset for wanted asset ${i+1}`)
         setSwapping(false)
         return
@@ -431,10 +447,31 @@ const UniversalSwap = () => {
       setSwapping(false)
       return
     }
-    swap(contracts, signer, assetsToConvert, wantedAssets).then(()=>{
+    const {swaps, conversions, provided, desired, wantedAssets: expectedAssets} = await getAmountsOut(contracts, signer, assetsToConvert, wantedAssets)
+    setSwapData({swaps, conversions, expectedAssets, provided, desired})
+    setDeadline(counter+31)
+    onOpenPreview()
+    setSwapping(false)
+  }
+
+  const proceed = () => {
+    setSwapping(true)
+    if (!contracts.universalSwap) {
+      createError('Looks like Delimit contracts have not yet been deployed on this chain, please switch to BSC')
       setSwapping(false)
+      return
+    }
+
+    swap(contracts, signer, swapData.provided, swapData.desired, swapData.swaps, swapData.conversions, swapData.expectedAssets).then((data)=>{
+      const {expectedAssets, hash} = data
+      setHash(hash)
+      setSwapping(false)
+      setObtainedAssets(expectedAssets)
+      onClosePreview()
+      setAssetsToConvert([{usdcValue:0, tokensSupplied:0}])
+      setWantedAssets([{percentage: 100, expected:0, minOut:0, price:0}])
+      onOpenFinal()
       hardRefreshAssets()
-      router.push("/Assets")
     },
     (reason)=>{
       onError(reason)
@@ -513,16 +550,109 @@ const UniversalSwap = () => {
     <Flex marginBlock={10} alignItems={'center'} direction={'column'}>
       <Grid width={'100%'} templateColumns={{base: '1fr', lg: '6fr 1fr 6fr'}}>
         <Flex justifyContent={{lg: 'end', base:'center'}}>
-          <SupplyAssets onChange={setAssetsToConvert}/>
+          <SupplyAssets assetsToConvert={assetsToConvert} setAssetsToConvert={setAssetsToConvert}/>
         </Flex>
         <Flex marginBlock={{lg: '24', base: '5'}} justifyContent={'center'} >
           <ArrowForwardIcon transform={{base:'rotate(90deg)', lg: 'rotate(0deg)'}} fontSize={'2rem'}/>
         </Flex>
         <Flex justifyContent={{lg: 'start', base:'center'}}>
-          <ConvertTo usdSupplied={usdSupplied} updateWantedAssets={setWantedAssets}></ConvertTo>
+          <ConvertTo usdSupplied={usdSupplied} wantedAssets={wantedAssets} updateWantedAssets={updateWantedAssets}></ConvertTo>
         </Flex>
       </Grid>
-      <FancyButton isLoading={swapping} mt='20' height='85px' width='70%' onClick={proceed}><Text fontSize={'3xl'} color={'white'}>Swap</Text></FancyButton>
+      <FancyButton isLoading={swapping} mt='20' height='85px' width='70%' onClick={preview}><Text fontSize={'3xl'} color={'white'}>Preview</Text></FancyButton>
+      <Modal size={'sm'} isCentered isOpen={isPreviewOpen} onClose={onClosePreview}>
+        <ModalOverlay
+          bg='blackAlpha.300'
+          backdropFilter='blur(10px)'
+        />
+        <ModalContent>
+          <ModalHeader>
+            <Flex alignItems={'center'}>
+              <Text ml={'4'}>Preview</Text>
+            </Flex>
+          </ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Box mb={'6'}>
+              <Text textAlign={'end'}><Text as='b'>Total:</Text> ${nFormatter(swapData?.expectedAssets.reduce((a, b)=>a+(+b.value), 0), 3)}</Text>
+              {
+                swapData?.expectedAssets.map((asset) => {
+                  return (
+                    <Flex backgroundColor={'gray.100'} alignItems={'center'} justifyContent={'space-between'} marginBlock={'4'} padding='4' borderRadius={'2xl'}>
+                      <Flex alignItems={'center'} justifyContent={'space-between'}>
+                        <img src={asset.logo_url} style={{width: "20px", height: "20px", borderRadius:'15px'}}/>
+                        <Text fontSize={'xl'} pl={'2'}>{asset.contract_name}</Text>
+                      </Flex>
+                      <Box textAlign={'end'}>
+                        <Tooltip hasArrow label={asset.minOut>asset.amount?'Increase slippage':''}>
+                        <Text textColor={asset.minOut>asset.amount?'red':'black'}><Text as='b'>Expected: </Text>{nFormatter(asset.amount, 5)}</Text>
+                        </Tooltip>
+                        <Text><Text as='b'>Minimum: </Text>{nFormatter(asset.minOut, 5)}</Text>
+                        <Text><Text as='b'>USD: </Text> ${nFormatter(asset.value, 2)}</Text>
+                      </Box>
+                    </Flex>
+                  )
+                })
+              }
+              <Flex justifyContent={'center'}>
+              <FancyButton isLoading={swapping} mt='4' height='85px' width='100%'
+              onClick={deadline>counter?proceed:preview}
+              >
+                <Text fontSize={'2xl'} color={'white'}>
+                  {deadline>counter?'Swap':'Refresh'}&nbsp;
+                  ({deadline>counter?deadline-counter:0}s)
+                </Text>
+              </FancyButton>
+              </Flex>
+            </Box>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+      <Modal size={'sm'} isCentered isOpen={isFinalOpen} onClose={onCloseFinal}>
+        <ModalOverlay
+          bg='blackAlpha.300'
+          backdropFilter='blur(10px)'
+        />
+        <ModalContent>
+          <ModalHeader>
+            <Flex alignItems={'center'}>
+              <Text textAlign={'center'}>Assets Obtained</Text>
+            </Flex>
+          </ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Box>
+              <Text paddingInline='4'>
+                Assets worth ${nFormatter(obtainedAssets?.reduce((a, b)=>a+(+b.value), 0), 3)} were obtained from the transaction.
+                View <a href={getBlockExplorerUrlTransaction(chainId, hash)} target="_blank" rel="noopener noreferrer">
+                  <Text color={'blue'} as='u'>
+                    Transaction
+                  </Text>
+                </a> on block explorer
+              </Text>
+              {
+                obtainedAssets?.map((asset) => {
+                  return (
+                    <Flex backgroundColor={'gray.100'} alignItems={'center'} justifyContent={'space-between'} marginBlock={'4'} padding='4' borderRadius={'2xl'}>
+                      <Flex alignItems={'center'} justifyContent={'space-between'}>
+                        <img src={asset.logo_url} style={{width: "20px", height: "20px", borderRadius:'15px'}}/>
+                        <Text fontSize={'xl'} pl={'2'}>{asset.contract_name}</Text>
+                      </Flex>
+                      <Box textAlign={'end'}>
+                        <Text><Text as='b'>Amount: </Text>{nFormatter(asset.amount, 5)}</Text>
+                        <Text><Text as='b'>USD: </Text> ${nFormatter(asset.value, 2)}</Text>
+                      </Box>
+                    </Flex>
+                  )
+                })
+              }
+              <Flex marginBlock={'6'} justifyContent={'space-around'}>
+                <PrimaryButton onClick={onCloseFinal}><Text paddingInline={'6'}>Finish</Text></PrimaryButton>
+              </Flex>
+            </Box>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
       <Modal size={'sm'} isCentered isOpen={isOpen} onClose={onClose}>
         <ModalOverlay
           bg='blackAlpha.300'
@@ -536,11 +666,9 @@ const UniversalSwap = () => {
             </Flex>
           </ModalHeader>
           <ModalCloseButton />
-          <ModalBody>
+          <ModalBody mb='4'>
             <Text>{error}</Text>
           </ModalBody>
-          <ModalFooter>
-          </ModalFooter>
         </ModalContent>
       </Modal>
     </Flex>

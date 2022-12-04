@@ -12,7 +12,7 @@ import { getBlockExplorerUrl, getLogoUrl, getTokenDetails, nFormatter } from "..
 import erc20Abi from "../constants/abis/ERC20.json"
 import { AiOutlineShrink, AiOutlineExpandAlt } from 'react-icons/ai'
 import { harvest, compound } from "../contractCalls/transactions";
-import { Tooltip } from '@chakra-ui/react'
+import { nativeTokens } from "../utils";
 
 const Card = ({id}) => {
   const {contracts, chainId, onError, slippageControl: {slippage}} = useAppContext()
@@ -29,54 +29,51 @@ const Card = ({id}) => {
 
   useEffect(() => {
     contracts.positionManager.getPosition(id).then(async (positionData) => {
-      const bankDetails = await contracts.banks[positionData.bankId.toNumber()].decodeId(positionData.bankToken)
-      const getAssetData = async (contractAddress:string) => {
-        const contract = new ethers.Contract(contractAddress, erc20Abi, provider)
-        const symbol = await contract.symbol()
-        const name = await contract.name()
-        SetAsset({contract_ticker_symbol: symbol, contract_address: contractAddress, logo_url: getLogoUrl(name, contract.address, chainId)})
-      }
-      getAssetData(bankDetails[0])
-      contracts.universalSwap.callStatic.getUnderlying(bankDetails[0]).then(underlyingAddresses=> {
-        const promises = underlyingAddresses.map(async address=> {
-          const contract = new ethers.Contract(address, erc20Abi, provider)
+      const {position, bankTokenInfo, underlyingTokens, underlyingAmounts, underlyingValues, rewardTokens, rewardAmounts, rewardValues, usdValue} = positionData
+      const stableDecimals = await contracts.stableToken.decimals()
+      const usd = ethers.utils.formatUnits(usdValue, stableDecimals)
+      setUsdcValue(nFormatter(usd, 3))
+      const getAssetData = async () => {
+        if (bankTokenInfo.lpToken!=ethers.constants.AddressZero) {
+          const contract = new ethers.Contract(bankTokenInfo.lpToken, erc20Abi, provider)
           const symbol = await contract.symbol()
           const name = await contract.name()
-          return {contract_address: address, contract_ticker_symbol: symbol, logo_url: getLogoUrl(name, contract.address, chainId)}
-        })
-        Promise.all(promises).then((underlying)=>setUnderlying(underlying))
+          SetAsset({contract_ticker_symbol: symbol, contract_address: bankTokenInfo.lpToken, logo_url: getLogoUrl(name, contract.address, chainId)})
+        } else {
+          SetAsset(nativeTokens[chainId])
+        }
+      }
+      getAssetData()
+      const underlyingPromises = underlyingTokens.map(async (token:string, index:number) => {
+        if (token!=ethers.constants.AddressZero) {
+          const contract = new ethers.Contract(token, erc20Abi, provider)
+          const symbol = await contract.symbol()
+          const name = await contract.name()
+          const decimals = await contract.decimals()
+          const amount = +ethers.utils.formatUnits(underlyingAmounts[index], decimals)
+          const usdValue = +ethers.utils.formatUnits(underlyingValues[index], stableDecimals)
+          return {contract_address: token, amount, usdValue, contract_ticker_symbol: symbol, logo_url: getLogoUrl(name, contract.address, chainId)}
+        } else {
+          return nativeTokens[chainId]
+        }
       })
+      Promise.all(underlyingPromises).then((underlying)=>setUnderlying(underlying))
+      const rewardPromises = rewardTokens.map(async (token:string, index:number) => {
+        const contract = new ethers.Contract(token, erc20Abi, provider)
+        const symbol = await contract.symbol()
+        const name = await contract.name()
+        const decimals = await contract.decimals()
+        const amount = +ethers.utils.formatUnits(rewardAmounts[index], decimals)
+        const usdValue = +ethers.utils.formatUnits(rewardValues[index], stableDecimals)
+        return {contract_address: token, amount, usdValue, contract_ticker_symbol: symbol, logo_url: getLogoUrl(name, contract.address, chainId)}
+      })
+      Promise.all(rewardPromises).then((rewardsData)=>setRewards(rewardsData))
     })
     contracts.positionManager.positionClosed(id).then(positionClosed=> {
       if (positionClosed) {
         setIsClosed(true)
         setUsdcValue(0)
         setRewards([])
-      } else {
-        contracts.positionManager.callStatic.harvestRewards(id).then(async ({rewards, rewardAmounts})=> {
-          const promises = rewards.map(async (token, index)=> {
-            const tokenData = await getTokenDetails(chainId, token)
-            const contract = new ethers.Contract(token, erc20Abi, provider)
-            const name = await contract.name()
-            const amount = +ethers.utils.formatUnits(rewardAmounts[index].toString(), tokenData.decimals)
-            const usdValue = amount*tokenData.price
-            return {
-              contract_ticker_symbol: tokenData.symbol,
-              contract_address: token,
-              logo_url: getLogoUrl(name, contract.address, chainId),
-              usdValue,
-              amount
-            }
-          })
-          const rewardData = await Promise.all(promises)
-          setRewards(rewardData)
-        }, ()=>{})
-        contracts.usdcContract.decimals().then(usdcDecimals => {
-          contracts.positionManager.callStatic.closeToUSDC(id).then((usdcValue)=> {
-            const usd = ethers.utils.formatUnits(usdcValue, usdcDecimals)
-            setUsdcValue(nFormatter(usd, 3))
-          }, ()=>{})
-        })
       }
     })
   }, [id, refresh, contracts.positionManager.signer])
@@ -152,7 +149,7 @@ const Card = ({id}) => {
           <Heading fontSize={'m'} >
           USD Value
           </Heading>
-          <Flex justifyContent={'center'}>${typeof(+usdcValue)==='number'?usdcValue:<Skeleton m='1'><Text>Temp</Text></Skeleton>}</Flex>
+          <Flex justifyContent={'center'}>${usdcValue?usdcValue:<Skeleton m='1'><Text>Temp</Text></Skeleton>}</Flex>
         </Flex>
         </Box>
         {

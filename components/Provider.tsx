@@ -22,6 +22,7 @@ import deploymentAddresses from "../constants/deployments.json"
 import theme from './Theme'
 import {GrCircleInformation} from 'react-icons/gr'
 import { BiErrorAlt } from "react-icons/bi"
+import { CheckCircleIcon } from '@chakra-ui/icons'
 
 const AppContext = createContext({
   userAssets: {data: [], loading: false, error: false},
@@ -32,7 +33,9 @@ const AppContext = createContext({
   supportedAssets: {},
   contracts: undefined,
   slippageControl: {slippage:0.5, setSlippage: undefined},
-  onError: (error:Error)=>{}
+  counter: 0,
+  onError: (error:Error)=>{},
+  successModal: (title:string, body:ReactElement)=>{}
 });
 
 export function AppWrapper({ children }) {
@@ -42,27 +45,32 @@ export function AppWrapper({ children }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { isOpen: errorHappened, onOpen: triggerError, onClose: closeErrorModal } = useDisclosure();
   const { isOpen: alertOpen, onOpen: openAlert, onClose: closeAlert } = useDisclosure();
+  const { isOpen: isOpenSuccess, onOpen: onOpenSuccess, onClose: onCloseSuccess } = useDisclosure();
   const [errorMessage, setErrorMessage] = useState('')
   const [reloadTrigger, setReloadTrigger] = useState(false)
   const [softReloadTrigger, setSoftReloadTrigger] = useState(false)
+  const [successTitle, setSuccessTitle] = useState('')
+  const [successBody, setSuccessBody] = useState<ReactElement>()
 
   const [userAssets, setUserAssets] = useState<any>({data: [], loading: true, error: false})
   const [supportedAssets, setSupportedAssets] = useState({})
   const [contracts, setContracts] = useState<any>()
 
-  const [time, setTime] = useState(0);
+  const [counter, setCounter] = useState(0);
   useEffect(() => {
     const timer = setTimeout(() => {
-      setTime(time + 1);
-    }, 60000);
+      setCounter(counter + 1);
+    }, 1000);
     return () => {
       clearTimeout(timer);
     };
-  }, [time]);
+  }, [counter]);
 
   useEffect(() => {
-    softRefreshAssets()
-  }, [time])
+    if (counter%60===0) {
+      softRefreshAssets()
+    }
+  }, [counter])
 
   const hardRefreshAssets = async () => {
     if (userAssets.loading) return
@@ -74,7 +82,7 @@ export function AppWrapper({ children }) {
     const updateQuotes = async () => {
       const temp = [...userAssets?.data||[]]
       for (let i = 0; i<temp.length; i++) {
-        const price = await getPrice(usedChainId, temp[i].contract_address)
+        const {price} = await getPrice(usedChainId, temp[i].contract_address)
         temp[i].quote = +ethers.utils.formatUnits(temp[i].balance, temp[i].contract_decimals)*price
       }
       setUserAssets({...userAssets, data: temp, loading: false})
@@ -97,10 +105,9 @@ export function AppWrapper({ children }) {
       const signer = provider.getSigner(account)
       if (!(chainId in deploymentAddresses)) {
         onOpen()
-        setContracts({positionManager:undefined, banks:undefined, universalSwap:undefined, usdcContract:undefined, uniswapV3PoolInteractor:undefined})
+        setContracts({positionManager:undefined, banks:undefined, universalSwap:undefined, stableToken:undefined, uniswapV3PoolInteractor:undefined})
         return
       }
-      onClose()
       const positionManager = new ethers.Contract(deploymentAddresses[chainId].positionsManager, positionManagerAbi, signer)
       const numBanks = await positionManager.numBanks()
       const banks = []
@@ -111,9 +118,10 @@ export function AppWrapper({ children }) {
       }
       const universalSwapAddress = await positionManager.universalSwap()
       const universalSwap = new ethers.Contract(universalSwapAddress, universalSwapAbi, signer)
-      const usdcContract = new ethers.Contract(deploymentAddresses[chainId].usdc, erc20Abi, provider)
-      const uniswapV3PoolInteractor = new ethers.Contract(deploymentAddresses[chainId].uniswapV3PoolInteractor, uniswapV3PoolInteractorAbi, signer)
-      setContracts({positionManager, banks, universalSwap, usdcContract, uniswapV3PoolInteractor})
+      const stableTokenAddress = await positionManager.stableToken()
+      const stableToken = new ethers.Contract(stableTokenAddress, erc20Abi, provider)
+      const uniswapV3PoolInteractor = undefined
+      setContracts({positionManager, banks, universalSwap, stableToken, uniswapV3PoolInteractor})
     }
     if (provider && chainId) {
       getContracts()
@@ -157,8 +165,22 @@ export function AppWrapper({ children }) {
     triggerError()
   }
 
+  const successModal = (title:string, body:ReactElement) => {
+    setSuccessTitle(title)
+    setSuccessBody(body)
+    onOpenSuccess()
+  }
+
   return (
-    <AppContext.Provider value={{supportedAssets, userAssets, hardRefreshAssets, softRefreshAssets, account, chainId: usedChainId, connector, contracts, slippageControl: {slippage, setSlippage}, onError}}>
+    <AppContext.Provider
+    value={{
+      supportedAssets, userAssets,
+      hardRefreshAssets, softRefreshAssets,
+      account, chainId: usedChainId, connector,
+      contracts,
+      slippageControl: {slippage, setSlippage}, onError,
+      counter, successModal
+    }}>
       {children}
       <Modal size={'sm'} isCentered isOpen={isOpen} onClose={onClose}>
         <ModalOverlay
@@ -212,6 +234,26 @@ export function AppWrapper({ children }) {
             <Text mb={'3'}>Welcome to the alpha version of Delimit. Please do not use a large
               amount of funds as we are still testing and fixing issues.</Text>
             <Text fontSize={'sm'}>Note: All positions created in the alpha version will be liquidated and returned by February 2023</Text>
+          </ModalBody>
+          <ModalFooter>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+      <Modal size={'sm'} isCentered isOpen={isOpenSuccess} onClose={onCloseSuccess}>
+        <ModalOverlay
+          bg='blackAlpha.300'
+          backdropFilter='blur(10px)'
+        />
+        <ModalContent>
+          <ModalHeader>
+            <Flex alignItems={'center'}>
+              {<CheckCircleIcon color='green.400' fontSize={'2rem'}/>}
+              <Text ml={'4'}>{successTitle}</Text>
+            </Flex>
+          </ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            {successBody}
           </ModalBody>
           <ModalFooter>
           </ModalFooter>

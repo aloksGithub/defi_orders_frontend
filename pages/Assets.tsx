@@ -20,9 +20,11 @@ import {
   Stack,
   useColorModeValue,
   ModalFooter,
+  Skeleton,
+  Tooltip,
 } from '@chakra-ui/react'
 import { useEffect, useState, useRef } from "react"
-import { ArrowBackIcon } from "@chakra-ui/icons"
+import { ArrowBackIcon, CheckCircleIcon } from "@chakra-ui/icons"
 import { ethers } from "ethers";
 import erc20Abi from "../constants/abis/ERC20.json"
 import bankAbi from "../constants/abis/BankBase.json"
@@ -32,9 +34,10 @@ import LiquidationConditions from "../components/LiquidationConditions";
 import { useRouter } from "next/router";
 import { Pagination } from "../components/Pagination";
 import { Heading2 } from "../components/Typography";
-import { getBlockExplorerUrl, nFormatter } from "../utils";
+import { getBlockExplorerUrl, getBlockExplorerUrlTransaction, nFormatter } from "../utils";
 import { BiErrorAlt } from "react-icons/bi"
 import { FancyButton } from "../components/Buttons";
+import Link from "next/link";
 
 const Card = ({asset, index, setSecuring}) => {
   const {chainId} = useAppContext()
@@ -121,16 +124,17 @@ const Card = ({asset, index, setSecuring}) => {
 }
 
 const SecureAsset = ({asset, setSecuring}) => {
-  const {account, contracts, onError, userAssets: {loading, data}, softRefreshAssets} = useAppContext()
+  const {account, contracts, onError, userAssets: {loading, data}, softRefreshAssets, chainId} = useAppContext()
   const {provider} = useWeb3React()
   const signer = provider.getSigner(account)
   const [tokens, setTokens] = useState(0)
-  const [banks, setBanks] = useState([])
   const [selectedBank, selectBank] = useState(undefined)
   const [rewards, setRewards] = useState([])
   const [error, setError] = useState("")
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen: isOpenSuceess, onOpen: onOpenSuccess, onClose: onCloseSuccess } = useDisclosure();
   const [currentUsd, setCurrentUsd] = useState('0')
+  const [txHash, setTxHash] = useState('')
   const [processing, setProcessing] = useState(false)
   const [liquidationConditions, setLiquidationConditions] = useState([{
     watchedAsset: {
@@ -154,29 +158,24 @@ const SecureAsset = ({asset, setSecuring}) => {
 
   useEffect(() => {
     const getBanks = async () => {
-      if (!contracts.positionManager) {
+      if (!contracts?.positionManager) {
         return
       }
-      const [bankIds, bankNames, tokenIds] = await contracts.positionManager.functions.recommendBank(asset.contract_address)
-      const banks = []
-      for (let [index, bank] of bankIds.entries()) {
-        banks.push({
-          value: bank,
-          label: bankNames[index],
-          tokenId: tokenIds[index]
-        })
-      setBanks(banks)
-      }
+      const [bankIds, bankNames, tokenIds] = await contracts.positionManager.recommendBank(asset.contract_address)
+      selectBank({
+        id: bankIds[bankIds.length-1],
+        name: bankNames[bankNames.length-1],
+        tokenId: tokenIds[tokenIds.length-1]
+      })
     }
     getBanks()
   }, [])
 
   useEffect(() => {
     const getRewards = async () => {
-      const bank = banks.find(bank=>bank.value.toString()===selectedBank)
-      const bankAddress = await contracts.positionManager.functions.banks(selectedBank)
+      const bankAddress = await contracts.positionManager.functions.banks(selectedBank.id)
       const bankContract = new ethers.Contract(bankAddress[0], bankAbi, provider)
-      const rewards = await bankContract.functions.getRewards(bank.tokenId)
+      const rewards = await bankContract.functions.getRewards(selectedBank.tokenId)
       const rewardNames = []
       for (const reward of rewards.rewardsArray) {
         const contract = new ethers.Contract(reward, erc20Abi, provider)
@@ -218,9 +217,8 @@ const SecureAsset = ({asset, setSecuring}) => {
       setProcessing(false)
       return
     }
-    const bank = banks.find(bank=>bank.value.toString()===selectedBank)
-    if (!bank) {
-      setError(`Bank is not specified`)
+    if (!selectedBank) {
+      setError(`Unsupported asset`)
       onOpen()
       setProcessing(false)
       return
@@ -233,23 +231,22 @@ const SecureAsset = ({asset, setSecuring}) => {
     }
     const position = {
       user: account,
-      bankId: bank.value,
-      bankToken: bank.tokenId,
+      bankId: selectedBank.id,
+      bankToken: selectedBank.tokenId,
       amount: ethers.utils.parseUnits(tokens.toString(), asset.contract_decimals),
       liquidationPoints: formattedConditions
     }
-    depositNew(contracts, signer, position, asset).then(() => {
-      setTimeout(() => {
-        setProcessing(false)
-        ethers.getDefaultProvider().getBlockNumber()
-        router.push("/Positions")
-      }, 10000);
+    depositNew(contracts, signer, position, asset).then((hash:string) => {
+      setProcessing(false)
+      setTxHash(hash)
+      onOpenSuccess()
     }).catch((error)=>{
       setProcessing(false)
       onError(error)
       console.log("Transaction failed", error)
     })
   }
+
 
   return (
     <Box maxWidth={'700px'} margin={'auto'}
@@ -265,31 +262,16 @@ const SecureAsset = ({asset, setSecuring}) => {
       <Grid
         w={'100%'}
         gridTemplateRows={'1fr 1fr'}
-        gap={'2'}
+        rowGap='4'
         templateColumns={{base: 'repeat(2, 1fr)', md: '3fr 3fr 0.5fr'}}
         mb={'8'}
       >
         <GridItem colSpan={1}>
-          <Heading2>Bank</Heading2>
-          <DefaultSelect size={'sm'} w={'60%'} placeholder='Select Bank' onChange={(event)=>selectBank(event.target.value)}>
-            {
-              banks.map(bank=> (<option value={bank.value}>{bank.label}</option>))
-            }
-          </DefaultSelect>
-        </GridItem>
-        <GridItem colSpan={1}>
-          <Heading2>Expected Rewards</Heading2>
-          { rewards.length>0?
-            rewards.map(reward=> <Text fontSize='l'>{reward}</Text>):
-            <Text fontSize='l'>None</Text>
-          }
-        </GridItem>
-        <GridItem rowStart={2} colSpan={1}>
           <Heading2>Tokens To Secure</Heading2>
           <Flex>
           <NumberInput size={'lg'} w={'60%'} min={0} max={asset?.balance/10**asset?.contract_decimals} value={tokens}
           // @ts-ignore
-          onChange={(valueAsNumber)=>setTokens(valueAsNumber)}>
+          onChange={(valueAsString)=>setTokens(valueAsString)}>
             <NumberInputField backgroundColor={'white'}></NumberInputField>
           </NumberInput>
           <Box>
@@ -298,9 +280,25 @@ const SecureAsset = ({asset, setSecuring}) => {
           </Box>
           </Flex>
         </GridItem>
-        <GridItem rowStart={2} colSpan={1}>
+        <GridItem colSpan={1}>
           <Heading2>Secured USD</Heading2>
           <Text fontSize='l'>${currentUsd}</Text>
+        </GridItem>
+        <GridItem rowStart={2} colSpan={1}>
+          <Heading2>Expected Rewards</Heading2>
+          {
+            rewards?rewards.length>0?
+            rewards.map(reward=> <Text fontSize='l'>{reward}</Text>):
+            <Text fontSize='l'>None</Text>:
+            <Skeleton w={'60%'}>
+              <Text>Temporary</Text>
+              <Text>Temporary</Text>
+            </Skeleton>
+          }
+        </GridItem>
+        <GridItem rowStart={2} colSpan={1}>
+          <Heading2>Expected APY</Heading2>
+          <Text>Coming Soon</Text>
         </GridItem>
       </Grid>
       <Heading2>Liquidation Conditions</Heading2>
@@ -311,8 +309,33 @@ const SecureAsset = ({asset, setSecuring}) => {
         onReload={softRefreshAssets} loading={loading}/>
       </Flex>
       <Flex marginBlock={'10'} justifyContent={'center'}>
-      <FancyButton isLoading={processing} width='70%' height='85px' onClick={secure}><Text fontSize={'3xl'} color={'white'}>Secure</Text></FancyButton>
+      <FancyButton
+        disabled={!selectedBank || +tokens===0 || processing || !rewards}
+        isLoading={processing} width='70%' height='85px' onClick={secure}><Text fontSize={'3xl'} color={'white'}>Secure</Text></FancyButton>
       </Flex>
+      <Modal size={'sm'} isCentered isOpen={isOpenSuceess} onClose={onCloseSuccess}>
+        <ModalOverlay
+          bg='blackAlpha.300'
+          backdropFilter='blur(10px)'
+        />
+        <ModalContent>
+          <ModalHeader>
+            <Flex alignItems={'center'}>
+              {<CheckCircleIcon color='green.400' fontSize={'2rem'}/>}
+              <Text ml={'4'}>Deposit Successful</Text>
+            </Flex>
+          </ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Text>
+              Asset was deposited successfully, 
+              you can view your position <Link href={`/Positions`}><Text color='blue' _hover={{cursor: 'pointer'}} as={'u'}>here</Text></Link>. 
+              View <a href={getBlockExplorerUrlTransaction(chainId, txHash)} target="_blank" rel="noopener noreferrer"><Text as='u' textColor={'blue'}>Transaction</Text></a> on block explorer</Text>
+          </ModalBody>
+          <ModalFooter>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
       <Modal size={'sm'} isCentered isOpen={isOpen} onClose={onClose}>
         <ModalOverlay
           bg='blackAlpha.300'
@@ -339,7 +362,6 @@ const SecureAsset = ({asset, setSecuring}) => {
 
 const Assets = () => {
   const {userAssets, supportedAssets, softRefreshAssets} = useAppContext()
-  console.log(supportedAssets)
   const assets = userAssets?.data
   const [securing, setSecuring] = useState<number>()
 
