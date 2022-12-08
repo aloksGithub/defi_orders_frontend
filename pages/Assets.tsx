@@ -85,9 +85,9 @@ const Card = ({asset, index, setSecuring}) => {
                   return (
                     <Flex alignItems={'center'} paddingBlock={'1'} marginBlock={'1'} >
                       <img src={token.logo_url} style={{width: "20px", height: "20px", borderRadius: '15px'}}/>
-                      <a href={getBlockExplorerUrl(chainId, token.address)} target="_blank" rel="noopener noreferrer">
+                      <a href={getBlockExplorerUrl(chainId, token.contract_address)} target="_blank" rel="noopener noreferrer">
                       <Text _hover={{color: 'blue.500', cursor: 'pointer'}} display={'flex'} alignItems={'center'} ml={'2'} mr={'1'}>
-                        {token.symbol}
+                        {token.contract_symbol}
                       </Text>
                       </a>
                     </Flex>
@@ -151,6 +151,7 @@ const SecureAsset = ({asset, setSecuring}) => {
     liquidationPoint: 0
   }])
   const router = useRouter()
+  console.log(selectedBank)
 
   useEffect(() => {
     setCurrentUsd((asset?.quote*tokens/(asset?.balance/10**asset?.contract_decimals)||0).toFixed(3))
@@ -158,10 +159,12 @@ const SecureAsset = ({asset, setSecuring}) => {
 
   useEffect(() => {
     const getBanks = async () => {
+      console.log("getting bank")
       if (!contracts?.positionManager) {
         return
       }
       const [bankIds, bankNames, tokenIds] = await contracts.positionManager.recommendBank(asset.contract_address)
+      console.log(bankIds)
       selectBank({
         id: bankIds[bankIds.length-1],
         name: bankNames[bankNames.length-1],
@@ -372,7 +375,7 @@ const Assets = () => {
   }, assets)
 
   return (
-    <Box justifyContent={'center'} maxWidth='1200px' margin={'auto'}>
+    <Box justifyContent={'center'} justifySelf='center' maxWidth='1200px' marginInline={'auto'}>
       {
         securing!=undefined && assets?
         <SecureAsset asset={assets[securing]} setSecuring={setSecuring} />:       

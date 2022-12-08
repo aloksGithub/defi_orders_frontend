@@ -2,6 +2,7 @@ import { ethers } from "ethers";
 import cacheData from "memory-cache";
 import supportedProtocols from '../../constants/supportedProtocols.json'
 import { chainLogos, getLogoUrl, nativeTokens } from "../../utils";
+const fs = require('fs');
 
 const getTokenUrl = (chainId:number, token:string) => {
   const defaultUrl = `https://logos.covalenthq.com/tokens/${chainId}/${token}.png`
@@ -51,14 +52,12 @@ const protocolSymbols = {
 const dataExtractorERC20 = (data, chainId, protocol, manager) => {
   const assets = data.tokens.map(token=> {
     return {
-      value: token.id,
-      label: token.symbol,
       contract_name: token.name,
       contract_address: token.id,
       contract_ticker_symbol: token.symbol,
-      decimals: token.decimals,
-      logo_url: `https://logos.covalenthq.com/tokens/${chainId}/${token.id}.png`,
+      contract_decimals: token.decimals,
       underlying: [],
+      logo_url: `https://logos.covalenthq.com/tokens/${chainId}/${token.id}.png`,
       manager
     }
   })
@@ -69,15 +68,26 @@ const dataExtractorERC20 = (data, chainId, protocol, manager) => {
 const dataExtractorUniV2 = (data, chainId, protocol, manager) => {
   const assets = data.pairs.map(asset=> {
     return {
-      value: asset.id,
-      label: `${protocol} ${asset.token0.symbol}-${asset.token1.symbol} LP`,
       contract_name: `${protocol} ${asset.token0.symbol}-${asset.token1.symbol} LP`,
       contract_address: asset.id,
       contract_ticker_symbol: protocolSymbols[protocol],
-      underlying: [{
-        address: asset.token0.id, symbol: asset.token0.symbol, decimals: asset.token0.decimals, name: asset.token0.name, logo_url: `https://logos.covalenthq.com/tokens/${chainId}/${asset.token0.id}.png`},
-        {address: asset.token1.id, symbol: asset.token1.symbol, decimals: asset.token1.decimals, name: asset.token1.name, logo_url: `https://logos.covalenthq.com/tokens/${chainId}/${asset.token1.id}.png`
-      }],
+      contract_decimals: 18,
+      underlying: [
+        {
+          contract_name: asset.token0.name,
+          contract_address: asset.token0.id,
+          contract_ticker_symbol: asset.token0.symbol,
+          contract_decimals: asset.token0.decimals,
+          logo_url: `https://logos.covalenthq.com/tokens/${chainId}/${asset.token0.id}.png`
+        },
+        {
+          contract_name: asset.token1.name,
+          contract_address: asset.token1.id,
+          contract_ticker_symbol: asset.token1.symbol,
+          contract_decimals: asset.token1.decimals,
+          logo_url: `https://logos.covalenthq.com/tokens/${chainId}/${asset.token1.id}.png`
+        }
+      ],
       logo_url: logos[protocol],
       manager
     }
@@ -88,15 +98,24 @@ const dataExtractorUniV2 = (data, chainId, protocol, manager) => {
 const dataExtractorUniV3 = (data, chainId, protocol, manager) => {
   const assets = data.pools.map(asset=> {
     return {
-      value: asset.id,
-      label: `${protocol} ${asset.token0.symbol}-${asset.token1.symbol} (${+asset.feeTier/10000}%) LP`,
       contract_name: `${protocol} ${asset.token0.symbol}-${asset.token1.symbol} (${+asset.feeTier/10000}%) LP`,
       contract_address: asset.id,
-      underlying: [
-        {address: asset.token0.id, symbol: asset.token0.symbol, decimals: asset.token0.decimals, name: asset.token0.name, logo_url: `https://logos.covalenthq.com/tokens/${chainId}/${asset.token0.id}.png`},
-        {address: asset.token1.id, symbol: asset.token1.symbol, decimals: asset.token1.decimals, name: asset.token1.name, logo_url: `https://logos.covalenthq.com/tokens/${chainId}/${asset.token1.id}.png`}
-      ],
       contract_ticker_symbol: `UNI-V3`,
+      contract_decimals: 18,
+      underlying: [
+        {
+          contract_name: asset.token0.name,
+          contract_address: asset.token0.id,
+          contract_ticker_symbol: asset.token0.symbol,
+          contract_decimals: asset.token0.decimals,
+          logo_url: `https://logos.covalenthq.com/tokens/${chainId}/${asset.token0.id}.png`},
+        {
+          contract_name: asset.token1.name,
+          contract_address: asset.token1.id,
+          contract_ticker_symbol: asset.token1.symbol,
+          contract_decimals: asset.token1.decimals,
+          logo_url: `https://logos.covalenthq.com/tokens/${chainId}/${asset.token1.id}.png`}
+      ],
       logo_url: logos[protocol],
       manager
     }
@@ -107,16 +126,15 @@ const dataExtractorUniV3 = (data, chainId, protocol, manager) => {
 const dataExtractorVenus = (data, chainId, protocol, manager) => {
   const assets = data.markets.map(asset=> {
     return {
-      value: asset.id,
-      label: asset.name,
       contract_name: asset.name,
-      contract_ticker_symbol: asset.symbol,
       contract_address: asset.id,
+      contract_ticker_symbol: asset.symbol,
+      contract_decimals: 18,
       underlying: [{
-        address: asset.underlyingAddress,
-        symbol: asset.underlyingSymbol,
-        name: asset.underlyingName,
-        decimals: asset.underlyingDecimals,
+        contract_name: asset.underlyingName,
+        contract_address: asset.underlyingAddress,
+        contract_ticker_symbol: asset.underlyingSymbol,
+        contract_decimals: asset.underlyingDecimals,
         logo_url: `https://logos.covalenthq.com/tokens/${chainId}/${asset.underlyingAddress}.png`
       }],
       logo_url: getLogoUrl(asset.name, asset.id, chainId),
@@ -129,15 +147,15 @@ const dataExtractorVenus = (data, chainId, protocol, manager) => {
 const dataExtractorAAVE = (data, chainId, protocol, manager) => {
   const assets = data.markets.map(asset=> {
     return {
-      value: asset.outputToken.id,
-      label: asset.outputToken.name,
       contract_name: asset.outputToken.name,
       contract_address: asset.outputToken.id,
+      contract_ticker_symbol: `a${asset.inputToken.symbol}`,
+      contract_decimals: asset.inputToken.decimals,
       unedrlying: [{
-        address: asset.inputToken.id,
-        symbol: asset.inputToken.symbol,
-        name: asset.inputToken.name,
-        decimals: asset.inputToken.decimals,
+        contract_name: asset.inputToken.name,
+        contract_address: asset.inputToken.id,
+        contract_ticker_symbol: asset.inputToken.symbol,
+        contract_decimals: asset.inputToken.decimals,
         logo_url: `https://logos.covalenthq.com/tokens/${chainId}/${asset.inputToken.id}.png`
       }],
       logo_url: logos[protocol],
@@ -168,12 +186,11 @@ const getAssets = async (url: string, query: string, protocol: string, manager:s
       })).json()
       const dataExtractor = dataExtractors[protocol]
       const assets = dataExtractor(res.data, chainId, protocol, manager)
-      for (const asset of assets) {
-        cacheData.put(`${chainId}_${asset.value}`, asset)
-      }
-      return await Promise.all(assets)
+      const fileData = JSON.stringify({data: assets, timeOut: Date.now()+timeOut})
+      fs.writeFileSync(`./protocolData/${protocol}_${chainId}.json`, fileData)
+      return assets
     } catch (error) {
-      // console.log(error)
+      console.log(error)
       continue
     }
   }
@@ -185,30 +202,18 @@ const processRequest = async (chainId: string) => {
   const protocols = supportedProtocols[chainId]
   const assets = {}
   for (const protocol of protocols) {
-    const value = cacheData.get(`${protocol.name}_${chainId}`)
-    if (!value) {
-      const data = await getAssets(protocol.url, protocol.query, protocol.name, protocol.manager, +chainId)
-      if (data) {
-        assets[protocol.name] = data
-        cacheData.put(`${protocol.name}_${chainId}`, {data, timeOut: Date.now()+timeOut});
-      } else {
-        console.log(`Failed to fetch data for ${protocol.name}`)
-      }
-    } else {
+    if (fs.existsSync(`./protocolData/${protocol.name}_${chainId}.json`)) {
+      const {data, timeOut} = JSON.parse(fs.readFileSync(`./protocolData/${protocol.name}_${chainId}.json`, 'utf8'))
       const timeNow = Date.now()
-      if (timeNow>value.timeOut) {
-        getAssets(protocol.url, protocol.query, protocol.name, protocol.manager, +chainId).then(data=> {
-          if (data) {
-            cacheData.put(`${protocol.name}_${chainId}`, {data, timeOut: Date.now()+timeOut});
-          } else {
-            console.log(`Failed to fetch data for ${protocol.name}`)
-          }
-        })
+      if (timeNow>timeOut) {
+        getAssets(protocol.url, protocol.query, protocol.name, protocol.manager, +chainId)
       }
-      assets[protocol.name] = value.data
+      assets[protocol.name] = data
+    } else {
+      const data = await getAssets(protocol.url, protocol.query, protocol.name, protocol.manager, +chainId)
+      assets[protocol.name] = data
     }
   }
-  cacheData.put(`${chainId}_${ethers.constants.AddressZero}`, nativeTokens[chainId])
   return assets
 }
 

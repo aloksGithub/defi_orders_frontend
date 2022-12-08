@@ -1,7 +1,10 @@
 import { ethers } from 'ethers'
 import pairAbi from "../../constants/abis/IUniswapV2Pair.json"
+import universalSwapAbi from "../../constants/abis/UniversalSwap.json"
 import erc20Abi from "../../constants/abis/ERC20.json"
-import cacheData from "memory-cache";
+import deploymentAddresses from "../../constants/deployments.json"
+const fs = require('fs');
+
 
 const getPriceCovalent = async (chainId:number, address:string) => {
   for (let i = 0; i<5; i++) {
@@ -16,8 +19,40 @@ const getPriceCovalent = async (chainId:number, address:string) => {
   }
 }
 
+const chainStableTokens = {}
+
+const getPriceUniversalSwap = async (chainId:number, address:string) => {
+  const prod = process.env.NEXT_PUBLIC_CURRENTLY_FORKING==='0'
+  const provider = new ethers.providers.JsonRpcProvider(prod?process.env[chainId]:'http://127.0.0.1:8545/')
+  const universalSwapAddress = prod?deploymentAddresses[chainId].universalSwap:deploymentAddresses["1337"].universalSwap
+  const universalSwap = new ethers.Contract(universalSwapAddress, universalSwapAbi, provider)
+  if (!(chainId.toString() in chainStableTokens)) {
+    const stableToken = await universalSwap.stableToken()
+    const stableTokenContract = new ethers.Contract(stableToken, erc20Abi, provider)
+    const stableDecimals = await stableTokenContract.decimals()
+    chainStableTokens[chainId.toString()] = {stableToken, stableDecimals}
+  }
+  const token = new ethers.Contract(address, erc20Abi, provider)
+  const tokenDecimals = address!=ethers.constants.AddressZero?await token.decimals():18
+  const price = await universalSwap.estimateValueERC20(address, ethers.utils.parseUnits("1", tokenDecimals), chainStableTokens[chainId.toString()].stableToken)
+  return {price:+ethers.utils.formatUnits(price, chainStableTokens[chainId.toString()].stableDecimals), decimals: tokenDecimals}
+}
+
+export const fetchTokenDetails = (chainId, address) => {
+  let foundAsset
+  fs.readdirSync(`./protocolData`).forEach(file => {
+    const fileChain = file.split('.')[0].split('_')[1]
+    if (+fileChain===+chainId) {
+      const {data} = JSON.parse(fs.readFileSync(`./protocolData/${file}`, 'utf8'))
+      const asset = data.find(asset=>asset.contract_address.toLowerCase()===address.toLowerCase())
+      if (asset) foundAsset = asset
+    }
+  })
+  return foundAsset
+}
+
 export const getPriceActual = async (chainId:number, address:string, decimals:number, name) => {
-  const data = cacheData.get(`${chainId}_${address.toLowerCase()}`)
+  const data = fetchTokenDetails(chainId, address)
   const provider = new ethers.providers.JsonRpcProvider(process.env[chainId])
   let price:number
   if (!data) {
@@ -36,24 +71,13 @@ export const getPriceActual = async (chainId:number, address:string, decimals:nu
     const token1Price = token1Info.items[0].price
     const poolWorth = token0Price*r0 + token1Price*r1
     price = poolWorth/totalSupply
-    const toCache = {
-      value: address,
-      label: name,
-      contract_name: name,
-      underlying: [
-        {address: token0, symbol: token0Info.contract_ticker_symbol, decimals: decimals0, name: token0Info.contract_name, logo_url: `https://logos.covalenthq.com/tokens/${chainId}/${token0}.png`},
-        {address: token1, symbol: token1Info.contract_ticker_symbol, decimals: decimals1, name: token1Info.contract_name, logo_url: `https://logos.covalenthq.com/tokens/${chainId}/${token1}.png`}
-      ],
-      manager:undefined
-    }
-    cacheData.put(toCache)
   } else {
-    const token0 = data.underlying[0].address
-    const token1 = data.underlying[1].address
+    const token0 = data.underlying[0].contract_address
+    const token1 = data.underlying[1].contract_address
     const contract = new ethers.Contract(address, pairAbi, provider)
     const {reserve0, reserve1} = await contract.getReserves()
-    const r0 = +ethers.utils.formatUnits(reserve0, data.underlying[0].decimals)
-    const r1 = +ethers.utils.formatUnits(reserve1, data.underlying[1].decimals)
+    const r0 = +ethers.utils.formatUnits(reserve0, data.underlying[0].contract_decimals)
+    const r1 = +ethers.utils.formatUnits(reserve1, data.underlying[1].contract_decimals)
     const totalSupply = +ethers.utils.formatUnits((await contract.totalSupply()), decimals)
     const token0Price = (await getPriceCovalent(chainId, token0)).data[0].items[0].price
     const token1Price = (await getPriceCovalent(chainId, token1)).data[0].items[0].price
@@ -71,15 +95,14 @@ export default async function serverSideCall(req, res) {
     console.log("Trying to fetch price for undefined")
     return
   }
-    const response = await getPriceCovalent(chainId, address)
-    let price = response.data[0].items[0].price
-    if (['Pancake LPs', 'Biswap LPs', 'SushiSwap LP Token', 'Uniswap V2'].includes(response.data[0].items[0].contract_metadata.contract_name)) {
-      price = await getPriceActual(chainId, address, response.data[0].contract_decimals, response.data[0].contract_name)
-    }
-    const name = response.data[0].items[0].contract_metadata.contract_name
-    const symbol = response.data[0].items[0].contract_metadata.contract_ticker_symbol
-    const decimals = response.data[0].items[0].contract_metadata.contract_decimals
-    res.status(200).json({
-      data: {price, name, decimals, symbol},
-    });
+  // const response = await getPriceCovalent(chainId, address)
+  // let price = response.data[0].items[0].price
+  // if (['Pancake LPs', 'Biswap LPs', 'SushiSwap LP Token', 'Uniswap V2'].includes(response.data[0].items[0].contract_metadata.contract_name)) {
+  //   price = await getPriceActual(chainId, address, response.data[0].contract_decimals, response.data[0].contract_name)
+  // }
+  // const decimals = response.data[0].items[0].contract_metadata.contract_decimals
+  const {price, decimals} = await  getPriceUniversalSwap(chainId, address)
+  res.status(200).json({
+    data: {price, decimals},
+  });
 }

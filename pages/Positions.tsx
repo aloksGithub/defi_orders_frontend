@@ -8,17 +8,18 @@ import { Heading1 } from "../components/Typography";
 import { VscGraphLine } from 'react-icons/vsc'
 import { IoMdSettings } from 'react-icons/io'
 import { ethers } from "ethers";
-import { getBlockExplorerUrl, getLogoUrl, getTokenDetails, nFormatter } from "../utils";
+import { getBlockExplorerUrl, getBlockExplorerUrlTransaction, getLogoUrl, nFormatter } from "../utils";
 import erc20Abi from "../constants/abis/ERC20.json"
 import { AiOutlineShrink, AiOutlineExpandAlt } from 'react-icons/ai'
 import { harvest, compound } from "../contractCalls/transactions";
 import { nativeTokens } from "../utils";
 
 const Card = ({id}) => {
-  const {contracts, chainId, onError, slippageControl: {slippage}} = useAppContext()
+  const {contracts, chainId, onError, slippageControl: {slippage}, successModal} = useAppContext()
   const {provider, account} = useWeb3React()
   const [asset, SetAsset] = useState(undefined)
   const [underlying, setUnderlying] = useState(undefined)
+  const [positionInfo, setPositionInfo] = useState()
   const [rewards, setRewards] = useState(undefined)
   const [usdcValue, setUsdcValue] = useState(undefined)
   const [expandRewards, setExpandRewards] = useState(false)
@@ -30,6 +31,7 @@ const Card = ({id}) => {
   useEffect(() => {
     contracts.positionManager.getPosition(id).then(async (positionData) => {
       const {position, bankTokenInfo, underlyingTokens, underlyingAmounts, underlyingValues, rewardTokens, rewardAmounts, rewardValues, usdValue} = positionData
+      setPositionInfo(position)
       const stableDecimals = await contracts.stableToken.decimals()
       const usd = ethers.utils.formatUnits(usdValue, stableDecimals)
       setUsdcValue(nFormatter(usd, 3))
@@ -69,20 +71,27 @@ const Card = ({id}) => {
       })
       Promise.all(rewardPromises).then((rewardsData)=>setRewards(rewardsData))
     })
-    contracts.positionManager.positionClosed(id).then(positionClosed=> {
-      if (positionClosed) {
-        setIsClosed(true)
-        setUsdcValue(0)
-        setRewards([])
-      }
-    })
+    // contracts.positionManager.positionClosed(id).then(positionClosed=> {
+    //   if (positionClosed) {
+    //     setIsClosed(true)
+    //     setUsdcValue(0)
+    //     setRewards([])
+    //   }
+    // })
   }, [id, refresh, contracts.positionManager.signer])
 
   const harvestPosition = () => {
     setHarvesting(true)
-    harvest(contracts, id).then(()=>{
+    harvest(contracts, id).then((hash)=>{
       setHarvesting(false)
       setRefresh(!refresh)
+      successModal("Harvest Successful", 
+        <Text>
+          Rewards were successfully harvested, 
+          View <a href={getBlockExplorerUrlTransaction(chainId, hash)} target="_blank" rel="noopener noreferrer"><Text as='u' textColor={'blue'}>transaction</Text></a>
+          &nbsp;on block explorer.
+        </Text>
+      )
     }).catch((error)=>{
       setHarvesting(false)
       onError(error)
@@ -91,9 +100,16 @@ const Card = ({id}) => {
 
   const compoundPosition = () => {
     setCompounding(true)
-    compound(contracts, id, slippage, chainId).then(()=>{
+    compound(contracts, id, positionInfo, slippage, chainId).then((hash)=>{
       setCompounding(false)
       setRefresh(!refresh)
+      successModal("Reinvest Successful", 
+        <Text>
+          Rewards were successfully reinvested, 
+          View <a href={getBlockExplorerUrlTransaction(chainId, hash)} target="_blank" rel="noopener noreferrer"><Text as='u' textColor={'blue'}>transaction</Text></a>
+          &nbsp;on block explorer.
+        </Text>
+      )
     }).catch((error)=>{
       onError(error)
       setCompounding(false)

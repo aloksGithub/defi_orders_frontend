@@ -17,12 +17,12 @@ import positionManagerAbi from "../constants/abis/PositionManager.json"
 import universalSwapAbi from "../constants/abis/UniversalSwap.json"
 import bankBaseAbi from "../constants/abis/BankBase.json"
 import erc20Abi from "../constants/abis/ERC20.json"
-import uniswapV3PoolInteractorAbi from "../constants/abis/UniswapV3PoolInteractor.json"
 import deploymentAddresses from "../constants/deployments.json"
 import theme from './Theme'
 import {GrCircleInformation} from 'react-icons/gr'
 import { BiErrorAlt } from "react-icons/bi"
 import { CheckCircleIcon } from '@chakra-ui/icons'
+import { Footer } from './Footer'
 
 const AppContext = createContext({
   userAssets: {data: [], loading: false, error: false},
@@ -108,20 +108,24 @@ export function AppWrapper({ children }) {
         setContracts({positionManager:undefined, banks:undefined, universalSwap:undefined, stableToken:undefined, uniswapV3PoolInteractor:undefined})
         return
       }
-      const positionManager = new ethers.Contract(deploymentAddresses[chainId].positionsManager, positionManagerAbi, signer)
-      const numBanks = await positionManager.numBanks()
-      const banks = []
-      for (let i = 0; i<numBanks.toNumber(); i++) {
-        const bankAddress = await positionManager.banks(i)
-        const bank = new ethers.Contract(bankAddress, bankBaseAbi, signer)
-        banks.push(bank)
+      try {
+        const positionManager = new ethers.Contract(deploymentAddresses[chainId].positionsManager, positionManagerAbi, signer)
+        const numBanks = await positionManager.numBanks()
+        const banks = []
+        for (let i = 0; i<numBanks.toNumber(); i++) {
+          const bankAddress = await positionManager.banks(i)
+          const bank = new ethers.Contract(bankAddress, bankBaseAbi, signer)
+          banks.push(bank)
+        }
+        const universalSwapAddress = await positionManager.universalSwap()
+        const universalSwap = new ethers.Contract(universalSwapAddress, universalSwapAbi, signer)
+        const stableTokenAddress = await positionManager.stableToken()
+        const stableToken = new ethers.Contract(stableTokenAddress, erc20Abi, provider)
+        const uniswapV3PoolInteractor = undefined
+        setContracts({positionManager, banks, universalSwap, stableToken, uniswapV3PoolInteractor})
+      } catch {
+        
       }
-      const universalSwapAddress = await positionManager.universalSwap()
-      const universalSwap = new ethers.Contract(universalSwapAddress, universalSwapAbi, signer)
-      const stableTokenAddress = await positionManager.stableToken()
-      const stableToken = new ethers.Contract(stableTokenAddress, erc20Abi, provider)
-      const uniswapV3PoolInteractor = undefined
-      setContracts({positionManager, banks, universalSwap, stableToken, uniswapV3PoolInteractor})
     }
     if (provider && chainId) {
       getContracts()
@@ -280,9 +284,15 @@ export default function Provider({children}) {
     <Web3ReactProvider connectors={connectors}>
       <AppWrapper>
       <Navbar></Navbar>
-      <Box boxSizing='border-box' position={'absolute'} width={'100%'} minHeight={'100vh'} paddingTop={'24'} paddingBottom={'10'} paddingInline='5' bgGradient='linear(to-b, gray.100, #edfdff)'>
-      {children}
-      {/* <Footer/> */}
+      <Box
+        position={'absolute'}
+        width={'100%'}
+        minHeight={'100vh'}
+        paddingTop={'80px'}
+        paddingBottom={'140px'}
+        bgGradient='linear(to-b, gray.100, #edfdff)'>
+        {children}
+      <Footer/>
       </Box>
       </AppWrapper>
     </Web3ReactProvider>

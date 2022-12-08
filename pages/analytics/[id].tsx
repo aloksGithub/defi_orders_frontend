@@ -127,7 +127,7 @@ const Analytics = () => {
           
         </GridItem>
         <GridItem>
-          <Heading2>Underlying Tokens</Heading2>
+          <Heading2>Underlying/Reward Tokens</Heading2>
           {
             position?position.underlying.map((underlyingAsset)=> <Text>{underlyingAsset.name}</Text>):
             <Stack>

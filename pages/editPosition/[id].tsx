@@ -5,24 +5,23 @@ import { useRouter } from 'next/router'
 import { useWeb3React } from "@web3-react/core";
 import { ethers } from "ethers";
 import { fetchPosition } from "../../contractCalls/dataFetching";
-import { depositAgain, close, harvest, compound, withdraw, adjustLiquidationPoints } from "../../contractCalls/transactions";
+import { depositAgain, close, withdraw, adjustLiquidationPoints } from "../../contractCalls/transactions";
 import LiquidationConditions from "../../components/LiquidationConditions";
 import { SupplyAssets } from "../../components/selectAssets";
 import { Heading2 } from "../../components/Typography";
 import { DangerButton, PrimaryButton, SecondaryButton } from "../../components/Buttons";
 import { getBlockExplorerUrlTransaction, getPrice, nFormatter } from "../../utils";
 import { BiErrorAlt } from "react-icons/bi";
-import Link from "next/link";
 
 const WithdrawModal = ({position, refreshData, closeSelf, onReload, loading}) => {
-  const positionSizeDecimals = position?.positionData.amountDecimal||0
+  const positionSizeDecimals = +position?.positionData.amountDecimal||0
   const {contracts, onError, chainId, successModal} = useAppContext()
   const [value, setValue] = useState(0)
   const [isWithdrawing, setWithdrawing] = useState(false)
   const [percentage, setPercentage] = useState('0')
-  const usdWithdraw = (value/positionSizeDecimals)*position.usdcValue
+  const usdWithdraw = (value/positionSizeDecimals)*position.usdcValue || 0
   const handleChange = (value) => {
-    setValue(value)
+    setValue(+value)
     setPercentage((value*100/positionSizeDecimals).toFixed(1))
   }
   const hangleChangeSlider = (value) => {
@@ -31,6 +30,7 @@ const WithdrawModal = ({position, refreshData, closeSelf, onReload, loading}) =>
   }
   const withdrawFromPostion = () => {
     if (value===0) return
+    console.log(typeof(value))
     setWithdrawing(true)
     withdraw(contracts, position.positionId, ethers.utils.parseUnits(value.toFixed(position.decimals), position.decimals)).then((hash)=>{
       setWithdrawing(false)
@@ -227,7 +227,7 @@ const EditPosition = () => {
           &nbsp;on block explorer.
         </Text>
       )
-      
+      onCloseClose()
     }).catch((error)=>{
       setClosing(false)
       onError(error)

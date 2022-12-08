@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
-import cacheData from "memory-cache";
 import { getPriceActual } from "./tokenPrice";
+import { fetchTokenDetails } from "./tokenPrice";
 
 export default async function serverSideCall(req, res) {
   const {
@@ -15,7 +15,7 @@ export default async function serverSideCall(req, res) {
   if (modifiedItems) {
     modifiedItems = modifiedItems.map(item=> item.contract_ticker_symbol==='SLP'?{...item, contract_ticker_symbol:'Sushi LP'}:item)
     modifiedItems = modifiedItems.filter(item=>{
-      const data = cacheData.get(`${chainId}_${item.contract_address}`)
+      const data = fetchTokenDetails(chainId, item.contract_address)
       if (!data) {
         return false
       }
@@ -32,7 +32,7 @@ export default async function serverSideCall(req, res) {
     })
     modifiedItems = await Promise.all(modifiedItems)
     modifiedItems = modifiedItems.map(item=> {
-      const data = cacheData.get(`${chainId}_${item.contract_address}`)
+      const data = fetchTokenDetails(chainId, item.contract_address)
       return {...item, contract_name: data.contract_name, underlying: data.underlying, logo_url: data.logo_url?data.logo_url:item.logo_url}
     })
     modifiedItems = modifiedItems.filter(item=>item.quote>0)

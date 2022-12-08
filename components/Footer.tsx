@@ -5,7 +5,7 @@ import { BsDiscord, BsGithub } from 'react-icons/bs'
 
 export const Footer = () => {
   return (
-    <Box boxSizing='border-box' position={'absolute'} bottom='0px' width='100%'>
+    <Box position={'absolute'} bottom='0px' width='100%'>
       <Flex margin={'auto'} borderTop={'1px'} borderColor='gray.400' maxWidth={'1000px'} width='80%' p={'4'} alignItems='center' justifyContent={'space-between'}>
         <Flex alignItems='center'>
           <AiOutlineCopyrightCircle/>&nbsp;

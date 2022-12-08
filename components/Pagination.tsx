@@ -10,7 +10,7 @@ export const Pagination = ({cards, placeholder}) => {
   const [pageNumbersToShow, setNumbersToShow] = useState([])
 
   useEffect(() => {
-    window.scrollTo(0, 0)
+    // window.scrollTo(0, 0)
     const surroundingPages = []
     if (currentPage-1>0) {
       surroundingPages.push(0)

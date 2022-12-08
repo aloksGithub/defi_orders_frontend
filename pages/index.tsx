@@ -363,7 +363,6 @@ const UniversalSwap = () => {
   const [assetsToConvert, setAssetsToConvert] = useState([{usdcValue:0, tokensSupplied:0}])
   const [wantedAssets, setWantedAssets] = useState([{percentage: 100, expected:0, minOut:0, price:0}])
   const updateWantedAssets = (assets) => {
-    console.log(assets)
     setWantedAssets(assets)
   }
   const [usdSupplied, setUsdSupplied] = useState(0)
@@ -393,7 +392,7 @@ const UniversalSwap = () => {
 
   const preview = async () => {
     setSwapping(true)
-    if (!contracts.universalSwap) {
+    if (!contracts?.universalSwap) {
       createError('Looks like Delimit contracts have not yet been deployed on this chain, please switch to BSC')
       setSwapping(false)
       return
@@ -442,7 +441,6 @@ const UniversalSwap = () => {
       }
     }
     if (percentageTotal!=100) {
-      console.log(percentageTotal)
       createError('Total percentage is not 100%')
       setSwapping(false)
       return
@@ -478,76 +476,8 @@ const UniversalSwap = () => {
       setSwapping(false)
     })
   }
-
-  // const swap = async () => {
-    // if (!wantedAsset) return
-    // if (!contracts.positionManager) return
-    // setConverting(true)
-    // @ts-ignore
-    // let assetsToConvert = childStateRef.current.getFormattedConditions()
-    // const etherSupplied = assetsToConvert.find(asset=>[ethers.constants.AddressZero].includes(asset.asset))?.tokensBn || 0
-    // assetsToConvert = assetsToConvert.filter(asset=>![ethers.constants.AddressZero].includes(asset.asset))
-    // const erc20Supplied = assetsToConvert.map(asset=>asset.asset)
-    // const erc20Amounts = assetsToConvert.map(asset=>asset.tokensBn)
-    // for (let [index, token] of erc20Supplied.entries()) {
-    //   const contract = new ethers.Contract(token, erc20Abi, provider.getSigner(account))
-    //   const currentApproval = await contract.allowance(account, contracts.universalSwap.address)
-    //   if (currentApproval.gte(erc20Amounts[index])) {
-    //     continue
-    //   }
-    //   try {
-    //     await contract.functions.approve(contracts.universalSwap.address, erc20Amounts[index])
-    //   } catch (error) {
-    //     onError(error)
-    //     return
-    //   }
-    // }
-    // if (uniV3Pool) {
-    //   try {
-    //     // @ts-ignore
-    //     const {tickLower, tickUpper, token0, token1, decimals0, decimals1} = childStateRef2.current.getUniV3Data()
-    //     const ratio = await contracts.uniswapV3PoolInteractor.getRatio(wantedAsset.value, tickLower, tickUpper)
-    //     const {data:{price:price0}} = await (await fetch(`/api/tokenPrice?chainId=${chainId}&address=${token0}`)).json()
-    //     const {data:{price:price1}} = await (await fetch(`/api/tokenPrice?chainId=${chainId}&address=${token1}`)).json()
-    //     const amount0Usd = ratio[0].mul((totalToConvert*10**6).toFixed(0)).div(ratio[0].add(ratio[1]))
-    //     const amount1Usd = ratio[1].mul((totalToConvert*10**6).toFixed(0)).div(ratio[0].add(ratio[1]))
-    //     const amount0 = amount0Usd/(price0*10**6)
-    //     const amount1 = amount1Usd/(price1*10**6)
-    //     const minAmount0 = (10**decimals0!*amount0*(100-slippage)/100).toFixed(0)
-    //     const minAmount1 = (10**decimals1!*amount1*(100-slippage)/100).toFixed(0)
-    //     const abi = ethers.utils.defaultAbiCoder;
-    //     const data = abi.encode(
-    //       ["int24","int24","uint256","uint256"],
-    //       [tickLower, tickUpper, minAmount0, minAmount1]);
-    //     await contracts.universalSwap.swapERC721(erc20Supplied, erc20Amounts,
-    //       [], {pool:wantedAsset.value, manager:wantedAsset.manager, tokenId: 0, liquidity:0, data},
-    //       {value: etherSupplied})
-    //     setConverting(false)
-    //     onClose()
-    //   } catch (err) {
-    //     onError(err)
-    //     setConverting(false)
-    //   }
-    // } else {
-    //   const {data:{price, decimals}} = await (await fetch(`/api/tokenPrice?chainId=${chainId}&address=${wantedAsset.value}`)).json()
-    //   const expectedTokens = totalToConvert/price
-    //   const allowedSlippage = expectedTokens*(1-slippage/100)
-    //   const minAmount = ethers.utils.parseUnits(allowedSlippage.toFixed(decimals).toString(), decimals)
-    //   contracts.universalSwap.swapERC20(erc20Supplied, erc20Amounts, [], wantedAsset.value, minAmount, {value: etherSupplied}).then(() => {
-    //     setTimeout(() => {
-    //       setConverting(false)
-    //       ethers.getDefaultProvider().getBlockNumber()
-    //       onClose()
-    //     }, 6000);
-    //   }).catch((error)=>{
-    //     setConverting(false)
-    //     onClose()
-    //     onError(error)
-    //   })
-    // }
-  // }
   return (
-    <Flex marginBlock={10} alignItems={'center'} direction={'column'}>
+    <Flex alignItems={'center'} direction={'column'}>
       <Grid width={'100%'} templateColumns={{base: '1fr', lg: '6fr 1fr 6fr'}}>
         <Flex justifyContent={{lg: 'end', base:'center'}}>
           <SupplyAssets assetsToConvert={assetsToConvert} setAssetsToConvert={setAssetsToConvert}/>
@@ -568,7 +498,7 @@ const UniversalSwap = () => {
         <ModalContent>
           <ModalHeader>
             <Flex alignItems={'center'}>
-              <Text ml={'4'}>Preview</Text>
+              <Text fontSize={'2xl'} ml={'4'}>Preview</Text>
             </Flex>
           </ModalHeader>
           <ModalCloseButton />
@@ -579,11 +509,11 @@ const UniversalSwap = () => {
                 swapData?.expectedAssets.map((asset) => {
                   return (
                     <Flex backgroundColor={'gray.100'} alignItems={'center'} justifyContent={'space-between'} marginBlock={'4'} padding='4' borderRadius={'2xl'}>
-                      <Flex alignItems={'center'} justifyContent={'space-between'}>
+                      <Flex width={'40%'} alignItems={'center'}>
                         <img src={asset.logo_url} style={{width: "20px", height: "20px", borderRadius:'15px'}}/>
-                        <Text fontSize={'xl'} pl={'2'}>{asset.contract_name}</Text>
+                        <Text fontSize={'l'} pl={'2'}>{asset.contract_name}</Text>
                       </Flex>
-                      <Box textAlign={'end'}>
+                      <Box width={'60%'} textAlign={'end'}>
                         <Tooltip hasArrow label={asset.minOut>asset.amount?'Increase slippage':''}>
                         <Text textColor={asset.minOut>asset.amount?'red':'black'}><Text as='b'>Expected: </Text>{nFormatter(asset.amount, 5)}</Text>
                         </Tooltip>
@@ -616,7 +546,7 @@ const UniversalSwap = () => {
         <ModalContent>
           <ModalHeader>
             <Flex alignItems={'center'}>
-              <Text textAlign={'center'}>Assets Obtained</Text>
+              <Text fontSize={'2xl'} textAlign={'center'}>Assets Obtained</Text>
             </Flex>
           </ModalHeader>
           <ModalCloseButton />
@@ -634,11 +564,11 @@ const UniversalSwap = () => {
                 obtainedAssets?.map((asset) => {
                   return (
                     <Flex backgroundColor={'gray.100'} alignItems={'center'} justifyContent={'space-between'} marginBlock={'4'} padding='4' borderRadius={'2xl'}>
-                      <Flex alignItems={'center'} justifyContent={'space-between'}>
+                      <Flex width={'40%'} alignItems={'center'}>
                         <img src={asset.logo_url} style={{width: "20px", height: "20px", borderRadius:'15px'}}/>
-                        <Text fontSize={'xl'} pl={'2'}>{asset.contract_name}</Text>
+                        <Text pl={'2'}>{asset.contract_name}</Text>
                       </Flex>
-                      <Box textAlign={'end'}>
+                      <Box width={'60%'} textAlign={'end'}>
                         <Text><Text as='b'>Amount: </Text>{nFormatter(asset.amount, 5)}</Text>
                         <Text><Text as='b'>USD: </Text> ${nFormatter(asset.value, 2)}</Text>
                       </Box>

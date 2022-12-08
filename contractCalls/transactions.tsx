@@ -1,8 +1,7 @@
-import { BigNumber, ethers } from "ethers";
+import { ethers } from "ethers";
 import erc20Abi from "../constants/abis/ERC20.json"
 import npmAbi from "../constants/abis/INonFungiblePositionsManager.json"
-import { getPrice, getTokenDetails } from "../utils";
-import { getAmountsOut } from "./dataFetching";
+import { getPrice } from "../utils";
 
 export const depositNew = async (contracts, signer, position, asset) => {
   const account = await signer.getAddress()
@@ -144,33 +143,50 @@ export const harvest = async (contracts, positionId) => {
   return tx.hash
 }
 
-export const compound = async (contracts, positionId, slippage, chainId) => {
-  const {rewards, rewardAmounts} = await contracts.positionManager.callStatic.harvestRewards(positionId)
+export const compound = async (contracts, positionId, positionInfo, slippage, chainId) => {
+  const {rewards, rewardAmounts} = await contracts.positionManager.getPositionRewards(positionId)
+  const provided = {
+    tokens: [],
+    amounts: [],
+    nfts: []
+  }
+  const desired = {
+    outputERC20s: [],
+    outputERC721s: [],
+    ratios: [],
+    minAmountsOut: []
+  }
+  for (const [index, reward] of rewards.entries()) {
+    provided.tokens.push(reward)
+    provided.amounts.push(rewardAmounts[index])
+  }
   const usdValues = []
   for (const [index, reward] of rewards.entries()) {
-    const tokenData = await getTokenDetails(chainId, reward)
-    const amount = +ethers.utils.formatUnits(rewardAmounts[index].toString(), tokenData.decimals)
-    const usdValue = amount*tokenData.price
+    const {price, decimals} = await getPrice(chainId, reward)
+    const amount = +ethers.utils.formatUnits(rewardAmounts[index].toString(), decimals)
+    const usdValue = amount*price
     usdValues.push(usdValue)
   }
 
-  const position = await contracts.positionManager.getPosition(positionId)
   const usdSupplied = usdValues.reduce((a, b)=>a+b, 0)
-  const bankId = position.bankId.toNumber()
+  const bankId = positionInfo.bankId.toNumber()
   const bankContract = contracts.banks[bankId]
-  const underlyingTokens = await bankContract.callStatic.getUnderlyingForRecurringDeposit(position.bankToken)
-  const minAmounts = []
-  const totalRatio = underlyingTokens[1].reduce((a, b)=>a.add(b), ethers.BigNumber.from('0'))
-  for (const [index, token] of underlyingTokens[0].entries()) {
-    const {data:{price, decimals}} = await (await fetch(`/api/tokenPrice?chainId=${chainId}&address=${token}`)).json()
-    const percentageAllocated = underlyingTokens[1][index].toNumber()/totalRatio.toNumber()
+  const [underlying, ratios] = await bankContract.getUnderlyingForRecurringDeposit(positionInfo.bankToken)
+  const totalRatio = ratios.reduce((a, b)=>a.add(b), ethers.BigNumber.from('0'))
+  console.log(underlying, positionInfo.bankToken, bankId)
+  for (const [index, token] of underlying.entries()) {
+    desired.outputERC20s.push(token)
+    desired.ratios.push(ratios[index])
+    const {price, decimals} = await getPrice(chainId, token)
+    const percentageAllocated = ratios[index].toNumber()/totalRatio.toNumber()
     const usd = usdSupplied*percentageAllocated
     const expectedTokens = usd/price
     const allowedSlippage = expectedTokens*(1-slippage/100)
     const minAmount = ethers.utils.parseUnits(allowedSlippage.toFixed(decimals).toString(), decimals)
-    minAmounts.push(minAmount)
+    desired.minAmountsOut.push(minAmount)
   }
-  const tx = await contracts.positionManager.harvestAndRecompound(positionId, minAmounts)
+  const {swaps, conversions} = await contracts.universalSwap.preSwapComputation(provided, desired)
+  const tx = await contracts.positionManager.harvestAndRecompound(positionId, swaps, conversions, desired.minAmountsOut)
   return tx.hash
 }
 

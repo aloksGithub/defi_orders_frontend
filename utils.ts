@@ -57,16 +57,9 @@ export const getPrice = async (chainId, address) => {
   const {
     data: {price, decimals},
   } = await (
-    await fetch(`/api/tokenPrice?chainId=${chainId}&address=${ethers.constants.AddressZero===address?"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee":address}`)
-  ).json();
-  return {price, decimals};
-};
-
-export const getTokenDetails = async (chainId, address) => {
-  const {data} = await (
     await fetch(`/api/tokenPrice?chainId=${chainId}&address=${address}`)
   ).json();
-  return data;
+  return {price, decimals};
 };
 
 const blockExplorers = {

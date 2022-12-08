@@ -223,8 +223,8 @@ export function Navbar() {
 
   return (
     <>
-      <Box position={'fixed'} zIndex={100} style={{width: '100vw'}} bg={useColorModeValue('gray.100', 'gray.900')} px={4}>
-        <Flex h={16} alignItems={'center'} justifyContent={'space-between'}>
+      <Box borderBottomColor={'gray.300'} shadow='base' position={'fixed'} zIndex={100} style={{width: '100vw'}} backgroundColor='gray.100' px={4}>
+        <Flex maxWidth={'1300px'} margin='auto' h={16} alignItems={'center'} justifyContent={'space-between'}>
           <IconButton
             size={'md'}
             icon={isOpen ? <CloseIcon /> : <HamburgerIcon />}
@@ -233,7 +233,9 @@ export function Navbar() {
             onClick={isOpen ? onClose : onOpen}
           />
           <HStack spacing={4} height='100%' alignItems={'center'}>
-            <Box mr={'5'}>Logo</Box>
+            <Box borderRadius={'2xl'} paddingInline='4' paddingBlock={'2'}>
+              <Text fontSize={'2xl'} as='b' color='blue.600'>Delimit</Text>
+            </Box>
             <HStack
               as={'nav'}
               height='100%'
