@@ -1,5 +1,5 @@
 import { DeleteIcon, AddIcon } from "@chakra-ui/icons";
-import { useDisclosure, Flex, Text, NumberInput, NumberInputField, Button, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, Box, Input, Skeleton } from "@chakra-ui/react";
+import { useDisclosure, IconButton, Flex, Text, NumberInput, NumberInputField, Button, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, Box, Input, Skeleton } from "@chakra-ui/react";
 import { ethers } from "ethers";
 import { useState, useEffect, useRef } from "react"
 import { useAppContext } from "./Provider";
@@ -206,7 +206,7 @@ export const SupplyAssets = ({assetsToConvert, setAssetsToConvert}) => {
   return (
       <Flex padding={'5'} direction={'column'} width={'100%'} maxWidth='450px' alignItems={'center'} backgroundColor='white' borderRadius={'2xl'}>
         <Flex width={'100%'} justifyContent='space-between' alignItems={'center'}>
-          <Button onClick={addAsset} paddingInline={'3'} colorScheme={'blue'}><AddIcon/></Button>
+          <IconButton colorScheme={'blue'} aria-label='Add Asset' onClick={addAsset} icon={<AddIcon />} />
         <Text>USD Supplied: ${assetsToConvert.reduce((a, b)=>a+(b.usdcValue||0), 0)?.toFixed(3)||0}</Text>
         <Reload onReload={hardRefreshAssets} loading={loading} />
         </Flex>

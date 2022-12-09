@@ -43,8 +43,8 @@ const Card = ({asset, index, setSecuring}) => {
   const {chainId} = useAppContext()
 
   return (
-    <Box _hover={{transform: 'scale(1.05)'}} width={'300px'} sx={{'transition': '0.4s'}} margin={'auto'}>
-      <Flex _hover={{backgroundColor: '#f5f5f5'}} direction={'column'}
+    <Box width={'300px'} margin={'auto'}>
+      <Flex direction={'column'}
         justifyContent={'space-between'}
         h={'100%'}
         w={'full'}
@@ -375,7 +375,7 @@ const Assets = () => {
   }, assets)
 
   return (
-    <Box justifyContent={'center'} justifySelf='center' maxWidth='1200px' marginInline={'auto'}>
+    <Box justifyContent={'center'} justifySelf='center' maxWidth='1200px' marginTop={'50px'} marginInline={'auto'}>
       {
         securing!=undefined && assets?
         <SecureAsset asset={assets[securing]} setSecuring={setSecuring} />:       
@@ -388,7 +388,6 @@ const Assets = () => {
           </Flex>
         </Box>
       }
-      
     </Box>
   )
 }

@@ -279,7 +279,7 @@ const EditPosition = () => {
   }
 
   return (
-    <Box maxWidth={'700px'} margin={'auto'}>
+    <Box maxWidth={'700px'} marginTop='50px' marginInline={'auto'}>
     <Box
       bg={useColorModeValue('white', 'gray.900')}
       boxShadow={'2xl'}

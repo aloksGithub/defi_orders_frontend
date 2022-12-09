@@ -22,8 +22,9 @@ import {
   NumberInput,
   NumberInputField,
   Stack,
+  Switch,
 } from '@chakra-ui/react';
-import { HamburgerIcon, CloseIcon, SettingsIcon } from '@chakra-ui/icons';
+import { HamburgerIcon, CloseIcon, SettingsIcon, SunIcon, MoonIcon } from '@chakra-ui/icons';
 import { useWeb3React } from '@web3-react/core'
 import { getName, chainLogos, chainNames, supportedChains, walletLogos } from '../utils'
 import React from 'react';
@@ -59,11 +60,11 @@ const NavLink = ({ children }: { children: any }) => {
       py={2}
       px={3}
       rounded={'md'}
-      bg={children.href===asPath?useColorModeValue('gray.200', 'gray.700'):undefined}
+      backgroundColor={children.href===asPath?'gray.300':undefined}
       _hover={{
         cursor: 'pointer',
         textDecoration: 'none',
-        bg: useColorModeValue('gray.200', 'gray.700'),
+        backgroundColor: 'gray.300'
       }}>
         <Text as='b'>{children.label}</Text>
       </Flex>
@@ -104,7 +105,7 @@ const Wallet = () => {
         <Box marginRight={2} px={2} py={1} rounded={'md'} cursor={"pointer"}
         _hover={{
           textDecoration: 'none',
-          bg: useColorModeValue('gray.200', 'gray.700'),
+          backgroundColor: 'gray.300'
         }}>
           <Menu>
             <MenuButton
@@ -138,7 +139,7 @@ const Wallet = () => {
         <Text as='b' cursor={"pointer"} px={2} py={1} rounded={'md'}
           _hover={{
             textDecoration: 'none',
-            bg: useColorModeValue('gray.200', 'gray.700'),
+            backgroundColor: 'gray.300'
           }}
           onClick={() => {
             setOverlay(<Overlay />)
@@ -174,7 +175,7 @@ const Wallet = () => {
               onClick={()=>activateController(connector, undefined)}
               _hover={{
                 textDecoration: 'none',
-                bg: useColorModeValue('gray.200', 'gray.700'),
+                backgroundColor: 'gray.300'
               }}>
                 <img src={logoUrl} width="30px"/>
                 <Text paddingLeft={3}>{walletName}</Text>
@@ -247,12 +248,20 @@ export function Navbar() {
             </HStack>
           </HStack>
           <Flex alignItems={'center'} justifyContent={'center'}>
-            <SettingsIcon display={{ base: 'none', md: 'flex' }} onClick={onOpenSettings} color={'gray.600'} width={'20px'} height={'20px'} _hover={{cursor:'pointer'}} mr={'4'}></SettingsIcon>
+            <Flex
+              display={{ base: 'none', md: 'flex' }}
+              padding='2'
+              alignItems={'center'} justifyContent={'center'}
+              mr={'4'} rounded={'md'}
+              _hover={{cursor: 'pointer', backgroundColor: 'gray.300'}}
+              onClick={onOpenSettings}>
+              <SettingsIcon color={'gray.600'} width={'20px'} height={'20px'}></SettingsIcon>
+            </Flex>
             <Wallet/>
           </Flex>
         </Flex>
       </Box>
-      <Modal size={'sm'} isCentered isOpen={isOpenSettings} onClose={closeSettings}>
+      <Modal size={'xs'} isCentered isOpen={isOpenSettings} onClose={closeSettings}>
         <ModalOverlay
           bg='blackAlpha.300'
           backdropFilter='blur(10px)'
@@ -261,11 +270,19 @@ export function Navbar() {
           <ModalHeader>Settings</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <Flex justifyContent={'space-between'} alignItems={'center'}>
-              <Text alignItems={'center'}>Slippage:</Text>
-              <NumberInput  min={0} max={100} onChange={(valueString)=>setTemp(parseSlippage(valueString))} value={formatSlippage(temp)}>
+            <Flex alignItems={'center'}>
+              <Text width={'50%'} alignItems={'center'}>Slippage:</Text>
+              <NumberInput width={'50%'} min={0} max={100} onChange={(valueString)=>setTemp(parseSlippage(valueString))} value={formatSlippage(temp)}>
                 <NumberInputField />
               </NumberInput>
+            </Flex>
+            <Flex marginTop={'5'} alignItems='center'>
+              <Text width={'50%'} alignItems={'center'}>Dark Mode:</Text>
+              <Flex width={'50%'}>
+                <SunIcon/>
+                <Switch paddingInline='2'></Switch>
+                <MoonIcon/>
+              </Flex>
             </Flex>
           </ModalBody>
           <ModalFooter>
@@ -294,7 +311,7 @@ export function Navbar() {
           }
         }}>
       <CSSTransition classNames="my-node" nodeRef={wrapperRef} in={isOpen} timeout={300} unmountOnExit>
-        <Box zIndex={3} ref={wrapperRef} position={'fixed'} width={'100%'} background={'gray.100'} pb={2} display={{ md: 'none' }}
+        <Box boxShadow={'2xl'} zIndex={3} ref={wrapperRef} position={'fixed'} width={'100%'} background={'gray.100'} pb={2} display={{ md: 'none' }}
         onClick={onClose}>
           <Stack pt={'68px'} spacing={0} as={'nav'}>
             {Links.map((link) => (
@@ -309,7 +326,7 @@ export function Navbar() {
             _hover={{
               cursor: 'pointer',
               textDecoration: 'none',
-              bg: useColorModeValue('gray.200', 'gray.700'),
+              backgroundColor: 'gray.300'
             }}>
               <Text as='b'>Settings</Text>
             </Flex>

@@ -275,7 +275,7 @@ const Positions = () => {
   }, [contracts, provider, account])
 
   return <>
-    <Flex direction={'column'} justifyContent={'center'}>
+    <Flex marginTop={'50px'} direction={'column'} justifyContent={'center'}>
       <Flex marginInline={'auto'} wrap={'wrap'} justifyContent={'center'} alignContent={'stretch'} maxW={'1000px'}>
       <Pagination
       cards={userPositions?.map(id=><Card id={id}></Card>)}

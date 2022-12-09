@@ -290,7 +290,9 @@ export default function Provider({children}) {
         minHeight={'100vh'}
         paddingTop={'80px'}
         paddingBottom={'140px'}
-        bgGradient='linear(to-b, gray.100, #edfdff)'>
+        // bgGradient='linear(to-r, white, #e0e8ff, #e0e8ff, #e0e8ff, #e0e8ff, #e0e8ff, white)'
+        bgGradient='linear(to-b, gray.100, #edfdff)'
+        >
         {children}
       <Footer/>
       </Box>

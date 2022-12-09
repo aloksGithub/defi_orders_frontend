@@ -96,7 +96,7 @@ export const fetchPosition = async (id:number, contracts, signer, chainId) => {
     const name = await contract.name()
     const decimals = await contract.decimals()
     const amount = +ethers.utils.formatUnits(underlyingAmounts[index], decimals)
-    const value = +ethers.utils.formatUnits(underlyingValues[index], decimals)
+    const value = +ethers.utils.formatUnits(underlyingValues[index], stableDecimals)
     return {name, amount, value, address:token}
   }))
   const rewards = await Promise.all(rewardTokens.map(async (token, index) => {
@@ -104,7 +104,7 @@ export const fetchPosition = async (id:number, contracts, signer, chainId) => {
     const name = await contract.name()
     const decimals = await contract.decimals()
     const amount = +ethers.utils.formatUnits(rewardAmounts[index], decimals)
-    const value = +ethers.utils.formatUnits(rewardValues[index], decimals)
+    const value = +ethers.utils.formatUnits(rewardValues[index], stableDecimals)
     return {name, amount, value, address:token}
   }))
 
@@ -135,6 +135,7 @@ export const getGraphData = async (contracts, id, provider, duration) => {
     startBlock += (latestBlock.number-startBlock)%numPoints
   } else {
     startBlock = latestBlock.number-blockTime*numPoints*duration
+    // startBlock = startBlock>=+positionInteractions[0].blockNumber?startBlock:+positionInteractions[0].blockNumber
   }
   blocks.push(startBlock)
   while (true) {
@@ -147,7 +148,6 @@ export const getGraphData = async (contracts, id, provider, duration) => {
     blocks.push(block)
   }
   blocks.push(latestBlock.number)
-  console.log(blocks)
   const timestamp = (await provider.getBlock(latestBlock.number)).timestamp
   timestamps.push(timestamp*1000)
   const dataPoints = blocks.map((block)=> {

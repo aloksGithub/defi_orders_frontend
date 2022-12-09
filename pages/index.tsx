@@ -8,7 +8,7 @@ import {
   Flex,
   Box,
   Tooltip,
-  useDisclosure, NumberDecrementStepper, NumberIncrementStepper, NumberInputStepper, Skeleton, Input, Grid, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay
+  useDisclosure, NumberDecrementStepper, NumberIncrementStepper, NumberInputStepper, Skeleton, Input, Grid, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, IconButton
 } from '@chakra-ui/react'
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { useWeb3React } from '@web3-react/core'
@@ -343,7 +343,7 @@ const ConvertTo = ({usdSupplied, wantedAssets, updateWantedAssets}) => {
   return (
     <Box padding={'5'} width={'100%'} maxWidth='450px' alignItems={'center'} backgroundColor='white' borderRadius={'2xl'}>
       <Flex width={'100%'} justifyContent='space-between' alignItems={'center'}>
-          <Button onClick={addWanted} paddingInline={'3'} colorScheme={'blue'}><AddIcon/></Button>
+          <IconButton colorScheme={'blue'} aria-label='Add Asset' onClick={addWanted} icon={<AddIcon />} />
           <Text textAlign={'end'}>Slippage: {slippage}%</Text>
       </Flex>
     {
@@ -477,7 +477,7 @@ const UniversalSwap = () => {
     })
   }
   return (
-    <Flex alignItems={'center'} direction={'column'}>
+    <Flex alignItems={'center'} direction={'column'} marginTop={'10vh'}>
       <Grid width={'100%'} templateColumns={{base: '1fr', lg: '6fr 1fr 6fr'}}>
         <Flex justifyContent={{lg: 'end', base:'center'}}>
           <SupplyAssets assetsToConvert={assetsToConvert} setAssetsToConvert={setAssetsToConvert}/>

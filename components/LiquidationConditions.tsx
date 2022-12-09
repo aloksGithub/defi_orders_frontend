@@ -1,5 +1,5 @@
 import { AddIcon, DeleteIcon } from "@chakra-ui/icons"
-import { Text, Flex, NumberInput, NumberInputField, Button, Box, Skeleton } from "@chakra-ui/react"
+import { Text, Flex, NumberInput, NumberInputField, Button, Box, IconButton, Skeleton } from "@chakra-ui/react"
 import { ethers } from "ethers"
 import { useEffect, useState } from "react"
 import { useAppContext } from "./Provider"
@@ -162,7 +162,7 @@ const LiquidationConditions = ({assetPrice, initialLiquidationPoints=undefined, 
       <Box margin={'auto'} maxWidth='500px' overflowX={'auto'}>
         <Flex justifyContent={'end'}>
           <Reload onReload={reload} loading={loading}/>
-          <Button ml={'2'} onClick={addCondition} paddingInline={'3'} colorScheme={'blue'}><AddIcon/></Button>
+          <IconButton ml={'2'} colorScheme={'blue'} aria-label='Add condition' onClick={addCondition} icon={<AddIcon />} />
         </Flex>
         {
           liquidationPoints&&liquidationPoints.length>0?
