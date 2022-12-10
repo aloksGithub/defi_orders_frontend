@@ -8,7 +8,7 @@ import {
   Flex,
   Box,
   Tooltip,
-  useDisclosure, NumberDecrementStepper, NumberIncrementStepper, NumberInputStepper, Skeleton, Input, Grid, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, IconButton
+  useDisclosure, NumberDecrementStepper, NumberIncrementStepper, NumberInputStepper, Skeleton, Input, Grid, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, IconButton, useColorMode, useColorModeValue
 } from '@chakra-ui/react'
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { useWeb3React } from '@web3-react/core'
@@ -26,6 +26,7 @@ import { FancyButton, PrimaryButton, SecondaryButton } from '../components/Butto
 import { useRouter } from "next/router";
 import { getAmountsOut } from '../contractCalls/dataFetching'
 import { getBlockExplorerUrlTransaction } from '../utils'
+import { level1, level2 } from '../components/Theme'
 
   // @ts-ignore
 const TickPicker = forwardRef(({pool, usdSupplied}, _ref) => {
@@ -278,21 +279,23 @@ const WantedAsset = ({usdSupplied, selected, setSelected, updateExpected, change
   }, [selected.percentage, usdSupplied])
 
   return (
-    <Flex width={'100%'} mt='4' padding={'4'} justifyContent={'space-between'} alignItems={'center'} borderRadius={'2xl'} backgroundColor={'#f7f7f7'}>
+    <Flex width={'100%'} mt='4' padding={'4'} justifyContent={'space-between'} alignItems={'center'} borderRadius={'2xl'}
+    backgroundColor={useColorModeValue(...level1)}>
       <Box>
       <SelectAsset assets={assetsArray} asset={selected} onSelect={setSelected}></SelectAsset>
         <Flex alignItems={'center'} mt={'3'}>
           <Text onClick={deleteSelf} mr={'3'} textAlign={'center'} borderRadius={'lg'} width={'2rem'} padding={'1'}
           _hover={{cursor: 'pointer', backgroundColor: 'red.400'}} backgroundColor='red.300'><DeleteIcon/></Text>
-          <NumberInput backgroundColor={'white'} maxWidth={'100'} min={0} max={100} value={selected.percentage+'%'} onChange={(valueAsString)=>changePercentage(valueAsString.replace(/^\%/, ''))}>
-            <NumberInputField></NumberInputField>
+          <NumberInput maxWidth={'100'} min={0} max={100}
+            value={selected.percentage+'%'} onChange={(valueAsString)=>changePercentage(valueAsString.replace(/^\%/, ''))}>
+            <NumberInputField backgroundColor={useColorModeValue('white', 'gray.800')}></NumberInputField>
           </NumberInput>
         </Flex>
       </Box>
       <Flex flexDirection={'column'} alignItems={'end'} textAlign={'end'}>
         <Flex>Price: ${!loadingSelf?<Text>{nFormatter(selected.price, 3)}</Text>:<Skeleton>Temp</Skeleton>}</Flex>
         {!loadingSelf?<Input isReadOnly height={'48px'} textAlign={'end'} variant='unstyled' fontSize={'2xl'} size={'lg'} maxWidth='150px' value={selected.expected}></Input>:<Skeleton>Temporary Temporary</Skeleton>}
-        {!loadingSelf?<Text>Min: ~{minOut.toFixed(5)} (${minUsd.toFixed(3)})</Text>:<Skeleton>Temporary</Skeleton>}
+        {!loadingSelf?<Text>Min: ~{minOut.toFixed(3)} (${minUsd.toFixed(3)})</Text>:<Skeleton>Temporary</Skeleton>}
       </Flex>
     </Flex>
   )
@@ -341,9 +344,12 @@ const ConvertTo = ({usdSupplied, wantedAssets, updateWantedAssets}) => {
   }
 
   return (
-    <Box padding={'5'} width={'100%'} maxWidth='450px' alignItems={'center'} backgroundColor='white' borderRadius={'2xl'}>
+    <Box padding={'5'} width={'100%'} maxWidth='450px' alignItems={'center'} 
+    bg='hidden' borderRadius={'2xl'} border='1px' borderColor={useColorModeValue(...level2)}>
       <Flex width={'100%'} justifyContent='space-between' alignItems={'center'}>
-          <IconButton colorScheme={'blue'} aria-label='Add Asset' onClick={addWanted} icon={<AddIcon />} />
+          <IconButton color='white' bgColor={useColorModeValue('blue.500', 'blue.600')}
+          _hover={{bgColor: useColorModeValue('blue.600', 'blue.700')}}
+          _focus={{bgColor: useColorModeValue('blue.700', 'blue.800')}} aria-label='Add Asset' onClick={addWanted} icon={<AddIcon />} />
           <Text textAlign={'end'}>Slippage: {slippage}%</Text>
       </Flex>
     {
@@ -360,6 +366,7 @@ const ConvertTo = ({usdSupplied, wantedAssets, updateWantedAssets}) => {
 }
 
 const UniversalSwap = () => {
+  const {colorMode} = useColorMode()
   const [assetsToConvert, setAssetsToConvert] = useState([{usdcValue:0, tokensSupplied:0}])
   const [wantedAssets, setWantedAssets] = useState([{percentage: 100, expected:0, minOut:0, price:0}])
   const updateWantedAssets = (assets) => {

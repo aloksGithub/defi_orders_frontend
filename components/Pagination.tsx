@@ -1,5 +1,5 @@
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons"
-import { Box, Text, Flex, Skeleton, SkeletonText, Button, Grid, GridItem } from "@chakra-ui/react"
+import { Box, Text, Flex, Skeleton, SkeletonText, Button, Grid, GridItem, useColorModeValue } from "@chakra-ui/react"
 import { useEffect, useState } from "react"
 
 export const Pagination = ({cards, placeholder}) => {
@@ -44,14 +44,14 @@ export const Pagination = ({cards, placeholder}) => {
           Array.from(Array(6).keys()).map((i)=> {
             return (
               <Flex key={`paginationSkeleton_${i}`} width={'100%'} justifyContent='center'>
-                <Box py={6} px={'10'} m={'4'} boxShadow='lg' bg='white' width={'300px'} height={'300'}>
+                <Box py={6} px={'10'} m={'4'} boxShadow='lg' bgColor={useColorModeValue('white', 'gray.800')} width={'300px'} height={'280'}>
                 <Skeleton
                   width={'80%'}
                   height='40px'
                   color='white'
                   mb={'8'}
                 />
-                  <SkeletonText mt='4' noOfLines={7} spacing='4'/>
+                  <SkeletonText mt='4' noOfLines={6} spacing='4'/>
                 </Box>
                 </Flex>)
                 // @ts-ignore
@@ -61,7 +61,7 @@ export const Pagination = ({cards, placeholder}) => {
       {
         numPages&&numPages>1?
         <Flex mt={'4'} justifyContent={'center'}>
-          <Button colorScheme={'blackAlpha'} padding={'0'} size={'sm'} onClick={()=>setCurrentPage(currentPage===0?0:currentPage-1)}>
+          <Button backgroundColor={'blackAlpha.200'} padding={'0'} size={'sm'} onClick={()=>setCurrentPage(currentPage===0?0:currentPage-1)}>
           <ChevronLeftIcon fontSize={'2xl'}></ChevronLeftIcon>
           </Button>
           {
@@ -76,7 +76,7 @@ export const Pagination = ({cards, placeholder}) => {
               )
             })
           }
-          <Button colorScheme={'blackAlpha'} padding={'0'} size={'sm'} onClick={()=>setCurrentPage(currentPage===numPages-1?numPages-1:currentPage+1)}>
+          <Button backgroundColor={'blackAlpha.200'} padding={'0'} size={'sm'} onClick={()=>setCurrentPage(currentPage===numPages-1?numPages-1:currentPage+1)}>
           <ChevronRightIcon fontSize={'2xl'}></ChevronRightIcon>
           </Button>
         </Flex>:<></>

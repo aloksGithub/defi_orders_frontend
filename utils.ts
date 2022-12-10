@@ -62,13 +62,21 @@ export const getPrice = async (chainId, address) => {
   return {price, decimals};
 };
 
-const blockExplorers = {
+export const blockExplorers = {
   1: "https://etherscan.io",
   56: "https://bscscan.com",
   250: "https://ftmscan.com",
   137: "https://polygonscan.com",
   97: "https://testnet.bscscan.com",
 };
+
+export const blockExplorerAPIs = {
+  1: "https://api.etherscan.io",
+  56: "https://api.bscscan.com",
+  250: "https://api.ftmscan.com",
+  137: "https://api.polygonscan.com",
+  97: "https://api-testnet.bscscan.com",
+}
 
 export const getBlockExplorerUrl = (chainId: number, token: string) => {
   return `${blockExplorers[chainId]}/token/${token}`;

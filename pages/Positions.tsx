@@ -13,6 +13,8 @@ import erc20Abi from "../constants/abis/ERC20.json"
 import { AiOutlineShrink, AiOutlineExpandAlt } from 'react-icons/ai'
 import { harvest, compound } from "../contractCalls/transactions";
 import { nativeTokens } from "../utils";
+import { PrimaryButton } from "../components/Buttons";
+import { level1, level2 } from "../components/Theme";
 
 const Card = ({id}) => {
   const {contracts, chainId, onError, slippageControl: {slippage}, successModal} = useAppContext()
@@ -122,7 +124,7 @@ const Card = ({id}) => {
         justifyContent={'space-between'}
         h={'100%'}
         w={'full'}
-        bg={useColorModeValue('white', 'gray.900')}
+        bg={useColorModeValue(...level1)}
         boxShadow={'2xl'}
         rounded={'lg'}
         p={6}
@@ -174,8 +176,9 @@ const Card = ({id}) => {
             <Heading textAlign={'end'} fontSize={'m'}>
             Rewards
             </Heading>
-            <Flex mt={'1'} flexDirection={'column'} alignItems={expandRewards?'start':'end'} ml={'6'} p={'3'} borderRadius={'lg'} backgroundColor={'gray.100'}
-            _hover={{cursor: !expandRewards?'pointer':'auto', backgroundColor: 'gray.200'}}
+            <Flex mt={'1'} flexDirection={'column'} alignItems={expandRewards?'start':'end'} ml={'6'} p={'3'} borderRadius={'lg'}
+            backgroundColor={useColorModeValue(...level2)}
+            _hover={{cursor: !expandRewards?'pointer':'auto', backgroundColor: useColorModeValue('gray.200', !expandRewards?'gray.600':'gray.700')}}
             onClick={()=>!expandRewards?setExpandRewards(!expandRewards):{}} position={expandRewards?'absolute':'static'}
             right='24px' left='0px' boxShadow={expandRewards?'xl':'none'} sx={{'transition': '0.4s'}}>
               {
@@ -209,45 +212,17 @@ const Card = ({id}) => {
 
         <Stack mt={8} direction={'row'} spacing={4}>
         <Link href={`/editPosition/${id}`}>
-          <Button
-            disabled={isClosed}
-            flex={1}
-            fontSize={'sm'}
-            rounded={'full'}
-            bg={'blue.400'}
-            color={'white'}
-            boxShadow={
-              '0px 1px 25px -5px rgb(66 153 225 / 48%), 0 10px 10px -5px rgb(66 153 225 / 43%)'
-            }
-            _hover={{
-              bg: 'blue.500',
-            }}
-            _focus={{
-              bg: 'blue.500',
-            }}>
+          <PrimaryButton flex={1}>
             <IoMdSettings fontSize={'1.3rem'}></IoMdSettings>
             &nbsp;Edit
-          </Button>
+          </PrimaryButton>
         </Link>
         <Link href={`/analytics/${id}`}>
-          <Button
-            flex={1}
-            fontSize={'sm'}
-            rounded={'full'}
-            bg={'green.400'}
-            color={'white'}
-            boxShadow={
-              '0px 1px 25px -5px rgb(66 153 225 / 48%), 0 10px 10px -5px rgb(66 153 225 / 43%)'
-            }
-            _hover={{
-              bg: 'green.500',
-            }}
-            _focus={{
-              bg: 'green.500',
-            }}>
-              <VscGraphLine fontSize={'1.3rem'}></VscGraphLine>
-              &nbsp;Analytics
-          </Button>
+        <Button color='white' bgColor={useColorModeValue('green.500', 'green.600')}
+          _hover={{bgColor: useColorModeValue('green.600', 'green.700')}}
+          _focus={{bgColor: useColorModeValue('green.700', 'green.800')}} rounded={'full'}>
+          <VscGraphLine fontSize={'1.3rem'}></VscGraphLine>
+          &nbsp;Analytics</Button>
         </Link>
         </Stack>
       </Flex>

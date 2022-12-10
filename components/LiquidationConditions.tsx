@@ -1,11 +1,12 @@
 import { AddIcon, DeleteIcon } from "@chakra-ui/icons"
-import { Text, Flex, NumberInput, NumberInputField, Button, Box, IconButton, Skeleton } from "@chakra-ui/react"
+import { Text, Flex, NumberInput, NumberInputField, Button, Box, IconButton, Skeleton, useColorModeValue } from "@chakra-ui/react"
 import { ethers } from "ethers"
 import { useEffect, useState } from "react"
 import { useAppContext } from "./Provider"
 import { SelectAsset } from "./selectAssets";
 import { getPrice } from "../utils";
 import { Reload } from "./Reload";
+import { level2 } from "./Theme"
 
 const Condition = ({i, condition, setWatchedAsset, setConvertTo, removeAsset, setLiquidationPoint, loading}) => {
   const {supportedAssets} = useAppContext()
@@ -24,7 +25,7 @@ const Condition = ({i, condition, setWatchedAsset, setConvertTo, removeAsset, se
   }
 
   return (
-    <Flex marginBlock={'2'} padding={'4'} borderRadius={'2xl'} backgroundColor={'#f7f7f7'} justifyContent='space-between' minWidth={'400px'} width={'100%'}>
+    <Flex marginBlock={'2'} padding={'4'} borderRadius={'2xl'} backgroundColor={useColorModeValue(...level2)} justifyContent='space-between' minWidth={'400px'} width={'100%'}>
       <Box marginBlock={'auto'}>
         <Flex mb={'4'}>
           {/* @ts-ignore */}
@@ -40,7 +41,7 @@ const Condition = ({i, condition, setWatchedAsset, setConvertTo, removeAsset, se
           <Text mb={'2'} as='b'>Liquidate at price</Text>
           <NumberInput value={condition.liquidationPoint||'0'} width={'40'}
           onChange={(valueAsNumber)=>setLiquidationPoint(valueAsNumber)}>
-            <NumberInputField backgroundColor={'white'}></NumberInputField>
+            <NumberInputField backgroundColor={useColorModeValue('white', 'gray.800')}></NumberInputField>
           </NumberInput>
           <Flex>
           <Text>Current Price:&nbsp;</Text>
@@ -49,7 +50,7 @@ const Condition = ({i, condition, setWatchedAsset, setConvertTo, removeAsset, se
           }
           </Flex>
         </Flex>
-        <Flex alignItems={'center'} paddingBlock={'8'} pl={'3'} borderLeft={'1px'} borderColor={'white'}>
+        <Flex alignItems={'center'} paddingBlock={'8'} pl={'3'} borderLeft={'1px'} borderColor={useColorModeValue('white', 'gray.800')}>
           <Text textAlign={'center'} borderRadius={'lg'} width={'2rem'} padding={'1'}
           onClick={()=>removeAsset(i)}
           _hover={{cursor: 'pointer', backgroundColor: 'red.400'}} backgroundColor='red.300'><DeleteIcon/></Text>
@@ -162,7 +163,9 @@ const LiquidationConditions = ({assetPrice, initialLiquidationPoints=undefined, 
       <Box margin={'auto'} maxWidth='500px' overflowX={'auto'}>
         <Flex justifyContent={'end'}>
           <Reload onReload={reload} loading={loading}/>
-          <IconButton ml={'2'} colorScheme={'blue'} aria-label='Add condition' onClick={addCondition} icon={<AddIcon />} />
+          <IconButton ml={'2'} color='white' bgColor={useColorModeValue('blue.500', 'blue.600')}
+          _hover={{bgColor: useColorModeValue('blue.600', 'blue.700')}}
+          _focus={{bgColor: useColorModeValue('blue.700', 'blue.800')}} aria-label='Add condition' onClick={addCondition} icon={<AddIcon />} />
         </Flex>
         {
           liquidationPoints&&liquidationPoints.length>0?

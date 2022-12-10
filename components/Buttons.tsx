@@ -1,4 +1,4 @@
-import { Button } from "@chakra-ui/react"
+import { Button, useColorModeValue } from "@chakra-ui/react"
 
 export const PrimaryButton = (props) => {
   const {size='medium'} = props
@@ -9,7 +9,9 @@ export const PrimaryButton = (props) => {
     buttonProps = {...props, size: {base: 'md', md: 'lg'}}
   }
   return (
-    <Button colorScheme='blue' rounded={'full'} {...buttonProps}></Button>
+    <Button color='white' bgColor={useColorModeValue('blue.500', 'blue.600')}
+    _hover={{bgColor: useColorModeValue('blue.600', 'blue.700')}}
+    _focus={{bgColor: useColorModeValue('blue.700', 'blue.800')}} rounded={'full'} {...buttonProps}></Button>
   )
 }
 
@@ -35,7 +37,9 @@ export const DangerButton = (props) => {
     buttonProps = {...props, size: {base: 'md', md: 'lg'}}
   }
   return (
-    <Button colorScheme={'red'} rounded={'full'} {...buttonProps}></Button>
+    <Button color='white' bgColor={useColorModeValue('red.500', 'red.600')}
+    _hover={{bgColor: useColorModeValue('red.600', 'red.700')}}
+    _focus={{bgColor: useColorModeValue('red.700', 'red.800')}} rounded={'full'} {...buttonProps}></Button>
   )
 }
 

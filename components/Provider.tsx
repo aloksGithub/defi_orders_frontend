@@ -1,4 +1,4 @@
-import { ChakraProvider, Flex, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, useDisclosure, Text, Box } from '@chakra-ui/react'
+import { ChakraProvider, Flex, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, useDisclosure, Text, Box, useColorModeValue, useColorMode } from '@chakra-ui/react'
 import { CoinbaseWallet } from '@web3-react/coinbase-wallet'
 import { useWeb3React, Web3ReactHooks, Web3ReactProvider } from '@web3-react/core'
 import { MetaMask } from '@web3-react/metamask'
@@ -23,6 +23,7 @@ import {GrCircleInformation} from 'react-icons/gr'
 import { BiErrorAlt } from "react-icons/bi"
 import { CheckCircleIcon } from '@chakra-ui/icons'
 import { Footer } from './Footer'
+import { level0 } from './Theme'
 
 const AppContext = createContext({
   userAssets: {data: [], loading: false, error: false},
@@ -271,6 +272,25 @@ export function useAppContext() {
   return useContext(AppContext);
 }
 
+const Wrapper = ({children}) => {
+  const {colorMode} = useColorMode()
+  return (
+    <Box
+      position={'absolute'}
+      width={'100%'}
+      minHeight={'100vh'}
+      paddingTop={'80px'}
+      paddingBottom={'140px'}
+      backgroundColor={useColorModeValue(...level0)}
+      // bgGradient='linear(to-r, white, #e0e8ff, #e0e8ff, #e0e8ff, #e0e8ff, #e0e8ff, white)'
+      // bgGradient='linear(to-b, gray.100, #edfdff)'
+      >
+      {children}
+    <Footer/>
+    </Box>
+  )
+}
+
 const connectors: [MetaMask | WalletConnect | CoinbaseWallet | Network, Web3ReactHooks][] = [
   [metaMask, metaMaskHooks],
   [walletConnect, walletConnectHooks],
@@ -284,18 +304,19 @@ export default function Provider({children}) {
     <Web3ReactProvider connectors={connectors}>
       <AppWrapper>
       <Navbar></Navbar>
-      <Box
+      <Wrapper>{children}</Wrapper>
+      {/* <Box
         position={'absolute'}
         width={'100%'}
         minHeight={'100vh'}
         paddingTop={'80px'}
         paddingBottom={'140px'}
         // bgGradient='linear(to-r, white, #e0e8ff, #e0e8ff, #e0e8ff, #e0e8ff, #e0e8ff, white)'
-        bgGradient='linear(to-b, gray.100, #edfdff)'
+        // bgGradient='linear(to-b, gray.100, #edfdff)'
         >
         {children}
       <Footer/>
-      </Box>
+      </Box> */}
       </AppWrapper>
     </Web3ReactProvider>
     </ChakraProvider>

@@ -1,10 +1,11 @@
 import { DeleteIcon, AddIcon } from "@chakra-ui/icons";
-import { useDisclosure, IconButton, Flex, Text, NumberInput, NumberInputField, Button, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, Box, Input, Skeleton } from "@chakra-ui/react";
+import { useDisclosure, IconButton, Flex, Text, NumberInput, NumberInputField, Button, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, Box, Input, Skeleton, useColorModeValue } from "@chakra-ui/react";
 import { ethers } from "ethers";
 import { useState, useEffect, useRef } from "react"
 import { useAppContext } from "./Provider";
 import { ChevronDownIcon } from "@chakra-ui/icons";
 import { Reload } from "./Reload";
+import { level1, level2 } from "./Theme";
 
 export const SelectAsset = ({assets, asset, onSelect, placeHolder='Select'}) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -47,26 +48,23 @@ export const SelectAsset = ({assets, asset, onSelect, placeHolder='Select'}) => 
 
   return (
     <Box>
-      <Box _hover={{cursor:'pointer'}} onClick={onOpen}>
-      {
-        asset?.contract_ticker_symbol?
-        <Flex alignItems={'center'} backgroundColor={'gray.200'} justifyContent={'center'}
-        _hover={{backgroundColor: 'gray.300'}} paddingInline='2' paddingBlock={'1'} borderRadius={'2xl'}>
-          <img  src={asset.logo_url} style={{width: "20px", height: "20px", borderRadius:'15px'}}/>
+      <Box>
+      <Button onClick={onOpen} alignItems={'center'} justifyContent={'center'}
+        paddingInline='2' paddingBlock={'1'} borderRadius={'2xl'}>
+        {
+          asset?.contract_ticker_symbol?<>
+          &nbsp;&nbsp;<img  src={asset.logo_url} style={{width: "20px", height: "20px", borderRadius:'15px'}}/>
           <Text ml={'3'} fontSize={'l'}>{asset.contract_ticker_symbol} <ChevronDownIcon/></Text>
-        </Flex>:
-        <Flex alignItems={'center'} backgroundColor={'gray.200'} justifyContent={'center'}
-        _hover={{backgroundColor: 'gray.300'}} paddingInline='2' paddingBlock={'1'} borderRadius={'2xl'}>
-          <Text fontSize={'l'}>{placeHolder} <ChevronDownIcon/></Text>
-        </Flex>
-      }
+          </>:<Text fontSize={'l'}>&nbsp;&nbsp;{placeHolder}<ChevronDownIcon/></Text>
+        }
+      </Button>
       </Box>
       <Modal isCentered isOpen={isOpen} onClose={closeModal}>
       <ModalOverlay
         bg='blackAlpha.300'
         backdropFilter='blur(10px)'
       />
-        <ModalContent>
+        <ModalContent bgColor={useColorModeValue(...level1)}>
           <ModalHeader>Select {placeHolder==='Select'?'asset':placeHolder}</ModalHeader>
           <ModalCloseButton />
           <ModalBody padding={'6'}>
@@ -76,9 +74,9 @@ export const SelectAsset = ({assets, asset, onSelect, placeHolder='Select'}) => 
               filteredAssets?.map(selectableAsset=> {
                 const chosenOne = selectableAsset.contract_address?.toLowerCase()===asset?.contract_address?.toLowerCase()
                 return (
-                  <Flex _hover={{cursor:'pointer', backgroundColor: 'gray.100'}}
+                  <Flex _hover={{cursor:'pointer', backgroundColor: useColorModeValue(...level2)}}
                   ref={chosenOne?ref:undefined}
-                  backgroundColor={chosenOne?'gray.100':'white'} padding='2'
+                  backgroundColor={chosenOne?useColorModeValue(...level2):useColorModeValue(...level1)} padding='2'
                   onClick={()=>onSelected(selectableAsset)}>
                     <img src={selectableAsset.logo_url} style={{width: "20px", height: "20px", borderRadius:'15px'}}/>
                     <Text ml={'3'}>{selectableAsset.contract_name}</Text>
@@ -112,7 +110,9 @@ const Asset = ({i, asset, assets, setAsset, setSupply, removeAsset}) => {
   }
 
   return (
-    <Flex width={'100%'} mt='4' padding={'4'} justifyContent={'space-between'} alignItems={'center'} borderRadius={'2xl'} backgroundColor={'#f7f7f7'}>
+    <Flex width={'100%'} mt='4' padding={'4'} justifyContent={'space-between'} alignItems={'center'} borderRadius={'2xl'}
+    backgroundColor={useColorModeValue(...level1)}
+    >
       <Box>
         <SelectAsset asset={asset} onSelect={onSelect} assets={assets}/>
         <Flex alignItems={'center'} mt={'3'}>
@@ -204,9 +204,13 @@ export const SupplyAssets = ({assetsToConvert, setAssetsToConvert}) => {
   }
 
   return (
-      <Flex padding={'5'} direction={'column'} width={'100%'} maxWidth='450px' alignItems={'center'} backgroundColor='white' borderRadius={'2xl'}>
+      <Flex padding={'5'} direction={'column'} width={'100%'} maxWidth='450px'
+      bg='hidden'
+      alignItems={'center'} borderRadius={'2xl'} border='1px' borderColor={useColorModeValue(...level2)}>
         <Flex width={'100%'} justifyContent='space-between' alignItems={'center'}>
-          <IconButton colorScheme={'blue'} aria-label='Add Asset' onClick={addAsset} icon={<AddIcon />} />
+          <IconButton color='white' bgColor={useColorModeValue('blue.500', 'blue.600')}
+          _hover={{bgColor: useColorModeValue('blue.600', 'blue.700')}}
+          _focus={{bgColor: useColorModeValue('blue.700', 'blue.800')}} aria-label='Add Asset' onClick={addAsset} icon={<AddIcon />} />
         <Text>USD Supplied: ${assetsToConvert.reduce((a, b)=>a+(b.usdcValue||0), 0)?.toFixed(3)||0}</Text>
         <Reload onReload={hardRefreshAssets} loading={loading} />
         </Flex>

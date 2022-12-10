@@ -1,13 +1,45 @@
 import { useAppContext } from "../../components/Provider"
-import { Box, Flex, Text, Grid, GridItem, useColorModeValue, Skeleton, TableContainer, Table, Tbody, Td, Th, Thead, Tr, Stack, Stat, StatArrow, StatGroup, StatHelpText, StatLabel, StatNumber, Image } from "@chakra-ui/react";
+import { Box, Flex, Text, Grid, GridItem, useColorModeValue, Skeleton, TableContainer, Table, Tbody, Td, Th, Thead, Tr, Stack, Stat, StatArrow, StatGroup, StatHelpText, StatLabel, StatNumber, Image, Button } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { useRouter } from 'next/router'
 import { useWeb3React } from "@web3-react/core";
 import { fetchPosition, getGraphData } from "../../contractCalls/dataFetching";
 import { fetchImportantPoints } from "../../contractCalls/dataFetching";
-import { LineChart, Line, CartesianGrid, Tooltip, XAxis, YAxis } from 'recharts';
+import { LineChart, Line, CartesianGrid, Tooltip, XAxis, YAxis, Label } from 'recharts';
 import { Heading2 } from "../../components/Typography";
 import { getLogoUrl, nFormatter } from "../../utils";
+import { level1, level2 } from "../../components/Theme";
+
+const DaysSelector = ({setDays, daysSelected}) => {
+  return (
+    <Flex padding={'3'} backgroundColor={useColorModeValue(...level2)} borderRadius={'xl'}>
+      <Button w={'30px'} h={'30px'} p='0' mr='2' boxSizing="border-box"
+      colorScheme={daysSelected===1?'facebook':'blue'} 
+      onClick={()=>setDays(1)}>
+        <Text fontSize={'small'}>1d</Text>
+      </Button>
+      <Button w={'30px'} h={'30px'} p='0' mr='2'
+      colorScheme={daysSelected===7?'facebook':'blue'} 
+       onClick={()=>setDays(7)}>
+        <Text fontSize={'small'}>7d</Text>
+      </Button>
+      <Button w={'30px'} h={'30px'} p='0' mr='2'
+      colorScheme={daysSelected===30?'facebook':'blue'} 
+       onClick={()=>setDays(30)}>
+        <Text fontSize={'small'}>30d</Text>
+      </Button>
+      <Button w={'30px'} h={'30px'} p='0' mr='2'
+      colorScheme={daysSelected===90?'facebook':'blue'} 
+       onClick={()=>setDays(90)}>
+        <Text fontSize={'small'}>90d</Text>
+      </Button>
+      <Button w={'30px'} h={'30px'} p='0' colorScheme={daysSelected===-1?'facebook':'blue'}
+       onClick={()=>setDays(-1)}>
+        <Text fontSize={'small'}>All</Text>
+      </Button>
+    </Flex>
+  )
+}
 
 const Analytics = () => {
   const {contracts, chainId} = useAppContext()
@@ -19,16 +51,20 @@ const Analytics = () => {
   const [roi, setRoi] = useState<string>()
   const [pnl, setPnl] = useState<string>()
   const [graphData, setGraphData] = useState(undefined)
+  const [graphDays, setGraphDays] = useState(1)
+  const [loadingGraph, setLoadingGraph] = useState(true)
 
   useEffect(() => {
     const fetch = async () => {
-      const data = await getGraphData(contracts, id, provider, -1)
+      const data = await getGraphData(contracts, id, provider, graphDays, chainId)
       setGraphData(data)
+      setLoadingGraph(false)
     }
     if (contracts && provider) {
+      setLoadingGraph(true)
       fetch()
     }
-  }, [contracts, provider, id])
+  }, [contracts, provider, id, graphDays])
 
   useEffect(() => {
     const fetch = async () => {
@@ -53,19 +89,19 @@ const Analytics = () => {
       maxWidth={'100vw'}
       marginInline={'auto'}
       justifyContent={'space-between'}
-      bg={useColorModeValue('white', 'gray.900')}
+      bg={useColorModeValue(...level1)}
       boxShadow={'2xl'}
       rounded={'lg'}
       p={{base: 3, sm: 6, md: 10}}>
       <Grid gridTemplateColumns={{base: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)'}} gap={'4'} mb={'6'}>
-        <Stat display='flex' padding={'4'} backgroundColor='gray.100' borderRadius={'xl'}>
+        <Stat display='flex' padding={'4'} backgroundColor={useColorModeValue(...level2)} borderRadius={'xl'}>
           <StatLabel fontSize={'l'}>Asset Value</StatLabel>
           {
             typeof(position?.usdcValue)==='number'?<StatNumber fontSize={{base: 'xl', md: '2xl'}}>${nFormatter(position?.usdcValue, 3)}</StatNumber>:
             <Skeleton>Temporary</Skeleton>
           }
         </Stat>
-        <Stat display='flex' padding={'4'} backgroundColor='gray.100' borderRadius={'xl'}>
+        <Stat display='flex' padding={'4'} backgroundColor={useColorModeValue(...level2)} borderRadius={'xl'}>
           <StatLabel fontSize={'l'}>PnL</StatLabel>
           <Flex>
           {
@@ -80,7 +116,7 @@ const Analytics = () => {
           }
           </Flex>
         </Stat>
-        <Stat display='flex' padding={'4'} backgroundColor='gray.100' borderRadius={'xl'}>
+        <Stat display='flex' padding={'4'} backgroundColor={useColorModeValue(...level2)} borderRadius={'xl'}>
           <StatLabel fontSize={'l'}>Projected APY</StatLabel>
           {
             typeof(position?.usdcValue)==='number'?<StatNumber fontSize={{base: 'xl', md: '2xl'}}>0%</StatNumber>:
@@ -88,27 +124,30 @@ const Analytics = () => {
           }
           
         </Stat>
-        <Stat display='flex' padding={'4'} backgroundColor='gray.100' borderRadius={'xl'}>
+        <Stat display='flex' padding={'4'} backgroundColor={useColorModeValue(...level2)} borderRadius={'xl'}>
           <StatLabel fontSize={'l'}>Advertised APY</StatLabel>
           Coming soon
         </Stat>
       </Grid>
-      <Heading2>Historical Position Value</Heading2>
+      <Flex mt={'12'} justifyContent={'space-between'}>
+        <Heading2>Historical Position Value</Heading2>
+        <DaysSelector setDays={setGraphDays} daysSelected={graphDays}/>
+      </Flex>
       <Box style={{ overflow: 'auto', maxWidth: '90vw'}} mt={'6'} mb={'12'}>
       {
-        graphData?<Box>
-        <LineChart width={800} height={400} data={graphData}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="name" padding={{left: 10}}>
+        !loadingGraph?<Box>
+        <LineChart width={800} height={450} data={graphData}>
+          <XAxis stroke={useColorModeValue("black", "white")} minTickGap={50} dataKey="name">
           </XAxis>
-          <YAxis dataKey={"value"}>
+          <YAxis stroke={useColorModeValue("black", "white")} dataKey={"value"}>
+            <Label offset={10} stroke={useColorModeValue("black", "white")} value="USD Value" position={'insideLeft'} angle={270}/>
           </YAxis>
-          <Tooltip />
+          <Tooltip labelStyle={{color: 'black'}} formatter={(value)=>[`$ ${value}`]} />
           {/* <Legend /> */}
-          <Line type="monotone" dataKey="value" />
+          <Line type="monotone" dot={false} dataKey="value" />
         </LineChart>
         </Box>:
-        <Skeleton height={'300px'}></Skeleton>
+        <Skeleton height={'450px'}></Skeleton>
       }
       </Box>
       <Grid

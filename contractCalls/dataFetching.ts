@@ -1,46 +1,8 @@
 import { ethers } from "ethers";
 import erc20Abi from "../constants/abis/ERC20.json"
 import { nativeTokens } from "../utils";
-
-// export const fetchPositions = async (contracts, signer) => {
-//   const account = await signer.getAddress()
-//   if (!contracts.positionManager) return []
-//   const numPositions = await contracts.positionManager.numUserPositions(account)
-//   const positions = []
-//   const positionsArray = Array.from(Array(numPositions.toNumber()).keys())
-//   const positionsData = positionsArray.map(i=> 
-//     contracts.positionManager.userPositions(account, i).then(async (position)=>{
-//       const positionData = await contracts.positionManager.getPosition(position.toNumber())
-//       const usdcValue = await contracts.positionManager.callStatic.closeToUSDC(position.toNumber())
-//       const usdcDecimals = await contracts.stableToken.decimals()
-//       const bankDetails = await contracts.banks[positionData.bankId.toNumber()].decodeId(positionData.bankToken)
-//       const rewards = await contracts.banks[positionData.bankId.toNumber()].getRewards(positionData.bankToken)
-//       let name
-//       try {
-//         const depositedAsset = new ethers.Contract(bankDetails[0], erc20Abi, signer)
-//         name = await depositedAsset.name()
-//       } catch {
-//         const depositedAsset = new ethers.Contract(bankDetails[1], erc20Abi, signer)
-//         name = await depositedAsset.name()
-//       }
-//       let underlying = await contracts.universalSwap.callStatic.getUnderlying(bankDetails[0])
-//       underlying = await Promise.all(underlying.map(async (token) => {
-//         const contract = new ethers.Contract(token, erc20Abi, signer)
-//         const name = await contract.name()
-//         return name
-//       }))
-//       const newPosition = {positionId: position.toNumber(), positionData, tokenContract:bankDetails[0], name, usdcValue: usdcValue.div(ethers.utils.parseUnits("1.0", usdcDecimals)).toString(), rewards, underlying}
-//       positions.push(newPosition)
-//     })
-//   )
-//   try {
-//     await Promise.all(positionsData)
-//   } catch (error) {
-//     console.log(error)
-//     return undefined
-//   }
-//   return positions
-// }
+import { blockExplorerAPIs } from "../utils";
+import EthDater from 'ethereum-block-by-date'
 
 export const getAmountsOut = async (contracts, signer, assetsToConvert, wantedAssets) => {
   const provided = {
@@ -119,7 +81,24 @@ export const fetchPosition = async (id:number, contracts, signer, chainId) => {
   }
 }
 
-export const getGraphData = async (contracts, id, provider, duration) => {
+const getBlockFromExplorer = async (chainId:number, daysAgo:number) => {
+  const timeNow = Math.floor(new Date().getTime()/1000)
+  const url = `${blockExplorerAPIs[chainId]}/api?module=block&action=getblocknobytime&timestamp=${timeNow-daysAgo*24*60*60}&closest=before&apikey=YourApiKeyToken`
+  const response = await fetch(url)
+  const block = +(await response.json()).result
+  return block
+}
+
+const getBlockFromProvider = async (provider, daysAgo) => {
+  const dater = new EthDater(provider)
+  const seconds = daysAgo*24*60*60
+  const timeNow = new Date()
+  timeNow.setSeconds(timeNow.getSeconds() - seconds);
+  const block = await dater.getDate(timeNow)
+  return block.block
+}
+
+export const getGraphData = async (contracts, id, provider, duration, chainId) => {
   const usdcDecimals = await contracts.stableToken.decimals()
   const blocks = []
   const timestamps = []
@@ -134,8 +113,11 @@ export const getGraphData = async (contracts, id, provider, duration) => {
     startBlock = +positionInteractions[0].blockNumber
     startBlock += (latestBlock.number-startBlock)%numPoints
   } else {
+    // startBlock = await getBlockFromProvider(provider, duration)
+    // startBlock = await getBlockFromExplorer(chainId, duration)
     startBlock = latestBlock.number-blockTime*numPoints*duration
-    // startBlock = startBlock>=+positionInteractions[0].blockNumber?startBlock:+positionInteractions[0].blockNumber
+    startBlock = startBlock>=+positionInteractions[0].blockNumber?startBlock:+positionInteractions[0].blockNumber
+    startBlock += (latestBlock.number-startBlock)%numPoints
   }
   blocks.push(startBlock)
   while (true) {
@@ -164,7 +146,7 @@ export const getGraphData = async (contracts, id, provider, duration) => {
       }
     } else {
       return {
-        name: time.toLocaleDateString(),
+        name: `${time.toDateString().split(' ')[2]} ${time.toDateString().split(' ')[1]}`,
         value: usdValues[index].toFixed(4)
       }
     }

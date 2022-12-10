@@ -38,6 +38,7 @@ import { getBlockExplorerUrl, getBlockExplorerUrlTransaction, nFormatter } from 
 import { BiErrorAlt } from "react-icons/bi"
 import { FancyButton } from "../components/Buttons";
 import Link from "next/link";
+import { level1 } from "../components/Theme";
 
 const Card = ({asset, index, setSecuring}) => {
   const {chainId} = useAppContext()
@@ -48,7 +49,7 @@ const Card = ({asset, index, setSecuring}) => {
         justifyContent={'space-between'}
         h={'100%'}
         w={'full'}
-        bg={useColorModeValue('white', 'gray.900')}
+        bg={useColorModeValue(...level1)}
         boxShadow={'2xl'}
         rounded={'lg'}
         p={6}
@@ -102,13 +103,9 @@ const Card = ({asset, index, setSecuring}) => {
         <Button
           onClick={()=>setSecuring(index)}
           flex={1}
-          fontSize={'sm'}
           rounded={'full'}
-          bg={'blue.400'}
+          bg={useColorModeValue('blue.400', 'blue.600')}
           color={'white'}
-          boxShadow={
-            '0px 1px 25px -5px rgb(66 153 225 / 48%), 0 10px 10px -5px rgb(66 153 225 / 43%)'
-          }
           _hover={{
             bg: 'blue.500',
           }}
@@ -254,7 +251,7 @@ const SecureAsset = ({asset, setSecuring}) => {
   return (
     <Box maxWidth={'700px'} margin={'auto'}
       justifyContent={'space-between'}
-      bg={useColorModeValue('white', 'gray.900')}
+      bg={useColorModeValue(...level1)}
       boxShadow={'2xl'}
       rounded={'lg'}
       p={{base:4, md: 8}}>
@@ -272,10 +269,10 @@ const SecureAsset = ({asset, setSecuring}) => {
         <GridItem colSpan={1}>
           <Heading2>Tokens To Secure</Heading2>
           <Flex>
-          <NumberInput size={'lg'} w={'60%'} min={0} max={asset?.balance/10**asset?.contract_decimals} value={tokens}
+          <NumberInput backgroundColor='hidden' size={'lg'} w={'60%'} min={0} max={asset?.balance/10**asset?.contract_decimals} value={tokens}
           // @ts-ignore
           onChange={(valueAsString)=>setTokens(valueAsString)}>
-            <NumberInputField backgroundColor={'white'}></NumberInputField>
+            <NumberInputField backgroundColor={useColorModeValue('white', 'gray.900')}></NumberInputField>
           </NumberInput>
           <Box>
             <Text paddingInline={'1'} backgroundColor='blue.500' color={'white'} ml={'2'} _hover={{cursor: 'pointer', backgroundColor:'blue.300'}}

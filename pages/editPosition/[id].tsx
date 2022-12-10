@@ -12,6 +12,7 @@ import { Heading2 } from "../../components/Typography";
 import { DangerButton, PrimaryButton, SecondaryButton } from "../../components/Buttons";
 import { getBlockExplorerUrlTransaction, getPrice, nFormatter } from "../../utils";
 import { BiErrorAlt } from "react-icons/bi";
+import { level0, level1 } from "../../components/Theme";
 
 const WithdrawModal = ({position, refreshData, closeSelf, onReload, loading}) => {
   const positionSizeDecimals = +position?.positionData.amountDecimal||0
@@ -50,7 +51,7 @@ const WithdrawModal = ({position, refreshData, closeSelf, onReload, loading}) =>
   }
   return (
     <Box>
-      <Box backgroundColor={'#f7f7f7'} padding='4' borderRadius={'lg'}>
+      <Box backgroundColor={useColorModeValue(...level0)} padding='4' borderRadius={'lg'}>
         <Flex mb={'4'} justifyContent={'space-between'}>
           <Box>
             <Text as={'b'} mr={'4'}>USD Value:</Text>
@@ -64,11 +65,12 @@ const WithdrawModal = ({position, refreshData, closeSelf, onReload, loading}) =>
           </Box>
         </Flex>
         <Box margin={'auto'} width={'100%'}>
-          <NumberInput min={0} max={positionSizeDecimals} backgroundColor='white' value={value} onChange={handleChange} size='lg'>
-            <NumberInputField/>
+          <NumberInput bgColor='hidden' min={0} max={positionSizeDecimals} value={value} onChange={handleChange} size='lg'>
+            <NumberInputField bgColor={useColorModeValue('white', 'gray.900')}/>
           </NumberInput>
           <Box width={'93%'} margin='auto'>
-          <Slider
+          <Slider aria-label='slider-ex-1'
+            textColor='black'
             flex='1'
             focusThumbOnChange={false}
             value={+percentage}
@@ -84,7 +86,7 @@ const WithdrawModal = ({position, refreshData, closeSelf, onReload, loading}) =>
         </Box>
       </Box>
       <Flex mt={'4'} justifyContent={'center'}>
-      <Button isLoading={isWithdrawing} colorScheme={'blue'} margin={'auto'} onClick={withdrawFromPostion}>Withdraw</Button>
+      <PrimaryButton isLoading={isWithdrawing} size='large' margin={'auto'} onClick={withdrawFromPostion}>Withdraw</PrimaryButton>
       </Flex>
     </Box>
   )
@@ -117,14 +119,14 @@ const DepositModal = ({position, refreshData, closeSelf}) => {
   }
 
   return (
-    <Flex alignItems={'center'} direction={'column'} width={'100%'}>
+    <Flex bgColor={useColorModeValue('white', 'gray.900')} alignItems={'center'} direction={'column'} width={'100%'}>
       <Box width={'100%'}>
         <div style={{overflow: 'auto', maxHeight: '60vh'}}>
         <Flex width={'100%'} justifyContent={'center'}>
           <SupplyAssets assetsToConvert={assetsToConvert} setAssetsToConvert={setAssetsToConvert}/>
         </Flex>
         </div>
-        <Flex justifyContent={'center'}><Button isLoading={isDepositing} colorScheme={'blue'} onClick={supply}>Deposit</Button></Flex>
+        <Flex mt={'6'} justifyContent={'center'}><PrimaryButton isLoading={isDepositing} size='large' onClick={supply}>Deposit</PrimaryButton></Flex>
       </Box>
     </Flex>
   )
@@ -281,7 +283,7 @@ const EditPosition = () => {
   return (
     <Box maxWidth={'700px'} marginTop='50px' marginInline={'auto'}>
     <Box
-      bg={useColorModeValue('white', 'gray.900')}
+      bg={useColorModeValue(...level1)}
       boxShadow={'2xl'}
       rounded={'lg'}
       p={{base:4, md: 8}}>
@@ -338,7 +340,7 @@ const EditPosition = () => {
         bg='blackAlpha.300'
         backdropFilter='blur(10px)'
       />
-      <ModalContent paddingBlock={'5'} margin={'3'}>
+      <ModalContent bgColor={useColorModeValue('white', 'gray.900')} paddingBlock={'5'} margin={'3'}>
         <ModalHeader paddingBlock={'0'}>Deposit</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
@@ -351,7 +353,7 @@ const EditPosition = () => {
         bg='blackAlpha.300'
         backdropFilter='blur(10px)'
       />
-      <ModalContent padding={'1'}>
+      <ModalContent bgColor={useColorModeValue('white', 'gray.900')} paddingBlock={'5'}>
         <ModalHeader>Withdraw</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
@@ -371,8 +373,8 @@ const EditPosition = () => {
         <ModalBody>
           <Text mb={'10'}>Are you sure you want to close the position?</Text>
           <Flex justifyContent={'end'}>
-          <Button colorScheme={'red'} isLoading={isClosing} mr={'5'} rounded={'full'} size='lg' onClick={closePosition}>Confirm</Button>
-          <Button colorScheme={'blue'} loadingText={'Closing'} rounded={'full'} size='lg' onClick={onCloseClose}>Cancel</Button>
+          <DangerButton isLoading={isClosing} mr={'5'} size='large' onClick={closePosition}>Confirm</DangerButton>
+          <PrimaryButton loadingText={'Closing'} size='large' onClick={onCloseClose}>Cancel</PrimaryButton>
           </Flex>
         </ModalBody>
       </ModalContent>

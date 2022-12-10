@@ -7,6 +7,7 @@ import {
   Button,
   Menu,
   MenuButton,
+  Image,
   MenuList,
   MenuItem,
   useDisclosure,
@@ -23,6 +24,7 @@ import {
   NumberInputField,
   Stack,
   Switch,
+  useColorMode,
 } from '@chakra-ui/react';
 import { HamburgerIcon, CloseIcon, SettingsIcon, SunIcon, MoonIcon } from '@chakra-ui/icons';
 import { useWeb3React } from '@web3-react/core'
@@ -35,6 +37,8 @@ import { useAppContext } from './Provider';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import {CSSTransition} from 'react-transition-group'
+import {FaWallet} from 'react-icons/fa'
+import { level0 } from './Theme';
 
 const Links = [
   {
@@ -55,19 +59,17 @@ const NavLink = ({ children }: { children: any }) => {
   const { asPath } = useRouter()
   return (
     <Link href={children.href}>
-      <Flex
+      <Button
+      justifyContent={{base: 'left', md: 'center'}}
       alignItems={'center'}
       py={2}
       px={3}
       rounded={'md'}
-      backgroundColor={children.href===asPath?'gray.300':undefined}
-      _hover={{
-        cursor: 'pointer',
-        textDecoration: 'none',
-        backgroundColor: 'gray.300'
-      }}>
+      background='hidden'
+      backgroundColor={children.href===asPath? useColorModeValue('gray.200', 'gray.800'):undefined}
+      >
         <Text as='b'>{children.label}</Text>
-      </Flex>
+      </Button>
     </Link>
 );}
 
@@ -102,50 +104,52 @@ const Wallet = () => {
     {(isActive && account)?
     (
       <Flex justifyContent={"center"} alignItems={"center"}>
-        <Box marginRight={2} px={2} py={1} rounded={'md'} cursor={"pointer"}
-        _hover={{
-          textDecoration: 'none',
-          backgroundColor: 'gray.300'
-        }}>
-          <Menu>
-            <MenuButton
-              as={Button}
-              rounded={'full'}
-              variant={'link'}
-              cursor={'pointer'}
-              padding={0}
-              display={"flex"}
-              alignItems={"center"}
-              minW={0}>
-              <img src={chainId in chainLogos? chainLogos[chainId]: chainLogos[1]} style={{height: "25px"}}/>
-            </MenuButton>
-            <MenuList>
-              {
-                supportedChains.map((id, index) => {
-                  const logoUrl = chainLogos[id]
-                  return (
-                    <MenuItem key={`menuItem_${index}`} onClick={()=>activateController(connector, id)} paddingBlock={2}>
-                      <Flex alignItems={"center"}>
-                        <img src={logoUrl} style={{width: "20px", height: "20px"}}/>
-                        <Text paddingLeft={3}>{chainNames[id]}</Text>
-                      </Flex>
-                    </MenuItem>
-                  )
-                })
-              }
-            </MenuList>
-          </Menu>
-        </Box>
-        <Text as='b' cursor={"pointer"} px={2} py={1} rounded={'md'}
-          _hover={{
-            textDecoration: 'none',
-            backgroundColor: 'gray.300'
-          }}
+        <Menu>
+          <MenuButton
+            as={Button}
+            variant={'link'}
+            cursor={'pointer'}
+            padding={0}
+            display={"flex"}
+            alignItems={"center"}
+            minW={0}>
+            <IconButton aria-label='settings' mr={'4'}
+            _hover={{backgroundColor: useColorModeValue('gray.300', 'gray.900')}}
+            background='hidden'
+            icon={
+              <Image src={chainId in chainLogos? chainLogos[chainId]: chainLogos[1]} height='25'/>
+            }></IconButton>
+          </MenuButton>
+          <MenuList>
+            {
+              supportedChains.map((id, index) => {
+                const logoUrl = chainLogos[id]
+                return (
+                  <MenuItem key={`menuItem_${index}`} onClick={()=>activateController(connector, id)} paddingBlock={2}>
+                    <Flex alignItems={"center"}>
+                      <img src={logoUrl} style={{width: "20px", height: "20px"}}/>
+                      <Text paddingLeft={3}>{chainNames[id]}</Text>
+                    </Flex>
+                  </MenuItem>
+                )
+              })
+            }
+          </MenuList>
+        </Menu>
+        <Button background='hidden' as='b' cursor={"pointer"} px={2} py={1} rounded={'md'}
+          display={{base: 'none', md: 'flex'}}
+          // _hover={{
+          //   textDecoration: 'none',
+          //   backgroundColor: useColorModeValue('gray.300', 'gray.900')
+          // }}
           onClick={() => {
             setOverlay(<Overlay />)
             onOpen()
           }}>{account.slice(0, 4)+"..."+account.slice(-3)}
-        </Text>
+        </Button>
+        <IconButton aria-label='wallet' icon={<FaWallet></FaWallet>} background='hidden'
+        display={{base: 'flex', md: 'none'}}>
+        </IconButton>
       </Flex>
     )
     :
@@ -175,7 +179,7 @@ const Wallet = () => {
               onClick={()=>activateController(connector, undefined)}
               _hover={{
                 textDecoration: 'none',
-                backgroundColor: 'gray.300'
+                backgroundColor:  useColorModeValue('gray.300', 'gray.900')
               }}>
                 <img src={logoUrl} width="30px"/>
                 <Text paddingLeft={3}>{walletName}</Text>
@@ -191,6 +195,8 @@ const Wallet = () => {
 
 
 export function Navbar() {
+  const { colorMode, toggleColorMode } = useColorMode()
+  const mainColor = useColorModeValue(...level0)
   const { isOpen, onOpen, onClose } = useDisclosure();
   const {slippageControl: {slippage, setSlippage}} = useAppContext()
   const [temp, setTemp] = useState(slippage)
@@ -224,7 +230,8 @@ export function Navbar() {
 
   return (
     <>
-      <Box borderBottomColor={'gray.300'} shadow='base' position={'fixed'} zIndex={100} style={{width: '100vw'}} backgroundColor='gray.100' px={4}>
+      <Box shadow='md' position={'fixed'} zIndex={100} style={{width: '100vw'}}
+        backgroundColor={mainColor} px={4}>
         <Flex maxWidth={'1300px'} margin='auto' h={16} alignItems={'center'} justifyContent={'space-between'}>
           <IconButton
             size={'md'}
@@ -248,15 +255,11 @@ export function Navbar() {
             </HStack>
           </HStack>
           <Flex alignItems={'center'} justifyContent={'center'}>
-            <Flex
-              display={{ base: 'none', md: 'flex' }}
-              padding='2'
-              alignItems={'center'} justifyContent={'center'}
-              mr={'4'} rounded={'md'}
-              _hover={{cursor: 'pointer', backgroundColor: 'gray.300'}}
-              onClick={onOpenSettings}>
-              <SettingsIcon color={'gray.600'} width={'20px'} height={'20px'}></SettingsIcon>
-            </Flex>
+            <IconButton aria-label='settings'
+            display={{ base: 'none', md: 'flex' }} mr={'4'}
+            background='hidden'
+            icon={<SettingsIcon width={'20px'} height={'20px'}></SettingsIcon>}
+            onClick={onOpenSettings}></IconButton>
             <Wallet/>
           </Flex>
         </Flex>
@@ -277,11 +280,11 @@ export function Navbar() {
               </NumberInput>
             </Flex>
             <Flex marginTop={'5'} alignItems='center'>
-              <Text width={'50%'} alignItems={'center'}>Dark Mode:</Text>
+              <Text width={'50%'} alignItems={'center'}>Light Mode:</Text>
               <Flex width={'50%'}>
-                <SunIcon/>
-                <Switch paddingInline='2'></Switch>
                 <MoonIcon/>
+                <Switch isChecked={colorMode==='light'} onChange={toggleColorMode} paddingInline='2'></Switch>
+                <SunIcon/>
               </Flex>
             </Flex>
           </ModalBody>
@@ -311,25 +314,23 @@ export function Navbar() {
           }
         }}>
       <CSSTransition classNames="my-node" nodeRef={wrapperRef} in={isOpen} timeout={300} unmountOnExit>
-        <Box boxShadow={'2xl'} zIndex={3} ref={wrapperRef} position={'fixed'} width={'100%'} background={'gray.100'} pb={2} display={{ md: 'none' }}
+        <Box boxShadow={'2xl'} zIndex={3} ref={wrapperRef} position={'fixed'} width={'100%'} backgroundColor={mainColor} pb={2} display={{ md: 'none' }}
         onClick={onClose}>
           <Stack pt={'68px'} spacing={0} as={'nav'}>
             {Links.map((link) => (
               <NavLink key={link.href}>{link}</NavLink>
             ))}
-            <Flex
-            alignItems={'center'}
-            px={3}
-            py={2}
-            rounded={'md'}
-            onClick={onOpenSettings}
-            _hover={{
-              cursor: 'pointer',
-              textDecoration: 'none',
-              backgroundColor: 'gray.300'
-            }}>
-              <Text as='b'>Settings</Text>
-            </Flex>
+            <Button
+              justifyContent={{base: 'left', md: 'center'}}
+              alignItems={'center'}
+              py={2}
+              px={3}
+              rounded={'md'}
+              onClick={onOpenSettings}
+              background='hidden'
+              _hover={{backgroundColor:  useColorModeValue('gray.300', 'gray.900')}}>
+                <Text as='b'>Settings</Text>
+            </Button>
           </Stack>
         </Box>
       </CSSTransition>

@@ -36,6 +36,7 @@
     "@web3-react/url": "8.0.25-beta.0",
     "@web3-react/walletconnect": "8.0.35-beta.0",
     "chakra-react-select": "^4.2.2",
+    "ethereum-block-by-date": "^1.4.6",
     "ethers": "^5.7.0",
     "fraction.js": "^4.2.0",
     "framer-motion": "6",
