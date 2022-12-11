@@ -90,7 +90,7 @@ const Card = ({id}) => {
       successModal("Harvest Successful", 
         <Text>
           Rewards were successfully harvested, 
-          View <a href={getBlockExplorerUrlTransaction(chainId, hash)} target="_blank" rel="noopener noreferrer"><Text as='u' textColor={'blue'}>transaction</Text></a>
+          View <a href={getBlockExplorerUrlTransaction(chainId, hash)} target="_blank" rel="noopener noreferrer"><Text as='u' textColor={'blue.500'}>transaction</Text></a>
           &nbsp;on block explorer.
         </Text>
       )
@@ -108,7 +108,7 @@ const Card = ({id}) => {
       successModal("Reinvest Successful", 
         <Text>
           Rewards were successfully reinvested, 
-          View <a href={getBlockExplorerUrlTransaction(chainId, hash)} target="_blank" rel="noopener noreferrer"><Text as='u' textColor={'blue'}>transaction</Text></a>
+          View <a href={getBlockExplorerUrlTransaction(chainId, hash)} target="_blank" rel="noopener noreferrer"><Text as='u' textColor={'blue.500'}>transaction</Text></a>
           &nbsp;on block explorer.
         </Text>
       )

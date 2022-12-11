@@ -1,5 +1,3 @@
-import { ethers } from "ethers";
-import cacheData from "memory-cache";
 import supportedProtocols from '../../constants/supportedProtocols.json'
 import { chainLogos, getLogoUrl, nativeTokens } from "../../utils";
 const fs = require('fs');

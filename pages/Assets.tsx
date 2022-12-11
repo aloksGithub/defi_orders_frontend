@@ -39,6 +39,7 @@ import { BiErrorAlt } from "react-icons/bi"
 import { FancyButton } from "../components/Buttons";
 import Link from "next/link";
 import { level1 } from "../components/Theme";
+import { getAmountsOut } from "../contractCalls/dataFetching";
 
 const Card = ({asset, index, setSecuring}) => {
   const {chainId} = useAppContext()
@@ -121,7 +122,7 @@ const Card = ({asset, index, setSecuring}) => {
 }
 
 const SecureAsset = ({asset, setSecuring}) => {
-  const {account, contracts, onError, userAssets: {loading, data}, softRefreshAssets, chainId} = useAppContext()
+  const {account, contracts, onError, userAssets: {loading, data}, softRefreshAssets, chainId, slippageControl: {slippage}} = useAppContext()
   const {provider} = useWeb3React()
   const signer = provider.getSigner(account)
   const [tokens, setTokens] = useState(0)
@@ -145,7 +146,8 @@ const SecureAsset = ({asset, setSecuring}) => {
     },
     convertTo: undefined,
     lessThan: false,
-    liquidationPoint: 0
+    liquidationPoint: 0,
+    slippage
   }])
 
   useEffect(() => {
@@ -195,13 +197,34 @@ const SecureAsset = ({asset, setSecuring}) => {
   const secure = async () => {
     setProcessing(true)
     let invalidConditions = false
+    const assetToConvert = [{contract_address: asset.contract_address, contract_decimals: asset.contract_decimals, tokensSupplied: tokens.toString()}]
+    // @ts-ignore
+    for (const [index, condition] of liquidationConditions.entries()) {
+      const desiredAsset = [{
+        contract_address: condition.convertTo.contract_address,
+        percentage: 100,
+        minOut: 0,
+        contract_decimals: condition.convertTo.contract_decimals
+      }]
+      const {wantedAssets} = await getAmountsOut(contracts, signer, assetToConvert, desiredAsset)
+      const expectedUsdOut = wantedAssets[0].value
+      const slippage = 100*(+currentUsd-expectedUsdOut)/+currentUsd
+      if (slippage>condition.slippage+0.2) {
+        setError(`Calculated slippage for condition ${index+1} was ${slippage.toFixed(3)}% which is too close to the input slippage.
+        Please increase the slippage tolerance to ${condition.slippage+0.2} or greater`)
+        onOpen()
+        setProcessing(false)
+        return
+      }
+    }
     const formattedConditions = liquidationConditions.map((condition, index) => {
       try {
         return {
           watchedToken: condition.watchedAsset.contract_address,
           liquidateTo: condition.convertTo.contract_address,
           lessThan: condition.lessThan,
-          liquidationPoint: ethers.utils.parseUnits(condition.liquidationPoint.toString(), 18)
+          liquidationPoint: ethers.utils.parseUnits(condition.liquidationPoint.toString(), 18),
+          slippage: ethers.utils.parseUnits((condition.slippage/100).toString(), 18)
         }
       } catch {
         invalidConditions = true

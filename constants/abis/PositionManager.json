@@ -118,6 +118,11 @@
             "internalType": "uint256",
             "name": "liquidationPoint",
             "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "slippage",
+            "type": "uint256"
           }
         ],
         "indexed": false,
@@ -260,6 +265,11 @@
             "internalType": "uint256",
             "name": "liquidationPoint",
             "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "slippage",
+            "type": "uint256"
           }
         ],
         "indexed": false,
@@ -362,6 +372,11 @@
           {
             "internalType": "uint256",
             "name": "liquidationPoint",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "slippage",
             "type": "uint256"
           }
         ],
@@ -516,16 +531,35 @@
         "internalType": "struct Conversion[]",
         "name": "conversions",
         "type": "tuple[]"
-      },
-      {
-        "internalType": "uint256",
-        "name": "minAmountOut",
-        "type": "uint256"
       }
     ],
     "name": "botLiquidate",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "positionId",
+        "type": "uint256"
+      }
+    ],
+    "name": "checkLiquidate",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "index",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "liquidate",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -598,6 +632,11 @@
               {
                 "internalType": "uint256",
                 "name": "liquidationPoint",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "slippage",
                 "type": "uint256"
               }
             ],
@@ -926,6 +965,11 @@
                   {
                     "internalType": "uint256",
                     "name": "liquidationPoint",
+                    "type": "uint256"
+                  },
+                  {
+                    "internalType": "uint256",
+                    "name": "slippage",
                     "type": "uint256"
                   }
                 ],

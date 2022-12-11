@@ -366,7 +366,6 @@ const ConvertTo = ({usdSupplied, wantedAssets, updateWantedAssets}) => {
 }
 
 const UniversalSwap = () => {
-  const {colorMode} = useColorMode()
   const [assetsToConvert, setAssetsToConvert] = useState([{usdcValue:0, tokensSupplied:0}])
   const [wantedAssets, setWantedAssets] = useState([{percentage: 100, expected:0, minOut:0, price:0}])
   const updateWantedAssets = (assets) => {

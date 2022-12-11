@@ -12,11 +12,9 @@ export const depositNew = async (contracts, signer, position, asset) => {
     if (currentApproval<position.amount) {
       await contract.approve(contracts.positionManager.address, position.amount)
     }
-    tx = await contracts.positionManager["deposit((address,uint256,uint256,uint256,(address,address,bool,uint256)[]),address[],uint256[])"]
-    (position, [asset.contract_address], [position.amount])
+    tx = await contracts.positionManager.deposit(position, [asset.contract_address], [position.amount])
   } else {
-    tx = await contracts.positionManager["deposit((address,uint256,uint256,uint256,(address,address,bool,uint256)[]),address[],uint256[])"]
-    (position, [], [], {value: position.amount})
+    tx = await contracts.positionManager.deposit(position, [], [], {value: position.amount})
   }
   return tx.hash
 }

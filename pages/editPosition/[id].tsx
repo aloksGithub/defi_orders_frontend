@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from 'next/router'
 import { useWeb3React } from "@web3-react/core";
 import { ethers } from "ethers";
-import { fetchPosition } from "../../contractCalls/dataFetching";
+import { fetchPosition, getAmountsOut } from "../../contractCalls/dataFetching";
 import { depositAgain, close, withdraw, adjustLiquidationPoints } from "../../contractCalls/transactions";
 import LiquidationConditions from "../../components/LiquidationConditions";
 import { SupplyAssets } from "../../components/selectAssets";
@@ -40,7 +40,7 @@ const WithdrawModal = ({position, refreshData, closeSelf, onReload, loading}) =>
       successModal("Withdrawal Successful", 
         <Text>
           Assets were withdrawn successfully, 
-          View <a href={getBlockExplorerUrlTransaction(chainId, hash)} target="_blank" rel="noopener noreferrer"><Text as='u' textColor={'blue'}>transaction</Text></a>
+          View <a href={getBlockExplorerUrlTransaction(chainId, hash)} target="_blank" rel="noopener noreferrer"><Text as='u' textColor={'blue.500'}>transaction</Text></a>
           &nbsp;on block explorer.
         </Text>
       )
@@ -108,7 +108,7 @@ const DepositModal = ({position, refreshData, closeSelf}) => {
       successModal("Deposit Successful", 
         <Text>
           Asset was deposited successfully, 
-          View <a href={getBlockExplorerUrlTransaction(chainId, hash)} target="_blank" rel="noopener noreferrer"><Text as='u' textColor={'blue'}>transaction</Text></a>
+          View <a href={getBlockExplorerUrlTransaction(chainId, hash)} target="_blank" rel="noopener noreferrer"><Text as='u' textColor={'blue.500'}>transaction</Text></a>
           &nbsp;on block explorer.
         </Text>
       )
@@ -135,6 +135,7 @@ const DepositModal = ({position, refreshData, closeSelf}) => {
 const EditPosition = () => {
   const {contracts, chainId, supportedAssets, onError, successModal} = useAppContext()
   const {provider, account} = useWeb3React()
+  const signer = provider.getSigner(account)
   const router = useRouter()
   const { id } = router.query
   // const position = userPositions?.find((position)=>position.positionId.toString()===id)
@@ -200,7 +201,8 @@ const EditPosition = () => {
         const convertTo = allAssets.find((asset:any)=>asset.contract_address===point.liquidateTo.toLowerCase())
         const lessThan = point.lessThan
         const liquidationPoint = ethers.utils.formatUnits(point.liquidationPoint.toString(), 18)
-        return {watchedAsset, convertTo, lessThan, liquidationPoint, price}
+        const slippage = +ethers.utils.formatUnits(point.slippage, 18)*100
+        return {watchedAsset, convertTo, lessThan, liquidationPoint, price, slippage}
       })
       const formattedLiquidationPoints = await Promise.all(promises)
       setInitialLiquidationPoints(JSON.parse(JSON.stringify(formattedLiquidationPoints)))
@@ -225,7 +227,7 @@ const EditPosition = () => {
       successModal("Withdrawal Successful", 
         <Text>
           Assets were withdrawn successfully, 
-          View <a href={getBlockExplorerUrlTransaction(chainId, hash)} target="_blank" rel="noopener noreferrer"><Text as='u' textColor={'blue'}>transaction</Text></a>
+          View <a href={getBlockExplorerUrlTransaction(chainId, hash)} target="_blank" rel="noopener noreferrer"><Text as='u' textColor={'blue.500'}>transaction</Text></a>
           &nbsp;on block explorer.
         </Text>
       )
@@ -236,7 +238,7 @@ const EditPosition = () => {
     })
   }
 
-  const updateConditions = () => {
+  const updateConditions = async () => {
     setAdjusting(true)
     if (wrongUser) {
       setError(`Wrong wallet address connected`)
@@ -251,7 +253,8 @@ const EditPosition = () => {
           watchedToken: condition.watchedAsset.contract_address,
           liquidateTo: condition.convertTo.contract_address,
           lessThan: condition.lessThan,
-          liquidationPoint: ethers.utils.parseUnits(condition.liquidationPoint.toString(), 18)
+          liquidationPoint: ethers.utils.parseUnits(condition.liquidationPoint.toString(), 18),
+          slippage: ethers.utils.parseUnits((condition.slippage/100).toString(), 18)
         }
       } catch (error) {
         console.log(error)
@@ -264,12 +267,36 @@ const EditPosition = () => {
       setAdjusting(false)
       return
     }
+    const assetToConvert = [{
+      contract_address: position.tokenContract,
+      contract_decimals: position.decimals,
+      tokensSupplied: position?.positionData.amountDecimal.toString()
+    }]
+    // @ts-ignore
+    for (const [index, condition] of liquidationConditions.entries()) {
+      const desiredAsset = [{
+        contract_address: condition.convertTo.contract_address,
+        percentage: 100,
+        minOut: 0,
+        contract_decimals: condition.convertTo.contract_decimals
+      }]
+      const {wantedAssets} = await getAmountsOut(contracts, signer, assetToConvert, desiredAsset)
+      const expectedUsdOut = wantedAssets[0].value
+      const slippage = 100*(+position.usdcValue-expectedUsdOut)/+position.usdcValue
+      if (slippage>condition.slippage+0.2) {
+        setError(`Calculated slippage for condition ${index+1} was ${slippage.toFixed(3)}% which is too close to the input slippage.
+        Please increase the slippage tolerance to ${condition.slippage+0.2} or greater`)
+        openError()
+        setAdjusting(false)
+        return
+      }
+    }
     adjustLiquidationPoints(contracts, id, formattedConditions).then((hash) => {
       setAdjusting(false)
       successModal("Update Successful", 
         <Text>
           Liquidation conditions updated, 
-          View <a href={getBlockExplorerUrlTransaction(chainId, hash)} target="_blank" rel="noopener noreferrer"><Text as='u' textColor={'blue'}>transaction</Text></a>
+          View <a href={getBlockExplorerUrlTransaction(chainId, hash)} target="_blank" rel="noopener noreferrer"><Text as='u' textColor={'blue.500'}>transaction</Text></a>
           &nbsp;on block explorer.
         </Text>
       )

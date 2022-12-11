@@ -1,5 +1,5 @@
 import { AddIcon, DeleteIcon } from "@chakra-ui/icons"
-import { Text, Flex, NumberInput, NumberInputField, Button, Box, IconButton, Skeleton, useColorModeValue } from "@chakra-ui/react"
+import { Text, Flex, NumberInput, NumberInputField, Button, Box, IconButton, Skeleton, useColorModeValue, Grid, GridItem } from "@chakra-ui/react"
 import { ethers } from "ethers"
 import { useEffect, useState } from "react"
 import { useAppContext } from "./Provider"
@@ -8,8 +8,11 @@ import { getPrice } from "../utils";
 import { Reload } from "./Reload";
 import { level2 } from "./Theme"
 
-const Condition = ({i, condition, setWatchedAsset, setConvertTo, removeAsset, setLiquidationPoint, loading}) => {
+const Condition = ({i, condition, setWatchedAsset, setConvertTo, removeAsset, setLiquidationPoint, setSlippage, loading}) => {
   const {supportedAssets} = useAppContext()
+
+  const parseSlippage = (val) => val.replace(/^\%/, '')
+  const formatSlippage = (val) => val+`%`
   // Need to remove network token as in the contracts, the network token and the position are both referred to with the zero address
   // @ts-ignore
   const withoutNetworkToken = supportedAssets?.ERC20?.filter(asset=>asset.contract_address!=ethers.constants.AddressZero)
@@ -28,8 +31,10 @@ const Condition = ({i, condition, setWatchedAsset, setConvertTo, removeAsset, se
   }
 
   return (
-    <Flex marginBlock={'2'} padding={'4'} borderRadius={'2xl'} backgroundColor={useColorModeValue(...level2)} justifyContent='space-between' minWidth={'400px'} width={'100%'}>
-      <Box marginBlock={'auto'}>
+    <Grid marginBlock={'2'} padding={'4'} gap='4' borderRadius={'2xl'} backgroundColor={useColorModeValue(...level2)}
+    overflowX={'auto'}
+    width={'100%'} gridTemplateColumns='1.5fr 2fr 2fr 0.5fr'>
+      <GridItem marginBlock={'auto'}>
         <Flex mb={'4'}>
           {/* @ts-ignore */}
           <SelectAsset asset={condition.watchedAsset} onSelect={setWatchedAsset} assets={[self, ...(withoutNetworkToken||[])]} placeHolder={'Watched price'}/>
@@ -38,34 +43,39 @@ const Condition = ({i, condition, setWatchedAsset, setConvertTo, removeAsset, se
           {/* @ts-ignore */}
           <SelectAsset asset={condition.convertTo} onSelect={onSelectConvertTo} assets={supportedAssets.ERC20} placeHolder={'liquidate To'}/>
         </Flex>
-      </Box>
-      <Flex>
-        <Flex justifyContent={'center'} alignItems={'end'} flexDirection={'column'} mr={'4'}>
-          <Text mb={'2'} as='b'>Liquidate at price</Text>
-          <NumberInput value={condition.liquidationPoint||'0'} width={'40'}
-          onChange={(valueAsNumber)=>setLiquidationPoint(valueAsNumber)}>
-            <NumberInputField backgroundColor={useColorModeValue('white', 'gray.800')}></NumberInputField>
-          </NumberInput>
-          <Flex>
-          <Text>Current Price:&nbsp;</Text>
-          {
-            !loading?<Text>${(+(condition.price)||0).toFixed(3)}</Text>:<Skeleton><Text>TEMP</Text></Skeleton>
-          }
-          </Flex>
+      </GridItem>
+      <GridItem display={'flex'} flexDirection='column'>
+        <Text mb={'2'} as='b'>Slippage</Text>
+        <NumberInput minWidth={'100'} width={'90%'}
+         min={0} max={100} onChange={(valueString)=>setSlippage(parseSlippage(valueString))} value={formatSlippage(condition.slippage)}>
+          <NumberInputField paddingInline='4' backgroundColor={useColorModeValue('white', 'gray.800')}></NumberInputField>
+        </NumberInput>
+      </GridItem>
+      <GridItem display={'flex'} justifyContent={'center'} flexDirection={'column'} mr={'4'}>
+        <Text mb={'2'} as='b'>Price limit</Text>
+        <NumberInput mb={'2'} value={condition.liquidationPoint||'0'} width={'90%'} minWidth={'100'}
+        onChange={(valueAsNumber)=>setLiquidationPoint(valueAsNumber)}>
+          <NumberInputField paddingInline='4' backgroundColor={useColorModeValue('white', 'gray.800')}></NumberInputField>
+        </NumberInput>
+        <Flex>
+        <Text>Price:&nbsp;</Text>
+        {
+          !loading?<Text>${(+(condition.price)||0).toFixed(3)}</Text>:<Skeleton><Text>TEMP</Text></Skeleton>
+        }
         </Flex>
-        <Flex alignItems={'center'} paddingBlock={'8'} pl={'3'} borderLeft={'1px'} borderColor={useColorModeValue('white', 'gray.800')}>
-          <Text textAlign={'center'} borderRadius={'lg'} width={'2rem'} padding={'1'}
-          onClick={()=>removeAsset(i)}
-          _hover={{cursor: 'pointer', backgroundColor: 'red.400'}} backgroundColor='red.300'><DeleteIcon/></Text>
-        </Flex>
-      </Flex>
-    </Flex>
+      </GridItem>
+      <GridItem display={'flex'} alignItems={'center'} paddingBlock={'8'} pl={'3'} borderLeft={'1px'} borderColor={useColorModeValue('white', 'gray.800')}>
+        <Text textAlign={'center'} borderRadius={'lg'} width={'2rem'} padding={'1'}
+        onClick={()=>removeAsset(i)}
+        _hover={{cursor: 'pointer', backgroundColor: 'red.400'}} backgroundColor='red.300'><DeleteIcon/></Text>
+      </GridItem>
+    </Grid>
   )
 }
 
   // @ts-ignore
 const LiquidationConditions = ({assetPrice, initialLiquidationPoints=undefined, liquidationPoints, onChangeConditions, resetFlag, onReload, loading}) => {
-  const {chainId} = useAppContext()
+  const {chainId, slippageControl: {slippage}} = useAppContext()
   
   const [initialized, setInitialized] = useState(false)
   const [loadingPrices, setLoadingPrices] = useState(Array(liquidationPoints?.length || 0).fill(false))
@@ -114,7 +124,8 @@ const LiquidationConditions = ({assetPrice, initialLiquidationPoints=undefined, 
       liquidationPoint: 0,
       lessThan: false,
       convertTo: undefined,
-      price: 0
+      price: 0,
+      slippage: slippage
     })
     setLoadingPrices(loadingPrices.concat([false]))
     onChangeConditions(temp)
@@ -171,11 +182,16 @@ const LiquidationConditions = ({assetPrice, initialLiquidationPoints=undefined, 
     }
     onChangeConditions(temp)
   }
-  console.log(loading, loadingPrices)
+
+  const setSlippage = (index, slippage:number) => {
+    const temp = [...liquidationPoints]
+    temp[index].slippage = slippage
+    onChangeConditions(temp)
+  }
 
   return (
     <Box marginTop={'5'} width={'100%'}>
-      <Box margin={'auto'} maxWidth='500px' overflowX={'auto'}>
+      <Box margin={'auto'}>
         <Flex justifyContent={'end'}>
           <Reload onReload={reload} loading={loading}/>
           <IconButton ml={'2'} color='white' bgColor={useColorModeValue('blue.500', 'blue.600')}
@@ -193,6 +209,7 @@ const LiquidationConditions = ({assetPrice, initialLiquidationPoints=undefined, 
               setWatchedAsset={(asset)=>setWatchedAsset(index, asset)}
               removeAsset={()=>removeCondition(index)}
               setLiquidationPoint={(point)=>setLiquidationPoint(index, point)}
+              setSlippage={(slippage)=>setSlippage(index, slippage)}
               loading={loading || loadingPrices[index]}/>
           )}):<Skeleton minWidth={'500px'} height='140' marginBlock={'2'} padding={'4'} borderRadius={'2xl'}></Skeleton>
         }
