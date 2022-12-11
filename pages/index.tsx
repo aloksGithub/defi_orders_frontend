@@ -26,7 +26,7 @@ import { FancyButton, PrimaryButton, SecondaryButton } from '../components/Butto
 import { useRouter } from "next/router";
 import { getAmountsOut } from '../contractCalls/dataFetching'
 import { getBlockExplorerUrlTransaction } from '../utils'
-import { level1, level2 } from '../components/Theme'
+import { level1, level2, level3 } from '../components/Theme'
 
   // @ts-ignore
 const TickPicker = forwardRef(({pool, usdSupplied}, _ref) => {
@@ -502,7 +502,7 @@ const UniversalSwap = () => {
           bg='blackAlpha.300'
           backdropFilter='blur(10px)'
         />
-        <ModalContent>
+        <ModalContent bgColor={useColorModeValue(...level1)}>
           <ModalHeader>
             <Flex alignItems={'center'}>
               <Text fontSize={'2xl'} ml={'4'}>Preview</Text>
@@ -515,16 +515,15 @@ const UniversalSwap = () => {
               {
                 swapData?.expectedAssets.map((asset) => {
                   return (
-                    <Flex backgroundColor={'gray.100'} alignItems={'center'} justifyContent={'space-between'} marginBlock={'4'} padding='4' borderRadius={'2xl'}>
+                    <Flex backgroundColor={useColorModeValue(...level2)} alignItems={'center'} justifyContent={'space-between'} marginBlock={'4'} padding='4' borderRadius={'2xl'}>
                       <Flex width={'40%'} alignItems={'center'}>
                         <img src={asset.logo_url} style={{width: "20px", height: "20px", borderRadius:'15px'}}/>
                         <Text fontSize={'l'} pl={'2'}>{asset.contract_name}</Text>
                       </Flex>
                       <Box width={'60%'} textAlign={'end'}>
                         <Tooltip hasArrow label={asset.minOut>asset.amount?'Increase slippage':''}>
-                        <Text textColor={asset.minOut>asset.amount?'red':'black'}><Text as='b'>Expected: </Text>{nFormatter(asset.amount, 5)}</Text>
+                        <Text textColor={asset.minOut>asset.amount?useColorModeValue('red', 'red.400'):useColorModeValue('black', 'white')}><Text as='b'>Expected: </Text>{nFormatter(asset.amount, 5)}</Text>
                         </Tooltip>
-                        <Text><Text as='b'>Minimum: </Text>{nFormatter(asset.minOut, 5)}</Text>
                         <Text><Text as='b'>USD: </Text> ${nFormatter(asset.value, 2)}</Text>
                       </Box>
                     </Flex>
@@ -550,7 +549,7 @@ const UniversalSwap = () => {
           bg='blackAlpha.300'
           backdropFilter='blur(10px)'
         />
-        <ModalContent>
+        <ModalContent bgColor={useColorModeValue(...level1)}>
           <ModalHeader>
             <Flex alignItems={'center'}>
               <Text fontSize={'2xl'} textAlign={'center'}>Assets Obtained</Text>
@@ -562,7 +561,7 @@ const UniversalSwap = () => {
               <Text paddingInline='4'>
                 Assets worth ${nFormatter(obtainedAssets?.reduce((a, b)=>a+(+b.value), 0), 3)} were obtained from the transaction.
                 View <a href={getBlockExplorerUrlTransaction(chainId, hash)} target="_blank" rel="noopener noreferrer">
-                  <Text color={'blue'} as='u'>
+                  <Text color={'blue.500'} as='u'>
                     Transaction
                   </Text>
                 </a> on block explorer
@@ -570,7 +569,7 @@ const UniversalSwap = () => {
               {
                 obtainedAssets?.map((asset) => {
                   return (
-                    <Flex backgroundColor={'gray.100'} alignItems={'center'} justifyContent={'space-between'} marginBlock={'4'} padding='4' borderRadius={'2xl'}>
+                    <Flex backgroundColor={useColorModeValue(...level2)} alignItems={'center'} justifyContent={'space-between'} marginBlock={'4'} padding='4' borderRadius={'2xl'}>
                       <Flex width={'40%'} alignItems={'center'}>
                         <img src={asset.logo_url} style={{width: "20px", height: "20px", borderRadius:'15px'}}/>
                         <Text pl={'2'}>{asset.contract_name}</Text>

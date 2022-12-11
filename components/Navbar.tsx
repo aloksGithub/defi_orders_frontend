@@ -39,6 +39,7 @@ import Link from 'next/link';
 import {CSSTransition} from 'react-transition-group'
 import {FaWallet} from 'react-icons/fa'
 import { level0 } from './Theme';
+import { PrimaryButton } from './Buttons';
 
 const Links = [
   {
@@ -289,7 +290,7 @@ export function Navbar() {
             </Flex>
           </ModalBody>
           <ModalFooter>
-          <Button onClick={confirmSlippage} paddingInline={'10'} colorScheme='blue' rounded={'full'}>Ok</Button>
+          <PrimaryButton onClick={confirmSlippage} paddingInline={'10'}>Ok</PrimaryButton>
           </ModalFooter>
         </ModalContent>
       </Modal>

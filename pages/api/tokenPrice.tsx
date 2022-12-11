@@ -21,7 +21,7 @@ const getPriceCovalent = async (chainId:number, address:string) => {
 
 const chainStableTokens = {}
 
-const getPriceUniversalSwap = async (chainId:number, address:string) => {
+export const getPriceUniversalSwap = async (chainId:number, address:string) => {
   const prod = process.env.NEXT_PUBLIC_CURRENTLY_FORKING==='0'
   const provider = new ethers.providers.JsonRpcProvider(prod?process.env[chainId]:'http://127.0.0.1:8545/')
   const universalSwapAddress = prod?deploymentAddresses[chainId].universalSwap:deploymentAddresses["1337"].universalSwap

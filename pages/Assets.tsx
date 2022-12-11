@@ -147,8 +147,6 @@ const SecureAsset = ({asset, setSecuring}) => {
     lessThan: false,
     liquidationPoint: 0
   }])
-  const router = useRouter()
-  console.log(selectedBank)
 
   useEffect(() => {
     setCurrentUsd((asset?.quote*tokens/(asset?.balance/10**asset?.contract_decimals)||0).toFixed(3))
@@ -156,12 +154,10 @@ const SecureAsset = ({asset, setSecuring}) => {
 
   useEffect(() => {
     const getBanks = async () => {
-      console.log("getting bank")
       if (!contracts?.positionManager) {
         return
       }
       const [bankIds, bankNames, tokenIds] = await contracts.positionManager.recommendBank(asset.contract_address)
-      console.log(bankIds)
       selectBank({
         id: bankIds[bankIds.length-1],
         name: bankNames[bankNames.length-1],
@@ -329,8 +325,8 @@ const SecureAsset = ({asset, setSecuring}) => {
           <ModalBody>
             <Text>
               Asset was deposited successfully, 
-              you can view your position <Link href={`/Positions`}><Text color='blue' _hover={{cursor: 'pointer'}} as={'u'}>here</Text></Link>. 
-              View <a href={getBlockExplorerUrlTransaction(chainId, txHash)} target="_blank" rel="noopener noreferrer"><Text as='u' textColor={'blue'}>Transaction</Text></a> on block explorer</Text>
+              you can view your position <Link href={`/Positions`}><Text color='blue.500' _hover={{cursor: 'pointer'}} as={'u'}>here</Text></Link>. 
+              View <a href={getBlockExplorerUrlTransaction(chainId, txHash)} target="_blank" rel="noopener noreferrer"><Text as='u' textColor={'blue.500'}>Transaction</Text></a> on block explorer</Text>
           </ModalBody>
           <ModalFooter>
           </ModalFooter>

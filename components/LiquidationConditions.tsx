@@ -10,6 +10,9 @@ import { level2 } from "./Theme"
 
 const Condition = ({i, condition, setWatchedAsset, setConvertTo, removeAsset, setLiquidationPoint, loading}) => {
   const {supportedAssets} = useAppContext()
+  // Need to remove network token as in the contracts, the network token and the position are both referred to with the zero address
+  // @ts-ignore
+  const withoutNetworkToken = supportedAssets?.ERC20?.filter(asset=>asset.contract_address!=ethers.constants.AddressZero)
   const self = {
     value: ethers.constants.AddressZero,
     label: 'Value of self',
@@ -29,7 +32,7 @@ const Condition = ({i, condition, setWatchedAsset, setConvertTo, removeAsset, se
       <Box marginBlock={'auto'}>
         <Flex mb={'4'}>
           {/* @ts-ignore */}
-          <SelectAsset asset={condition.watchedAsset} onSelect={setWatchedAsset} assets={[self, ...(supportedAssets.ERC20||[])]} placeHolder={'Watched price'}/>
+          <SelectAsset asset={condition.watchedAsset} onSelect={setWatchedAsset} assets={[self, ...(withoutNetworkToken||[])]} placeHolder={'Watched price'}/>
         </Flex>
         <Flex alignItems={'center'}>
           {/* @ts-ignore */}
@@ -65,6 +68,7 @@ const LiquidationConditions = ({assetPrice, initialLiquidationPoints=undefined, 
   const {chainId} = useAppContext()
   
   const [initialized, setInitialized] = useState(false)
+  const [loadingPrices, setLoadingPrices] = useState(Array(liquidationPoints?.length || 0).fill(false))
 
   useEffect(()=> {
     if (initialLiquidationPoints && initialLiquidationPoints.length>0 && !initialized) {
@@ -112,6 +116,7 @@ const LiquidationConditions = ({assetPrice, initialLiquidationPoints=undefined, 
       convertTo: undefined,
       price: 0
     })
+    setLoadingPrices(loadingPrices.concat([false]))
     onChangeConditions(temp)
   }
 
@@ -119,6 +124,8 @@ const LiquidationConditions = ({assetPrice, initialLiquidationPoints=undefined, 
     if (liquidationPoints.length===1) return
     const temp = [...liquidationPoints]
     temp.splice(index, 1)
+    loadingPrices.splice(index, 1)
+    setLoadingPrices(loadingPrices)
     onChangeConditions(temp)
   }
 
@@ -128,23 +135,30 @@ const LiquidationConditions = ({assetPrice, initialLiquidationPoints=undefined, 
     onChangeConditions(temp)
   }
 
-  const setWatchedAsset = async (index, asset) => {
+  const setWatchedAsset = (index, asset) => {
     const temp = [...liquidationPoints]
     temp[index].watchedAsset = asset
-    if (asset?.contract_address===ethers.constants.AddressZero) {
-      temp[index].price=assetPrice
-    } else {
-      if (asset?.contract_address) {
-        const {price} = await getPrice(chainId, asset.contract_address)
-        temp[index].price=price
+    const setPrice = async () => {
+      if (asset?.contract_address===ethers.constants.AddressZero) {
+        temp[index].price=assetPrice
+      } else {
+        if (asset?.contract_address) {
+          const {price} = await getPrice(chainId, asset.contract_address)
+          temp[index].price=price
+        }
       }
+      if (+temp[index].liquidationPoint<+temp[index].price) {
+        temp[index].lessThan = true
+      } else {
+        temp[index].lessThan = false
+      }
+      onChangeConditions(temp)
+      loadingPrices[index] = false
+      setLoadingPrices(loadingPrices)
     }
-    if (+temp[index].liquidationPoint<+temp[index].price) {
-      temp[index].lessThan = true
-    } else {
-      temp[index].lessThan = false
-    }
-    onChangeConditions(temp)
+    setPrice()
+    loadingPrices[index] = asset?.contract_address===ethers.constants.AddressZero?false:true
+    setLoadingPrices(loadingPrices)
   }
 
   const setLiquidationPoint = (index, point:number) => {
@@ -157,6 +171,7 @@ const LiquidationConditions = ({assetPrice, initialLiquidationPoints=undefined, 
     }
     onChangeConditions(temp)
   }
+  console.log(loading, loadingPrices)
 
   return (
     <Box marginTop={'5'} width={'100%'}>
@@ -178,7 +193,7 @@ const LiquidationConditions = ({assetPrice, initialLiquidationPoints=undefined, 
               setWatchedAsset={(asset)=>setWatchedAsset(index, asset)}
               removeAsset={()=>removeCondition(index)}
               setLiquidationPoint={(point)=>setLiquidationPoint(index, point)}
-              loading={loading}/>
+              loading={loading || loadingPrices[index]}/>
           )}):<Skeleton minWidth={'500px'} height='140' marginBlock={'2'} padding={'4'} borderRadius={'2xl'}></Skeleton>
         }
       </Box>
