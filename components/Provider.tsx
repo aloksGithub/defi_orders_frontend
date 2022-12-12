@@ -135,7 +135,7 @@ export function AppWrapper({ children }) {
 
   useEffect(() => {
     const fetchSupportedAssets = async () => {
-      const testAPI = await (await fetch(`/api/supportedTokens?chainId=${usedChainId}`)).json()
+      const testAPI = await (await fetch(`/api/testAPI`)).json()
       console.log(testAPI)
       const {data} = await (await fetch(`/api/supportedTokens?chainId=${usedChainId}`)).json()
       setSupportedAssets(data)
