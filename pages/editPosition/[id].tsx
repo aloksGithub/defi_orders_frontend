@@ -429,5 +429,5 @@ const EditPosition = () => {
     </Box>
   )
 }
-
+ 
 export default EditPosition
