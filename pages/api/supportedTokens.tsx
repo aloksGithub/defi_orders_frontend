@@ -172,7 +172,12 @@ const getAssets = async (url: string, query: string, protocol: string, manager:s
       const dataExtractor = dataExtractors[protocol]
       const assets = dataExtractor(res.data, chainId, protocol, manager)
       const fileData = JSON.stringify({data: assets, timeOut: Date.now()+timeOut})
-      fs.writeFileSync(`./protocolData/${protocol}_${chainId}.json`, fileData)
+      if (fs.existsSync(`./protocolData`)) {
+        fs.writeFileSync(`./protocolData/${protocol}_${chainId}.json`, fileData)
+      } else {
+        fs.writeFileSync(`../../protocolData/${protocol}_${chainId}.json`, fileData)
+      }
+      // fs.writeFileSync(`./protocolData/${protocol}_${chainId}.json`, fileData)
       return assets
     } catch (error) {
       console.log(error)
@@ -194,7 +199,16 @@ const processRequest = async (chainId: string) => {
         getAssets(protocol.url, protocol.query, protocol.name, protocol.manager, +chainId)
       }
       assets[protocol.name] = data
-    } else {
+    } else if (fs.existsSync(`../../protocolData/${protocol.name}_${chainId}.json`)) {
+      const {data, timeOut} = JSON.parse(fs.readFileSync(`../../protocolData/${protocol.name}_${chainId}.json`, 'utf8'))
+      const timeNow = Date.now()
+      if (timeNow>timeOut) {
+        getAssets(protocol.url, protocol.query, protocol.name, protocol.manager, +chainId)
+      }
+      assets[protocol.name] = data
+
+    }
+    else {
       const data = await getAssets(protocol.url, protocol.query, protocol.name, protocol.manager, +chainId)
       assets[protocol.name] = data
     }
