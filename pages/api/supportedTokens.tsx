@@ -196,13 +196,14 @@ export default async function serverSideCall(req, res) {
     if (data) {
       assets[protocol.name] = data
     } else {
-      if (`${protocol}_${chainId}` in defaultProtocolData) {
-        const data = defaultProtocolData[`${protocol}_${chainId}`]
-        assets[protocol.name] = data
-        getAssets(protocol.url, protocol.query, protocol.name, protocol.manager, +chainId)
-      } else {
-        assets[protocol.name] = await getAssets(protocol.url, protocol.query, protocol.name, protocol.manager, +chainId)
-      }
+      assets[protocol.name] = await getAssets(protocol.url, protocol.query, protocol.name, protocol.manager, +chainId)
+      // if (`${protocol}_${chainId}` in defaultProtocolData) {
+      //   const data = defaultProtocolData[`${protocol}_${chainId}`]
+      //   assets[protocol.name] = data
+      //   getAssets(protocol.url, protocol.query, protocol.name, protocol.manager, +chainId)
+      // } else {
+      //   assets[protocol.name] = await getAssets(protocol.url, protocol.query, protocol.name, protocol.manager, +chainId)
+      // }
     }
   }
   res.status(200).json({
