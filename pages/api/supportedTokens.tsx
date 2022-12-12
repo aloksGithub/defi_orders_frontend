@@ -17,19 +17,6 @@ const getTokenUrl = (chainId:number, token:string) => {
   }
 }
 
-const getPrice = async (chainId:number, address:string) => {
-  for (let i = 0; i<5; i++) {
-    try {
-      const baseUrl = `https://api.covalenthq.com/v1/pricing/historical_by_addresses_v2/${chainId}/USD/${address}/?quote-currency=USD&format=JSON&key=${process.env.COVALENT_KEY}`;
-      const response = await (await fetch (baseUrl)).json();
-      return response
-    } catch (err) {
-      console.log(`Failed attempt ${i} to fetch token price. Error: ${err}`)
-      continue
-    }
-  }
-}
-
 const logos = {
   Pancakeswap: 'https://cryptologos.cc/logos/pancakeswap-cake-logo.svg?v=023',
   Biswap: 'https://cryptologos.cc/logos/biswap-bsw-logo.svg?v=023',
