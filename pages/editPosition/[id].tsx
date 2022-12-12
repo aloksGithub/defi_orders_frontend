@@ -101,7 +101,7 @@ const DepositModal = ({position, refreshData, closeSelf}) => {
   
   const supply = async () => {
     setDepositing(true)
-    depositAgain(contracts,provider.getSigner(account), position, assetsToConvert, chainId, slippage).then((hash)=>{
+    depositAgain(contracts,provider?.getSigner(account), position, assetsToConvert, chainId, slippage).then((hash)=>{
       setDepositing(false)
       refreshData()
       closeSelf()
@@ -135,7 +135,7 @@ const DepositModal = ({position, refreshData, closeSelf}) => {
 const EditPosition = () => {
   const {contracts, chainId, supportedAssets, onError, successModal} = useAppContext()
   const {provider, account} = useWeb3React()
-  const signer = provider.getSigner(account)
+  const signer = provider?.getSigner(account)
   const router = useRouter()
   const { id } = router.query
   // const position = userPositions?.find((position)=>position.positionId.toString()===id)
@@ -167,7 +167,7 @@ const EditPosition = () => {
   useEffect(() => {
     const fetch = async () => {
       // @ts-ignore
-      const position = await fetchPosition(parseInt(id), contracts, provider.getSigner(account), chainId)
+      const position = await fetchPosition(parseInt(id), contracts, provider?.getSigner(account), chainId)
       setPosition(position)
       setLoading(false)
     }
