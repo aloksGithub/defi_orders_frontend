@@ -5,6 +5,9 @@ import {Network} from "@web3-react/network";
 import {WalletConnect} from "@web3-react/walletconnect";
 import type {Connector} from "@web3-react/types";
 import { ethers } from "ethers";
+import bswPools from './protocolData/Biswap_56.json'
+import erc20Tokens from './protocolData/ERC20_56.json'
+import venusPools from './protocolData/Venus_56.json'
 
 export function getName(connector: Connector) {
   if (connector instanceof MetaMask) return "MetaMask";
@@ -171,4 +174,10 @@ export const nativeTokens = {
     underlying: [],
     logo_url: chainLogos[250]
   },
+}
+
+export const defaultProtocolData = {
+  Biswap_56: bswPools,
+  ERC20_56: erc20Tokens,
+  Venus_56: venusPools
 }

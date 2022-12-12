@@ -1,6 +1,7 @@
 import supportedProtocols from '../../constants/supportedProtocols.json'
-import { chainLogos, getLogoUrl, nativeTokens } from "../../utils";
-const fs = require('fs');
+import { defaultProtocolData } from '../../utils'
+import { getLogoUrl, nativeTokens } from "../../utils";
+var cache = require('memory-cache');
 
 const getTokenUrl = (chainId:number, token:string) => {
   const defaultUrl = `https://logos.covalenthq.com/tokens/${chainId}/${token}.png`
@@ -161,6 +162,8 @@ const dataExtractors = {
   'AAVE': dataExtractorAAVE
 }
 
+const timeOut = 1000*60*60*24 // Expire cahced supported assets after a day
+
 const getAssets = async (url: string, query: string, protocol: string, manager:string, chainId:number) => {
   for (let i =0; i<5; i++) {
     try {
@@ -171,56 +174,37 @@ const getAssets = async (url: string, query: string, protocol: string, manager:s
       })).json()
       const dataExtractor = dataExtractors[protocol]
       const assets = dataExtractor(res.data, chainId, protocol, manager)
-      const fileData = JSON.stringify({data: assets, timeOut: Date.now()+timeOut})
-      if (fs.existsSync(`./protocolData`)) {
-        fs.writeFileSync(`./protocolData/${protocol}_${chainId}.json`, fileData)
-      } else {
-        fs.writeFileSync(`../../protocolData/${protocol}_${chainId}.json`, fileData)
-      }
-      // fs.writeFileSync(`./protocolData/${protocol}_${chainId}.json`, fileData)
+      cache.put(`${protocol}_${chainId}`, assets, timeOut, function (key, value){getAssets(url, query, protocol, manager, chainId)})
       return assets
     } catch (error) {
-      console.log(error)
       continue
     }
   }
-}
-
-const timeOut = 1000*60*60*24 // Expire cahced supported assets after a day
-
-const processRequest = async (chainId: string) => {
-  const protocols = supportedProtocols[chainId]
-  const assets = {}
-  for (const protocol of protocols) {
-    if (fs.existsSync(`./protocolData/${protocol.name}_${chainId}.json`)) {
-      const {data, timeOut} = JSON.parse(fs.readFileSync(`./protocolData/${protocol.name}_${chainId}.json`, 'utf8'))
-      const timeNow = Date.now()
-      if (timeNow>timeOut) {
-        getAssets(protocol.url, protocol.query, protocol.name, protocol.manager, +chainId)
-      }
-      assets[protocol.name] = data
-    } else if (fs.existsSync(`../../protocolData/${protocol.name}_${chainId}.json`)) {
-      const {data, timeOut} = JSON.parse(fs.readFileSync(`../../protocolData/${protocol.name}_${chainId}.json`, 'utf8'))
-      const timeNow = Date.now()
-      if (timeNow>timeOut) {
-        getAssets(protocol.url, protocol.query, protocol.name, protocol.manager, +chainId)
-      }
-      assets[protocol.name] = data
-
-    }
-    else {
-      const data = await getAssets(protocol.url, protocol.query, protocol.name, protocol.manager, +chainId)
-      assets[protocol.name] = data
-    }
-  }
-  return assets
+  const data = defaultProtocolData[`${protocol}_${chainId}`]
+  cache.put(`${protocol}_${chainId}`, data, timeOut, function (key, value){getAssets(url, query, protocol, manager, chainId)})
+  return data
 }
 
 export default async function serverSideCall(req, res) {
   const {
     query: { chainId },
   } = req;
-  const assets = await processRequest(chainId)
+  const protocols = supportedProtocols[chainId]
+  const assets = {}
+  for (const protocol of protocols) {
+    const data = cache.get(`${protocol.name}_${chainId}`)
+    if (data) {
+      assets[protocol.name] = data
+    } else {
+      if (`${protocol}_${chainId}` in defaultProtocolData) {
+        const data = defaultProtocolData[`${protocol}_${chainId}`]
+        assets[protocol.name] = data
+        getAssets(protocol.url, protocol.query, protocol.name, protocol.manager, +chainId)
+      } else {
+        assets[protocol.name] = await getAssets(protocol.url, protocol.query, protocol.name, protocol.manager, +chainId)
+      }
+    }
+  }
   res.status(200).json({
     data: assets,
   })

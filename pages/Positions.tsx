@@ -1,6 +1,6 @@
 import { useWeb3React } from "@web3-react/core";
 import { useAppContext } from "../components/Provider"
-import { Box, Flex, Table, TableContainer, Tbody, Th, Thead, Tr, Text, Td, Button, Center, Heading, Stack, useColorModeValue, SkeletonText, Skeleton, HStack, VStack } from "@chakra-ui/react";
+import { Box, Flex, Table, TableContainer, Tbody, Th, Thead, Tr, Text, Td, Button, Center, Heading, Stack, useColorModeValue, SkeletonText, Skeleton, HStack, VStack, Image } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import Link from 'next/link';
 import { Pagination } from "../components/Pagination";
@@ -132,7 +132,7 @@ const Card = ({id}) => {
         <Flex mb={'3'} pb={'3'} justifyContent={'center'} alignItems={'center'}>
           {
             asset?
-          <Flex><img src={asset.logo_url} style={{width: "30px", height: "30px"}}/>
+          <Flex><Image src={asset.logo_url} fallbackSrc='https://www.svgrepo.com/show/99387/dollar.svg' style={{width: "30px", height: "30px"}}/>
           <a href={getBlockExplorerUrl(chainId, asset.contract_address)} target="_blank" rel="noopener noreferrer">
           <Heading _hover={{color: 'blue.500'}} ml={'3'} fontSize={'xl'}>
           {asset.contract_ticker_symbol}
@@ -183,7 +183,8 @@ const Card = ({id}) => {
             right='24px' left='0px' boxShadow={expandRewards?'xl':'none'} sx={{'transition': '0.4s'}}>
               {
                 rewards?.map(reward=> <Flex>
-                  <img src={reward.logo_url} style={{width: "20px", height: "20px", borderRadius: '15px'}}/>
+                  <Image src={reward.logo_url} fallbackSrc='https://www.svgrepo.com/show/99387/dollar.svg'
+                  style={{width: "20px", height: "20px", borderRadius: '15px'}}/>
                   <a href={getBlockExplorerUrl(chainId, reward.contract_address)} target="_blank" rel="noopener noreferrer">
                   <Text _hover={{color: 'blue.500', cursor: 'pointer'}} display={'flex'} alignItems={'center'} ml={'2'} mr={'1'}>
                     {reward.contract_ticker_symbol}

@@ -1,5 +1,5 @@
 import { DeleteIcon, AddIcon } from "@chakra-ui/icons";
-import { useDisclosure, IconButton, Flex, Text, NumberInput, NumberInputField, Button, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, Box, Input, Skeleton, useColorModeValue } from "@chakra-ui/react";
+import { useDisclosure, IconButton, Image, Flex, Text, NumberInput, NumberInputField, Button, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, Box, Input, Skeleton, useColorModeValue } from "@chakra-ui/react";
 import { ethers } from "ethers";
 import { useState, useEffect, useRef } from "react"
 import { useAppContext } from "./Provider";
@@ -53,7 +53,7 @@ export const SelectAsset = ({assets, asset, onSelect, placeHolder='Select'}) => 
         paddingInline='2' paddingBlock={'1'} borderRadius={'2xl'}>
         {
           asset?.contract_ticker_symbol?<>
-          &nbsp;&nbsp;<img  src={asset.logo_url} style={{width: "20px", height: "20px", borderRadius:'15px'}}/>
+          &nbsp;&nbsp;<Image src={asset.logo_url} w='20px' h='20px' borderRadius={'15px'} fallbackSrc='https://www.svgrepo.com/show/99387/dollar.svg'/>
           <Text ml={'3'} fontSize={'l'}>{asset.contract_ticker_symbol} <ChevronDownIcon/></Text>
           </>:<Text fontSize={'l'}>&nbsp;&nbsp;{placeHolder}<ChevronDownIcon/></Text>
         }
@@ -78,7 +78,8 @@ export const SelectAsset = ({assets, asset, onSelect, placeHolder='Select'}) => 
                   ref={chosenOne?ref:undefined}
                   backgroundColor={chosenOne?useColorModeValue(...level2):useColorModeValue(...level1)} padding='2'
                   onClick={()=>onSelected(selectableAsset)}>
-                    <img src={selectableAsset.logo_url} style={{width: "20px", height: "20px", borderRadius:'15px'}}/>
+                    <Image src={selectableAsset.logo_url} w='20px' h='20px' borderRadius={'15px'}
+                    fallbackSrc='https://www.svgrepo.com/show/99387/dollar.svg'/>
                     <Text ml={'3'}>{selectableAsset.contract_name}</Text>
                   </Flex>
                 )

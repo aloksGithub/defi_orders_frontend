@@ -3,7 +3,7 @@ import pairAbi from "../../constants/abis/IUniswapV2Pair.json"
 import universalSwapAbi from "../../constants/abis/UniversalSwap.json"
 import erc20Abi from "../../constants/abis/ERC20.json"
 import deploymentAddresses from "../../constants/deployments.json"
-const fs = require('fs');
+var cache = require('memory-cache');
 
 
 const getPriceCovalent = async (chainId:number, address:string) => {
@@ -40,14 +40,15 @@ export const getPriceUniversalSwap = async (chainId:number, address:string) => {
 
 export const fetchTokenDetails = (chainId, address) => {
   let foundAsset
-  fs.readdirSync(`./protocolData`).forEach(file => {
-    const fileChain = file.split('.')[0].split('_')[1]
-    if (+fileChain===+chainId) {
-      const {data} = JSON.parse(fs.readFileSync(`./protocolData/${file}`, 'utf8'))
+  const keys = cache.keys()
+  for (const key in keys) {
+    const data = cache.get(key)
+    const keyChain = key.split('_')[1]
+    if (+keyChain===+chainId) {
       const asset = data.find(asset=>asset.contract_address.toLowerCase()===address.toLowerCase())
       if (asset) foundAsset = asset
     }
-  })
+  }
   return foundAsset
 }
 

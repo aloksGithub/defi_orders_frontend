@@ -22,6 +22,7 @@ import {
   ModalFooter,
   Skeleton,
   Tooltip,
+  Image,
 } from '@chakra-ui/react'
 import { useEffect, useState, useRef } from "react"
 import { ArrowBackIcon, CheckCircleIcon } from "@chakra-ui/icons"
@@ -56,7 +57,7 @@ const Card = ({asset, index, setSecuring}) => {
         p={6}
         textAlign={'center'}>
         <Flex mb={'3'} pb={'3'} justifyContent={'center'} alignItems={'center'}>
-        <img src={asset.logo_url} style={{width: "30px", height: "30px"}}/>
+        <Image src={asset.logo_url} fallbackSrc='https://www.svgrepo.com/show/99387/dollar.svg' style={{width: "30px", height: "30px"}}/>
         <a href={getBlockExplorerUrl(chainId, asset.contract_address)} target="_blank" rel="noopener noreferrer">
         <Heading _hover={{color: 'blue.500'}} ml={'3'} fontSize={'xl'}>
         {asset.contract_ticker_symbol}

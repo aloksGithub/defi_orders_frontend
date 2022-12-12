@@ -8,7 +8,7 @@ import {
   Flex,
   Box,
   Tooltip,
-  useDisclosure, NumberDecrementStepper, NumberIncrementStepper, NumberInputStepper, Skeleton, Input, Grid, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, IconButton, useColorMode, useColorModeValue
+  useDisclosure, NumberDecrementStepper, NumberIncrementStepper, NumberInputStepper, Skeleton, Input, Grid, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, IconButton, useColorMode, useColorModeValue, Image
 } from '@chakra-ui/react'
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { useWeb3React } from '@web3-react/core'
@@ -516,7 +516,7 @@ const UniversalSwap = () => {
                   return (
                     <Flex backgroundColor={useColorModeValue(...level2)} alignItems={'center'} justifyContent={'space-between'} marginBlock={'4'} padding='4' borderRadius={'2xl'}>
                       <Flex width={'40%'} alignItems={'center'}>
-                        <img src={asset.logo_url} style={{width: "20px", height: "20px", borderRadius:'15px'}}/>
+                        <Image src={asset.logo_url} fallbackSrc='https://www.svgrepo.com/show/99387/dollar.svg' style={{width: "20px", height: "20px", borderRadius:'15px'}}/>
                         <Text fontSize={'l'} pl={'2'}>{asset.contract_name}</Text>
                       </Flex>
                       <Box width={'60%'} textAlign={'end'}>
