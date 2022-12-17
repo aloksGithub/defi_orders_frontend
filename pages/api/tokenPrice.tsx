@@ -4,7 +4,8 @@ import universalSwapAbi from "../../constants/abis/UniversalSwap.json"
 import erc20Abi from "../../constants/abis/ERC20.json"
 import deploymentAddresses from "../../constants/deployments.json"
 var cache = require('memory-cache');
-
+import { supportedChainAssets } from '../../utils'
+import { SupportedChains } from '../../Types'
 
 const getPriceCovalent = async (chainId:number, address:string) => {
   for (let i = 0; i<5; i++) {
@@ -38,21 +39,12 @@ export const getPriceUniversalSwap = async (chainId:number, address:string) => {
   return {price:+ethers.utils.formatUnits(price, chainStableTokens[chainId.toString()].stableDecimals), decimals: tokenDecimals}
 }
 
-export const fetchTokenDetails = (chainId, address) => {
-  let foundAsset
-  const keys = cache.keys()
-  for (const key in keys) {
-    const data = cache.get(key)
-    const keyChain = key.split('_')[1]
-    if (+keyChain===+chainId) {
-      const asset = data.find(asset=>asset.contract_address.toLowerCase()===address.toLowerCase())
-      if (asset) foundAsset = asset
-    }
-  }
-  return foundAsset
+export const fetchTokenDetails = (chainId:SupportedChains, address:string) => {
+  const asset = supportedChainAssets[chainId].find(a=>a.contract_address.toLowerCase()==address.toLowerCase())
+  return asset
 }
 
-export const getPriceActual = async (chainId:number, address:string, decimals:number, name) => {
+export const getPriceActual = async (chainId:SupportedChains, address:string) => {
   const data = fetchTokenDetails(chainId, address)
   const provider = new ethers.providers.JsonRpcProvider(process.env[chainId])
   let price:number
@@ -67,7 +59,7 @@ export const getPriceActual = async (chainId:number, address:string, decimals:nu
     const {reserve0, reserve1} = await contract.getReserves()
     const r0 = +ethers.utils.formatUnits(reserve0, decimals0)
     const r1 = +ethers.utils.formatUnits(reserve1, decimals1)
-    const totalSupply = +ethers.utils.formatUnits((await contract.totalSupply()), decimals)
+    const totalSupply = +ethers.utils.formatUnits((await contract.totalSupply()), data.contract_decimals)
     const token0Price = token0Info.items[0].price
     const token1Price = token1Info.items[0].price
     const poolWorth = token0Price*r0 + token1Price*r1
@@ -79,7 +71,7 @@ export const getPriceActual = async (chainId:number, address:string, decimals:nu
     const {reserve0, reserve1} = await contract.getReserves()
     const r0 = +ethers.utils.formatUnits(reserve0, data.underlying[0].contract_decimals)
     const r1 = +ethers.utils.formatUnits(reserve1, data.underlying[1].contract_decimals)
-    const totalSupply = +ethers.utils.formatUnits((await contract.totalSupply()), decimals)
+    const totalSupply = +ethers.utils.formatUnits((await contract.totalSupply()), data.contract_decimals)
     const token0Price = (await getPriceCovalent(chainId, token0)).data[0].items[0].price
     const token1Price = (await getPriceCovalent(chainId, token1)).data[0].items[0].price
     const poolWorth = token0Price*r0 + token1Price*r1
@@ -102,8 +94,20 @@ export default async function serverSideCall(req, res) {
   //   price = await getPriceActual(chainId, address, response.data[0].contract_decimals, response.data[0].contract_name)
   // }
   // const decimals = response.data[0].items[0].contract_metadata.contract_decimals
-  const {price, decimals} = await  getPriceUniversalSwap(chainId, address)
-  res.status(200).json({
-    data: {price, decimals},
-  });
+  try {
+    const {price, decimals} = await  getPriceUniversalSwap(chainId, address)
+    res.status(200).json({
+      data: {price, decimals},
+    });
+  } catch {
+    const response = await getPriceCovalent(chainId, address)
+    let price = response.data[0].items[0].price
+    if (['Pancake LPs', 'Biswap LPs', 'SushiSwap LP Token', 'Uniswap V2'].includes(response.data[0].items[0].contract_metadata.contract_name)) {
+      price = await getPriceActual(chainId, address)
+    }
+    const decimals = response.data[0].items[0].contract_metadata.contract_decimals
+    res.status(200).json({
+      data: {price, decimals},
+    });
+  }
 }

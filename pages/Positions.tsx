@@ -8,22 +8,25 @@ import { Heading1 } from "../components/Typography";
 import { VscGraphLine } from 'react-icons/vsc'
 import { IoMdSettings } from 'react-icons/io'
 import { ethers } from "ethers";
-import { getBlockExplorerUrl, getBlockExplorerUrlTransaction, getLogoUrl, nFormatter } from "../utils";
+import { getBlockExplorerUrl, getBlockExplorerUrlTransaction, getLogoUrl, nFormatter, supportedChainAssets } from "../utils";
 import erc20Abi from "../constants/abis/ERC20.json"
 import { AiOutlineShrink, AiOutlineExpandAlt } from 'react-icons/ai'
 import { harvest, compound } from "../contractCalls/transactions";
 import { nativeTokens } from "../utils";
 import { PrimaryButton } from "../components/Buttons";
 import { level1, level2 } from "../components/Theme";
+import { PositionStructOutput } from "../codegen/PositionManager";
+import { BankBase__factory, ERC20__factory } from "../codegen";
+import { Asset, UserAsset } from "../Types";
 
-const Card = ({id}) => {
+const Card = ({id}: {id:number}) => {
   const {contracts, chainId, onError, slippageControl: {slippage}, successModal} = useAppContext()
-  const {provider, account} = useWeb3React()
-  const [asset, SetAsset] = useState(undefined)
-  const [underlying, setUnderlying] = useState(undefined)
-  const [positionInfo, setPositionInfo] = useState()
-  const [rewards, setRewards] = useState(undefined)
-  const [usdcValue, setUsdcValue] = useState(undefined)
+  const {provider} = useWeb3React()
+  const [asset, setAsset] = useState<Asset>(undefined)
+  const [underlying, setUnderlying] = useState<UserAsset[]>(undefined)
+  const [positionInfo, setPositionInfo] = useState<PositionStructOutput>()
+  const [rewards, setRewards] = useState<UserAsset[]>(undefined)
+  const [usdcValue, setUsdcValue] = useState<string>()
   const [expandRewards, setExpandRewards] = useState(false)
   const [isHarvesting, setHarvesting] = useState(false)
   const [isCompounding, setCompounding] = useState(false)
@@ -39,47 +42,63 @@ const Card = ({id}) => {
       setUsdcValue(nFormatter(usd, 3))
       const getAssetData = async () => {
         if (bankTokenInfo.lpToken!=ethers.constants.AddressZero) {
-          const contract = new ethers.Contract(bankTokenInfo.lpToken, erc20Abi, provider)
+          const contract = ERC20__factory.connect(bankTokenInfo.lpToken, provider)
           const symbol = await contract.symbol()
           const name = await contract.name()
-          SetAsset({contract_ticker_symbol: symbol, contract_address: bankTokenInfo.lpToken, logo_url: getLogoUrl(name, contract.address, chainId)})
+          setAsset({
+            contract_name: name,
+            chain_id: chainId, contract_decimals: undefined, underlying: [], protocol_name: undefined,
+            contract_ticker_symbol: symbol, contract_address: bankTokenInfo.lpToken, logo_url: getLogoUrl(name, contract.address, chainId)})
         } else {
-          SetAsset(nativeTokens[chainId])
+          setAsset(nativeTokens[chainId])
         }
       }
       getAssetData()
       const underlyingPromises = underlyingTokens.map(async (token:string, index:number) => {
+        let name: string; let decimals: number; let symbol: string;
         if (token!=ethers.constants.AddressZero) {
           const contract = new ethers.Contract(token, erc20Abi, provider)
-          const symbol = await contract.symbol()
-          const name = await contract.name()
-          const decimals = await contract.decimals()
-          const amount = +ethers.utils.formatUnits(underlyingAmounts[index], decimals)
-          const usdValue = +ethers.utils.formatUnits(underlyingValues[index], stableDecimals)
-          return {contract_address: token, amount, usdValue, contract_ticker_symbol: symbol, logo_url: getLogoUrl(name, contract.address, chainId)}
+          symbol = await contract.symbol()
+          name = await contract.name()
+          decimals = await contract.decimals()
         } else {
-          return nativeTokens[chainId]
+          const networkAsset = supportedChainAssets[chainId].find(asset=>asset.contract_address===ethers.constants.AddressZero)
+          name = networkAsset.contract_name
+          symbol = networkAsset.contract_ticker_symbol
+          decimals = networkAsset.contract_decimals
+        }
+        const amount = +ethers.utils.formatUnits(underlyingAmounts[index], decimals)
+        const usdValue = +ethers.utils.formatUnits(underlyingValues[index], stableDecimals)
+        return {
+          contract_name: name, contract_address: token, contract_ticker_symbol: symbol,
+          contract_decimals: decimals, quote: usdValue, quote_rate: 0, chain_id: chainId,
+          balance: underlyingAmounts[index].toString(), formattedBalance: amount, underlying: [], protocol_name: '',
+          logo_url: getLogoUrl(name, token, chainId)
         }
       })
       Promise.all(underlyingPromises).then((underlying)=>setUnderlying(underlying))
       const rewardPromises = rewardTokens.map(async (token:string, index:number) => {
-        const contract = new ethers.Contract(token, erc20Abi, provider)
+        const contract = ERC20__factory.connect(token, provider)
         const symbol = await contract.symbol()
         const name = await contract.name()
         const decimals = await contract.decimals()
         const amount = +ethers.utils.formatUnits(rewardAmounts[index], decimals)
         const usdValue = +ethers.utils.formatUnits(rewardValues[index], stableDecimals)
-        return {contract_address: token, amount, usdValue, contract_ticker_symbol: symbol, logo_url: getLogoUrl(name, contract.address, chainId)}
+        return {
+          contract_name: name, contract_address: token, contract_ticker_symbol: symbol,
+          contract_decimals: decimals, quote: usdValue, quote_rate: 0, chain_id: chainId,
+          balance: rewardAmounts[index].toString(), formattedBalance: amount, underlying: [], protocol_name: '',
+          logo_url: getLogoUrl(name, contract.address, chainId)}
       })
       Promise.all(rewardPromises).then((rewardsData)=>setRewards(rewardsData))
     })
-    // contracts.positionManager.positionClosed(id).then(positionClosed=> {
-    //   if (positionClosed) {
-    //     setIsClosed(true)
-    //     setUsdcValue(0)
-    //     setRewards([])
-    //   }
-    // })
+    contracts.positionManager.positionClosed(id).then(positionClosed=> {
+      if (positionClosed) {
+        setIsClosed(true)
+        // setUsdcValue('0')
+        // setRewards([])
+      }
+    })
   }, [id, refresh, contracts.positionManager.signer])
 
   const harvestPosition = () => {
@@ -191,7 +210,7 @@ const Card = ({id}) => {
                   </Text>
                   </a>
                   {
-                    expandRewards?<Text>: {nFormatter(reward.amount, 2)} (${nFormatter(reward.usdValue, 2)})</Text>:<></>
+                    expandRewards?<Text>: {nFormatter(reward.formattedBalance, 2)} (${nFormatter(reward.quote, 2)})</Text>:<></>
                   }
                 </Flex>)
               }
@@ -213,7 +232,7 @@ const Card = ({id}) => {
 
         <Stack mt={8} direction={'row'} spacing={4}>
         <Link href={`/editPosition/${id}`}>
-          <PrimaryButton flex={1}>
+          <PrimaryButton disabled={isClosed} flex={1}>
             <IoMdSettings fontSize={'1.3rem'}></IoMdSettings>
             &nbsp;Edit
           </PrimaryButton>
@@ -234,14 +253,14 @@ const Card = ({id}) => {
 const Positions = () => {
   const {contracts} = useAppContext()
   const {account, provider} = useWeb3React()
-  const [userPositions, setUserPositions] = useState(undefined)
+  const [userPositions, setUserPositions] = useState<number[]>()
 
   useEffect(() => {
     if (!contracts?.positionManager) return
     const getPositions = async () => {
       const numPositions = await contracts.positionManager.numUserPositions(account)
-      const positions = []
-      for (let i = 0; i<numPositions; i++) {
+      const positions: number[] = []
+      for (let i = 0; i<numPositions.toNumber(); i++) {
         const position = await contracts.positionManager.userPositions(account, i)
         positions.push(position.toNumber())
       }

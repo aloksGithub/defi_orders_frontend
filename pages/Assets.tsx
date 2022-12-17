@@ -41,10 +41,10 @@ import { FancyButton } from "../components/Buttons";
 import Link from "next/link";
 import { level1 } from "../components/Theme";
 import { getAmountsOut } from "../contractCalls/dataFetching";
+import { defaultUserAssetSupplied, defaultWantedAsset, LiquidationCondition, UserAsset } from "../Types";
 
-const Card = ({asset, index, setSecuring}) => {
+const Card = ({asset, index, setSecuring}: {asset: UserAsset, index: number, setSecuring: Function}) => {
   const {chainId} = useAppContext()
-
   return (
     <Box width={'300px'} margin={'auto'}>
       <Flex direction={'column'}
@@ -70,7 +70,7 @@ const Card = ({asset, index, setSecuring}) => {
             <Text as='b'>
               Balance
             </Text>
-            {nFormatter((asset.balance/10**asset.contract_decimals), 3)}
+            {nFormatter(asset.formattedBalance, 3)}
           </Flex>
           <Flex mb={'3'} flexDir={'column'} alignItems={'start'}>
             <Text as='b'>
@@ -90,7 +90,7 @@ const Card = ({asset, index, setSecuring}) => {
                       <img src={token.logo_url} style={{width: "20px", height: "20px", borderRadius: '15px'}}/>
                       <a href={getBlockExplorerUrl(chainId, token.contract_address)} target="_blank" rel="noopener noreferrer">
                       <Text _hover={{color: 'blue.500', cursor: 'pointer'}} display={'flex'} alignItems={'center'} ml={'2'} mr={'1'}>
-                        {token.contract_symbol}
+                        {token.contract_ticker_symbol}
                       </Text>
                       </a>
                     </Flex>
@@ -122,11 +122,11 @@ const Card = ({asset, index, setSecuring}) => {
   )
 }
 
-const SecureAsset = ({asset, setSecuring}) => {
-  const {account, contracts, onError, userAssets: {loading, data}, softRefreshAssets, chainId, slippageControl: {slippage}} = useAppContext()
+const SecureAsset = ({asset, setSecuring}: {asset: UserAsset, setSecuring: Function}) => {
+  const {account, contracts, onError, userAssets: {loading}, softRefreshAssets, chainId, slippageControl: {slippage}} = useAppContext()
   const {provider} = useWeb3React()
   const signer = provider.getSigner(account)
-  const [tokens, setTokens] = useState(0)
+  const [tokens, setTokens] = useState<number>(0)
   const [selectedBank, selectBank] = useState(undefined)
   const [rewards, setRewards] = useState([])
   const [error, setError] = useState("")
@@ -135,13 +135,14 @@ const SecureAsset = ({asset, setSecuring}) => {
   const [currentUsd, setCurrentUsd] = useState('0')
   const [txHash, setTxHash] = useState('')
   const [processing, setProcessing] = useState(false)
-  const [liquidationConditions, setLiquidationConditions] = useState([{
+  const [liquidationConditions, setLiquidationConditions] = useState<LiquidationCondition[]>([{
     watchedAsset: {
-      "value": "0x0000000000000000000000000000000000000000",
-      "label": "Value of self",
       "contract_name": "Value of self",
       "contract_ticker_symbol": "Self",
       "contract_address": "0x0000000000000000000000000000000000000000",
+      contract_decimals: 18,
+      chain_id: chainId,
+      protocol_name: '',
       "underlying": [],
       "logo_url": "https://www.svgrepo.com/show/99387/dollar.svg"
     },
@@ -152,7 +153,7 @@ const SecureAsset = ({asset, setSecuring}) => {
   }])
 
   useEffect(() => {
-    setCurrentUsd((asset?.quote*tokens/(asset?.balance/10**asset?.contract_decimals)||0).toFixed(3))
+    setCurrentUsd((asset?.quote*tokens/(asset?.formattedBalance)||0).toFixed(3))
   }, [tokens])
 
   useEffect(() => {
@@ -198,17 +199,21 @@ const SecureAsset = ({asset, setSecuring}) => {
   const secure = async () => {
     setProcessing(true)
     let invalidConditions = false
-    const assetToConvert = [{contract_address: asset.contract_address, contract_decimals: asset.contract_decimals, tokensSupplied: tokens.toString()}]
+    console.log(typeof(tokens))
+    const assetToConvert = [{
+      ...defaultUserAssetSupplied,
+      contract_address: asset.contract_address, contract_decimals: asset.contract_decimals, tokensSupplied: +tokens}]
     // @ts-ignore
     for (const [index, condition] of liquidationConditions.entries()) {
       const desiredAsset = [{
+        ...defaultWantedAsset,
         contract_address: condition.convertTo.contract_address,
         percentage: 100,
         minOut: 0,
         contract_decimals: condition.convertTo.contract_decimals
       }]
       const {wantedAssets} = await getAmountsOut(contracts, signer, assetToConvert, desiredAsset)
-      const expectedUsdOut = wantedAssets[0].value
+      const expectedUsdOut = wantedAssets[0].quote
       const slippage = 100*(+currentUsd-expectedUsdOut)/+currentUsd
       if (slippage>condition.slippage+0.2) {
         setError(`Calculated slippage for condition ${index+1} was ${slippage.toFixed(3)}% which is too close to the input slippage.
@@ -267,7 +272,6 @@ const SecureAsset = ({asset, setSecuring}) => {
     })
   }
 
-
   return (
     <Box maxWidth={'700px'} margin={'auto'}
       justifyContent={'space-between'}
@@ -289,14 +293,14 @@ const SecureAsset = ({asset, setSecuring}) => {
         <GridItem colSpan={1}>
           <Heading2>Tokens To Secure</Heading2>
           <Flex>
-          <NumberInput backgroundColor='hidden' size={'lg'} w={'60%'} min={0} max={asset?.balance/10**asset?.contract_decimals} value={tokens}
+          <NumberInput backgroundColor='hidden' size={'lg'} w={'60%'} min={0} max={asset?.formattedBalance} value={tokens}
           // @ts-ignore
           onChange={(valueAsString)=>setTokens(valueAsString)}>
             <NumberInputField backgroundColor={useColorModeValue('white', 'gray.900')}></NumberInputField>
           </NumberInput>
           <Box>
             <Text paddingInline={'1'} backgroundColor='blue.500' color={'white'} ml={'2'} _hover={{cursor: 'pointer', backgroundColor:'blue.300'}}
-            onClick={()=>{setTokens(+ethers.utils.formatUnits(asset?.balance||0, asset?.contract_decimals||1))}}>Max</Text>
+            onClick={()=>{setTokens(asset.formattedBalance)}}>Max</Text>
           </Box>
           </Flex>
         </GridItem>
@@ -381,7 +385,7 @@ const SecureAsset = ({asset, setSecuring}) => {
 }
 
 const Assets = () => {
-  const {userAssets, supportedAssets, softRefreshAssets} = useAppContext()
+  const {userAssets} = useAppContext()
   const assets = userAssets?.data
   const [securing, setSecuring] = useState<number>()
 
@@ -399,7 +403,7 @@ const Assets = () => {
         <Box marginInline={'auto'} maxW={'1000px'}>
           <Pagination
           cards={assets?.map((asset, index)=><Card asset={asset} index={index} setSecuring={setSecuring}></Card>)}
-          placeholder={<Text textAlign={'center'} mt={'20'}>{!('ERC20' in supportedAssets)?'Website still deploying, try reloading in a minute':'No Assets detected'}</Text>}
+          placeholder={<Text textAlign={'center'} mt={'20'}>{'No Assets detected'}</Text>}
           ></Pagination>
           <Flex wrap={'wrap'} justifyContent={'center'} alignContent={'stretch'} maxW={'1000px'}>
           </Flex>

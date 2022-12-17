@@ -15,7 +15,7 @@ const Condition = ({i, condition, setWatchedAsset, setConvertTo, removeAsset, se
   const formatSlippage = (val) => val+`%`
   // Need to remove network token as in the contracts, the network token and the position are both referred to with the zero address
   // @ts-ignore
-  const withoutNetworkToken = supportedAssets?.ERC20?.filter(asset=>asset.contract_address!=ethers.constants.AddressZero)
+  const withoutNetworkToken = supportedAssets?.filter(asset=>asset.contract_address!=ethers.constants.AddressZero)
   const self = {
     value: ethers.constants.AddressZero,
     label: 'Value of self',
@@ -41,7 +41,7 @@ const Condition = ({i, condition, setWatchedAsset, setConvertTo, removeAsset, se
         </Flex>
         <Flex alignItems={'center'}>
           {/* @ts-ignore */}
-          <SelectAsset asset={condition.convertTo} onSelect={onSelectConvertTo} assets={supportedAssets.ERC20} placeHolder={'liquidate To'}/>
+          <SelectAsset asset={condition.convertTo} onSelect={onSelectConvertTo} assets={supportedAssets} placeHolder={'liquidate To'}/>
         </Flex>
       </GridItem>
       <GridItem display={'flex'} flexDirection='column'>

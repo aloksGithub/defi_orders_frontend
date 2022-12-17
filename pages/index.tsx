@@ -12,7 +12,7 @@ import {
 } from '@chakra-ui/react'
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { useWeb3React } from '@web3-react/core'
-import { ethers } from 'ethers'
+import { BigNumber, ethers } from 'ethers'
 import erc20Abi from "../constants/abis/ERC20.json"
 import poolAbi from "../constants/abis/IUniswapV3Pool.json"
 import { SupplyAssets, SelectAsset } from '../components/selectAssets';
@@ -27,6 +27,9 @@ import { useRouter } from "next/router";
 import { getAmountsOut } from '../contractCalls/dataFetching'
 import { getBlockExplorerUrlTransaction } from '../utils'
 import { level1, level2, level3 } from '../components/Theme'
+import { defaultUserAssetSupplied, defaultWantedAsset, UserAssetSupplied, WantedAsset } from '../Types'
+import { ConversionStruct, ProvidedStruct, SwapPointStruct } from '../codegen/PositionManager'
+import { DesiredStruct } from '../codegen/UniversalSwap'
 
   // @ts-ignore
 const TickPicker = forwardRef(({pool, usdSupplied}, _ref) => {
@@ -234,10 +237,18 @@ const TickPicker = forwardRef(({pool, usdSupplied}, _ref) => {
   )
 })
 
-const WantedAsset = ({usdSupplied, selected, setSelected, updateExpected, changePercentage, deleteSelf}) => {
+interface SelectWantedAssetProps {
+  usdSupplied: number,
+  selected: WantedAsset,
+  setSelected: (asset: WantedAsset)=>void,
+  updateExpected: (expected:number, price:number)=>void,
+  changePercentage: (percentage:number)=>void,
+  deleteSelf: ()=>void
+}
+
+const SelectWantedAsset = ({usdSupplied, selected, setSelected, updateExpected, changePercentage, deleteSelf}:SelectWantedAssetProps) => {
   const {supportedAssets, chainId, counter} = useAppContext()
   const {slippageControl: {slippage}} = useAppContext()
-  const assetsArray = [].concat.apply([], Object.values(supportedAssets))
   const [loadingSelf, setLoadingSelf] = useState(false)
   
   useEffect(() => {
@@ -282,12 +293,12 @@ const WantedAsset = ({usdSupplied, selected, setSelected, updateExpected, change
     <Flex width={'100%'} mt='4' padding={'4'} justifyContent={'space-between'} alignItems={'center'} borderRadius={'2xl'}
     backgroundColor={useColorModeValue(...level1)}>
       <Box>
-      <SelectAsset assets={assetsArray} asset={selected} onSelect={setSelected}></SelectAsset>
+      <SelectAsset assets={supportedAssets} asset={selected} onSelect={setSelected}></SelectAsset>
         <Flex alignItems={'center'} mt={'3'}>
           <Text onClick={deleteSelf} mr={'3'} textAlign={'center'} borderRadius={'lg'} width={'2rem'} padding={'1'}
           _hover={{cursor: 'pointer', backgroundColor: 'red.400'}} backgroundColor='red.300'><DeleteIcon/></Text>
           <NumberInput maxWidth={'100'} min={0} max={100}
-            value={selected.percentage+'%'} onChange={(valueAsString)=>changePercentage(valueAsString.replace(/^\%/, ''))}>
+            value={selected.percentage+'%'} onChange={(valueAsString)=>changePercentage(+valueAsString.replace(/^\%/, ''))}>
             <NumberInputField backgroundColor={useColorModeValue('white', 'gray.800')}></NumberInputField>
           </NumberInput>
         </Flex>
@@ -301,7 +312,8 @@ const WantedAsset = ({usdSupplied, selected, setSelected, updateExpected, change
   )
 }
 
-const ConvertTo = ({usdSupplied, wantedAssets, updateWantedAssets}) => {
+const ConvertTo = ({usdSupplied, wantedAssets, updateWantedAssets}:
+  {usdSupplied: number, wantedAssets: WantedAsset[], updateWantedAssets: (assets: WantedAsset[])=>void}) => {
   const {slippageControl: {slippage}} = useAppContext()
 
   useEffect(() => {
@@ -314,7 +326,7 @@ const ConvertTo = ({usdSupplied, wantedAssets, updateWantedAssets}) => {
   }, [slippage])
 
   const addWanted = () => {
-    updateWantedAssets([...wantedAssets, {percentage: 0, expected:0, minOut:0, price: 0}])
+    updateWantedAssets([...wantedAssets, defaultWantedAsset])
   }
 
   const select = (index, asset) => {
@@ -354,7 +366,7 @@ const ConvertTo = ({usdSupplied, wantedAssets, updateWantedAssets}) => {
       </Flex>
     {
       wantedAssets.map((asset, index)=>
-      <WantedAsset key={`wantedAsset_${index}`} usdSupplied={usdSupplied}
+      <SelectWantedAsset key={`wantedAsset_${index}`} usdSupplied={usdSupplied}
       selected={asset} setSelected={(asset)=>select(index, asset)}
       changePercentage={(percentage)=>updatePercentages(index, percentage)}
       updateExpected={(expected, price)=>setExpected(index, expected, price)}
@@ -366,9 +378,9 @@ const ConvertTo = ({usdSupplied, wantedAssets, updateWantedAssets}) => {
 }
 
 const UniversalSwap = () => {
-  const [assetsToConvert, setAssetsToConvert] = useState([{usdcValue:0, tokensSupplied:0}])
-  const [wantedAssets, setWantedAssets] = useState([{percentage: 100, expected:0, minOut:0, price:0}])
-  const updateWantedAssets = (assets) => {
+  const [assetsToConvert, setAssetsToConvert] = useState<UserAssetSupplied[]>([defaultUserAssetSupplied])
+  const [wantedAssets, setWantedAssets] = useState<WantedAsset[]>([defaultWantedAsset])
+  const updateWantedAssets = (assets: WantedAsset[]) => {
     setWantedAssets(assets)
   }
   const [usdSupplied, setUsdSupplied] = useState(0)
@@ -380,9 +392,14 @@ const UniversalSwap = () => {
   const {provider, account} = useWeb3React()
   const signer = provider?.getSigner(account)
   const [swapping, setSwapping] = useState(false)
-  const [swapData, setSwapData] = useState<any>()
+  const [swapData, setSwapData] = useState<{
+    swaps: SwapPointStruct[], conversions: ConversionStruct[],
+    provided: ProvidedStruct,
+    desired: DesiredStruct,
+    expectedAssets: WantedAsset[]
+  }>()
   const [deadline, setDeadline] = useState(0)
-  const [obtainedAssets, setObtainedAssets] = useState<any[]>()
+  const [obtainedAssets, setObtainedAssets] = useState<WantedAsset[]>()
   const [hash, setHash] = useState('')
 
   useEffect(() => {
@@ -472,8 +489,8 @@ const UniversalSwap = () => {
       setSwapping(false)
       setObtainedAssets(expectedAssets)
       onClosePreview()
-      setAssetsToConvert([{usdcValue:0, tokensSupplied:0}])
-      setWantedAssets([{percentage: 100, expected:0, minOut:0, price:0}])
+      setAssetsToConvert([defaultUserAssetSupplied])
+      setWantedAssets([defaultWantedAsset])
       onOpenFinal()
       hardRefreshAssets()
     },
@@ -510,7 +527,7 @@ const UniversalSwap = () => {
           <ModalCloseButton />
           <ModalBody>
             <Box mb={'6'}>
-              <Text textAlign={'end'}><Text as='b'>Total:</Text> ${nFormatter(swapData?.expectedAssets.reduce((a, b)=>a+(+b.value), 0), 3)}</Text>
+              <Text textAlign={'end'}><Text as='b'>Total:</Text> ${nFormatter(swapData?.expectedAssets.reduce((a, b)=>a+(+b.quote), 0), 3)}</Text>
               {
                 swapData?.expectedAssets.map((asset) => {
                   return (
@@ -520,10 +537,10 @@ const UniversalSwap = () => {
                         <Text fontSize={'l'} pl={'2'}>{asset.contract_name}</Text>
                       </Flex>
                       <Box width={'60%'} textAlign={'end'}>
-                        <Tooltip hasArrow label={asset.minOut>asset.amount?'Increase slippage':''}>
-                        <Text textColor={asset.minOut>asset.amount?useColorModeValue('red', 'red.400'):useColorModeValue('black', 'white')}><Text as='b'>Expected: </Text>{nFormatter(asset.amount, 5)}</Text>
+                        <Tooltip hasArrow label={asset.minOut>asset.expected?'Increase slippage':''}>
+                        <Text textColor={asset.minOut>asset.expected?useColorModeValue('red', 'red.400'):useColorModeValue('black', 'white')}><Text as='b'>Expected: </Text>{nFormatter(asset.expected, 5)}</Text>
                         </Tooltip>
-                        <Text><Text as='b'>USD: </Text> ${nFormatter(asset.value, 2)}</Text>
+                        <Text><Text as='b'>USD: </Text> ${nFormatter(asset.quote, 2)}</Text>
                       </Box>
                     </Flex>
                   )
@@ -558,7 +575,7 @@ const UniversalSwap = () => {
           <ModalBody>
             <Box>
               <Text paddingInline='4'>
-                Assets worth ${nFormatter(obtainedAssets?.reduce((a, b)=>a+(+b.value), 0), 3)} were obtained from the transaction.
+                Assets worth ${nFormatter(obtainedAssets?.reduce((a, b)=>a+(+b.quote), 0), 3)} were obtained from the transaction.
                 View <a href={getBlockExplorerUrlTransaction(chainId, hash)} target="_blank" rel="noopener noreferrer">
                   <Text color={'blue.500'} as='u'>
                     Transaction
@@ -574,8 +591,8 @@ const UniversalSwap = () => {
                         <Text pl={'2'}>{asset.contract_name}</Text>
                       </Flex>
                       <Box width={'60%'} textAlign={'end'}>
-                        <Text><Text as='b'>Amount: </Text>{nFormatter(asset.amount, 5)}</Text>
-                        <Text><Text as='b'>USD: </Text> ${nFormatter(asset.value, 2)}</Text>
+                        <Text><Text as='b'>Amount: </Text>{nFormatter(asset.expected, 5)}</Text>
+                        <Text><Text as='b'>USD: </Text> ${nFormatter(asset.quote, 2)}</Text>
                       </Box>
                     </Flex>
                   )

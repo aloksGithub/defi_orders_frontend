@@ -9,14 +9,10 @@ import { coinbaseWallet, hooks as coinbaseWalletHooks } from '../connectors/coin
 import { hooks as metaMaskHooks, metaMask } from '../connectors/metaMask'
 import { hooks as networkHooks, network } from '../connectors/network'
 import { hooks as walletConnectHooks, walletConnect } from '../connectors/walletConnect'
-import { getPrice } from '../utils'
+import { getPrice, supportedChainAssets } from '../utils'
 import { Navbar } from './Navbar'
 import { createContext, useContext } from 'react';
 import { ethers } from 'ethers'
-import positionManagerAbi from "../constants/abis/PositionManager.json"
-import universalSwapAbi from "../constants/abis/UniversalSwap.json"
-import bankBaseAbi from "../constants/abis/BankBase.json"
-import erc20Abi from "../constants/abis/ERC20.json"
 import deploymentAddresses from "../constants/deployments.json"
 import theme from './Theme'
 import {GrCircleInformation} from 'react-icons/gr'
@@ -24,20 +20,16 @@ import { BiErrorAlt } from "react-icons/bi"
 import { CheckCircleIcon } from '@chakra-ui/icons'
 import { Footer } from './Footer'
 import { level0 } from './Theme'
+import { Asset, defaultContext, UserAsset } from '../Types'
+import { 
+  PositionManager__factory,
+  UniversalSwap__factory,
+  BankBase__factory,
+  ERC20__factory,
+  UniswapV3PoolInteractor__factory
+ } from '../codegen'
 
-const AppContext = createContext({
-  userAssets: {data: [], loading: false, error: false},
-  hardRefreshAssets: ()=>{}, softRefreshAssets: ()=>{},
-  account: undefined,
-  chainId: undefined,
-  connector: undefined,
-  supportedAssets: {},
-  contracts: undefined,
-  slippageControl: {slippage:0.5, setSlippage: undefined},
-  counter: 0,
-  onError: (error:Error)=>{},
-  successModal: (title:string, body:ReactElement)=>{}
-});
+const AppContext = createContext(defaultContext);
 
 export function AppWrapper({ children }) {
   const {account, chainId, connector, provider} = useWeb3React()
@@ -53,8 +45,8 @@ export function AppWrapper({ children }) {
   const [successTitle, setSuccessTitle] = useState('')
   const [successBody, setSuccessBody] = useState<ReactElement>()
 
-  const [userAssets, setUserAssets] = useState<any>({data: [], loading: true, error: false})
-  const [supportedAssets, setSupportedAssets] = useState({})
+  const [userAssets, setUserAssets] = useState<{data: UserAsset[], loading: boolean, error: boolean}>({data: [], loading: true, error: false})
+  const [supportedAssets, setSupportedAssets] = useState<Asset[]>([])
   const [contracts, setContracts] = useState<any>()
 
   const [counter, setCounter] = useState(0);
@@ -84,7 +76,7 @@ export function AppWrapper({ children }) {
       const temp = [...userAssets?.data||[]]
       for (let i = 0; i<temp.length; i++) {
         const {price} = await getPrice(usedChainId, temp[i].contract_address)
-        temp[i].quote = +ethers.utils.formatUnits(temp[i].balance, temp[i].contract_decimals)*price
+        temp[i].quote = temp[i].formattedBalance*price
       }
       setUserAssets({...userAssets, data: temp, loading: false})
     }
@@ -110,20 +102,19 @@ export function AppWrapper({ children }) {
         return
       }
       try {
-        const positionManager = new ethers.Contract(deploymentAddresses[chainId].positionsManager, positionManagerAbi, signer)
+        const positionManager = PositionManager__factory.connect(deploymentAddresses[chainId].positionsManager, signer)
         const numBanks = await positionManager.numBanks()
         const banks = []
         for (let i = 0; i<numBanks.toNumber(); i++) {
           const bankAddress = await positionManager.banks(i)
-          const bank = new ethers.Contract(bankAddress, bankBaseAbi, signer)
+          const bank = BankBase__factory.connect(bankAddress, signer)
           banks.push(bank)
         }
-        const universalSwapAddress = await positionManager.universalSwap()
-        const universalSwap = new ethers.Contract(universalSwapAddress, universalSwapAbi, signer)
+        const universalSwap = UniversalSwap__factory.connect(deploymentAddresses[chainId].universalSwap, signer)
         const stableTokenAddress = await positionManager.stableToken()
-        const stableToken = new ethers.Contract(stableTokenAddress, erc20Abi, provider)
+        const stableToken = ERC20__factory.connect(stableTokenAddress, provider)
         const uniswapV3PoolInteractor = undefined
-        setContracts({positionManager, banks, universalSwap, stableToken, uniswapV3PoolInteractor})
+        setContracts({positionManager, banks, universalSwap, stableToken})
       } catch {
         
       }
@@ -134,12 +125,8 @@ export function AppWrapper({ children }) {
   }, [provider, chainId, account])
 
   useEffect(() => {
-    const fetchSupportedAssets = async () => {
-      const {data} = await (await fetch(`/api/supportedTokens?chainId=${usedChainId}`)).json()
-      setSupportedAssets(data)
-    }
     if (usedChainId) {
-      fetchSupportedAssets()
+      setSupportedAssets(supportedChainAssets[usedChainId])
     }
   }, [usedChainId])
 

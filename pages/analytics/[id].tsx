@@ -56,7 +56,7 @@ const Analytics = () => {
 
   useEffect(() => {
     const fetch = async () => {
-      const data = await getGraphData(contracts, id, provider, graphDays, chainId)
+      const data = await getGraphData(contracts, id, provider, graphDays)
       setGraphData(data)
       setLoadingGraph(false)
     }
@@ -70,6 +70,7 @@ const Analytics = () => {
     const fetch = async () => {
       // @ts-ignore
       const position = await fetchPosition(parseInt(id), contracts, provider.getSigner(account), chainId)
+      // @ts-ignore
       const positionData = await fetchImportantPoints(contracts, id, provider)
       const roi = positionData.usdcWithdrawn+position.usdcValue-positionData.usdcDeposited
       const pnl = roi*100/positionData.usdcDeposited

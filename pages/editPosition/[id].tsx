@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from 'next/router'
 import { useWeb3React } from "@web3-react/core";
 import { ethers } from "ethers";
-import { fetchPosition, getAmountsOut } from "../../contractCalls/dataFetching";
+import { fetchPosition, FetchPositionData, getAmountsOut } from "../../contractCalls/dataFetching";
 import { depositAgain, close, withdraw, adjustLiquidationPoints } from "../../contractCalls/transactions";
 import LiquidationConditions from "../../components/LiquidationConditions";
 import { SupplyAssets } from "../../components/selectAssets";
@@ -13,9 +13,11 @@ import { DangerButton, PrimaryButton, SecondaryButton } from "../../components/B
 import { getBlockExplorerUrlTransaction, getPrice, nFormatter } from "../../utils";
 import { BiErrorAlt } from "react-icons/bi";
 import { level0, level1 } from "../../components/Theme";
+import { Asset, defaultUserAssetSupplied, defaultWantedAsset, LiquidationCondition, UserAssetSupplied } from "../../Types";
+import { LiquidationConditionStruct } from "../../codegen/PositionManager";
 
-const WithdrawModal = ({position, refreshData, closeSelf, onReload, loading}) => {
-  const positionSizeDecimals = +position?.positionData.amountDecimal||0
+const WithdrawModal = ({position, refreshData, closeSelf}: {position: FetchPositionData, refreshData:Function, closeSelf: Function}) => {
+  const positionSizeDecimals = +position?.formattedAmount||0
   const {contracts, onError, chainId, successModal} = useAppContext()
   const [value, setValue] = useState(0)
   const [isWithdrawing, setWithdrawing] = useState(false)
@@ -93,7 +95,7 @@ const WithdrawModal = ({position, refreshData, closeSelf, onReload, loading}) =>
 }
 
 const DepositModal = ({position, refreshData, closeSelf}) => {
-  const [assetsToConvert, setAssetsToConvert] = useState([{usdcValue:0, tokensSupplied:0}])
+  const [assetsToConvert, setAssetsToConvert] = useState<UserAssetSupplied[]>([defaultUserAssetSupplied])
   const {contracts, chainId, slippageControl: {slippage}, onError} = useAppContext()
   const {provider ,account} = useWeb3React()
   const {successModal} = useAppContext()
@@ -138,9 +140,10 @@ const EditPosition = () => {
   const signer = provider?.getSigner(account)
   const router = useRouter()
   const { id } = router.query
+  if (typeof id != 'string') return <></>
   // const position = userPositions?.find((position)=>position.positionId.toString()===id)
-  const [position, setPosition] = useState(undefined)
-  const [initialLiquidationPoints, setInitialLiquidationPoints] = useState([])
+  const [position, setPosition] = useState<FetchPositionData>()
+  const [initialLiquidationPoints, setInitialLiquidationPoints] = useState<LiquidationCondition[]>([])
   const [isClosing, setClosing] = useState(false)
   const [isAdjusting, setAdjusting] = useState(false)
   const [refresh, setRefresh] = useState(false)
@@ -152,7 +155,7 @@ const EditPosition = () => {
   const [resetFlag, setResetFlag] = useState(false)
   // @ts-ignore
   const liquidationPoints = position?.positionData.liquidationPoints
-  const [liquidationConditions, setLiquidationConditions] = useState<any>(undefined)
+  const [liquidationConditions, setLiquidationConditions] = useState<LiquidationCondition[]>()
   const [reloadTrigger, setReloadTrigger] = useState(false)
   const [loading, setLoading] = useState(false)
   const wrongUser = position?.positionData.user&&position?.positionData.user!=account
@@ -179,32 +182,32 @@ const EditPosition = () => {
 
   useEffect(() => {
     const formatLiquidationPoints = async () => {
-      const allAssets =  Object.values(supportedAssets).flat()
       const promises = liquidationPoints.map(async point=> {
-        let watchedAsset
-        let price
+        let watchedAsset: Asset
+        let price: number
         if (point.watchedToken===ethers.constants.AddressZero) {
           watchedAsset = {
-            value: ethers.constants.AddressZero,
-            label: 'Value of self',
             contract_name: 'Value of self',
             contract_ticker_symbol: 'Self',
             contract_address: ethers.constants.AddressZero,
             underlying:[],
+            contract_decimals: 18,
+            protocol_name: '',
+            chain_id: chainId,
             logo_url: 'https://www.svgrepo.com/show/99387/dollar.svg'
           }
           price = position?.usdcValue
         } else {
-          watchedAsset = allAssets.find((asset:any)=>asset.contract_address.toLowerCase()===point.watchedToken.toLowerCase())
+          watchedAsset = supportedAssets.find((asset:any)=>asset.contract_address.toLowerCase()===point.watchedToken.toLowerCase())
           price = (await getPrice(chainId, point.watchedToken)).price
         }
-        const convertTo = allAssets.find((asset:any)=>asset.contract_address===point.liquidateTo.toLowerCase())
-        const lessThan = point.lessThan
-        const liquidationPoint = ethers.utils.formatUnits(point.liquidationPoint.toString(), 18)
+        const convertTo = supportedAssets.find((asset:any)=>asset.contract_address===point.liquidateTo.toLowerCase())
+        const lessThan: boolean = point.lessThan
+        const liquidationPoint = +ethers.utils.formatUnits(point.liquidationPoint.toString(), 18)
         const slippage = +ethers.utils.formatUnits(point.slippage, 18)*100
         return {watchedAsset, convertTo, lessThan, liquidationPoint, price, slippage}
       })
-      const formattedLiquidationPoints = await Promise.all(promises)
+      const formattedLiquidationPoints: LiquidationCondition[] = await Promise.all(promises)
       setInitialLiquidationPoints(JSON.parse(JSON.stringify(formattedLiquidationPoints)))
     }
     if (liquidationPoints) {
@@ -247,7 +250,7 @@ const EditPosition = () => {
       return
     }
     let invalidConditions = false
-    const formattedConditions = liquidationConditions.map((condition, index) => {
+    const formattedConditions: LiquidationConditionStruct[] = liquidationConditions.map((condition, index) => {
       try {
         return {
           watchedToken: condition.watchedAsset.contract_address,
@@ -267,21 +270,22 @@ const EditPosition = () => {
       setAdjusting(false)
       return
     }
-    const assetToConvert = [{
+    const assetToConvert = [{ ...defaultUserAssetSupplied,
       contract_address: position.tokenContract,
       contract_decimals: position.decimals,
-      tokensSupplied: position?.positionData.amountDecimal.toString()
+      tokensSupplied: position?.formattedAmount
     }]
     // @ts-ignore
     for (const [index, condition] of liquidationConditions.entries()) {
       const desiredAsset = [{
+        ...defaultWantedAsset,
         contract_address: condition.convertTo.contract_address,
         percentage: 100,
         minOut: 0,
         contract_decimals: condition.convertTo.contract_decimals
       }]
       const {wantedAssets} = await getAmountsOut(contracts, signer, assetToConvert, desiredAsset)
-      const expectedUsdOut = wantedAssets[0].value
+      const expectedUsdOut = wantedAssets[0].quote
       const slippage = 100*(+position.usdcValue-expectedUsdOut)/+position.usdcValue
       if (slippage>condition.slippage+0.2) {
         setError(`Calculated slippage for condition ${index+1} was ${slippage.toFixed(3)}% which is too close to the input slippage.
@@ -343,7 +347,7 @@ const EditPosition = () => {
         </GridItem>
         <GridItem rowStart={2} colSpan={1}>
           <Heading2>Position Size</Heading2>
-          <Text>{nFormatter(position?.positionData.amountDecimal||0, 3)}</Text>
+          <Text>{nFormatter(position?.formattedAmount||0, 3)}</Text>
         </GridItem>
         <GridItem rowStart={2} colSpan={1}>
           <Heading2>Value USD</Heading2>
@@ -384,8 +388,7 @@ const EditPosition = () => {
         <ModalHeader>Withdraw</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          <WithdrawModal position={position} closeSelf={onWithdrawClose} refreshData={refreshData}
-          onReload={()=>setReloadTrigger(!reloadTrigger)} loading={loading}/>
+          <WithdrawModal position={position} closeSelf={onWithdrawClose} refreshData={refreshData}/>
         </ModalBody>
       </ModalContent>
     </Modal>

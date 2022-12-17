@@ -193,6 +193,7 @@ export default async function serverSideCall(req, res) {
   const assets = {}
   for (const protocol of protocols) {
     const data = cache.get(`${protocol.name}_${chainId}`)
+    console.log(`${protocol.name}_${chainId}`)
     if (data) {
       assets[protocol.name] = data
     } else {

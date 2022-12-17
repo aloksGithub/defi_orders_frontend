@@ -589,6 +589,19 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "defaultFeeModel",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "components": [
@@ -1319,7 +1332,7 @@
     "outputs": [
       {
         "internalType": "uint256",
-        "name": "newLpTokens",
+        "name": "",
         "type": "uint256"
       }
     ],
@@ -1348,6 +1361,25 @@
       }
     ],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "keepers",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {

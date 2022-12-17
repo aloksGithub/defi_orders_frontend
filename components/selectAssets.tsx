@@ -1,13 +1,15 @@
 import { DeleteIcon, AddIcon } from "@chakra-ui/icons";
 import { useDisclosure, IconButton, Image, Flex, Text, NumberInput, NumberInputField, Button, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, Box, Input, Skeleton, useColorModeValue } from "@chakra-ui/react";
-import { ethers } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import { useState, useEffect, useRef } from "react"
 import { useAppContext } from "./Provider";
 import { ChevronDownIcon } from "@chakra-ui/icons";
 import { Reload } from "./Reload";
 import { level1, level2 } from "./Theme";
+import { Asset, UserAsset, UserAssetSupplied } from "../Types";
 
-export const SelectAsset = ({assets, asset, onSelect, placeHolder='Select'}) => {
+export const SelectAsset = ({assets, asset, onSelect, placeHolder='Select'}:
+{assets: Asset[], asset: Asset, onSelect: (asset:Asset)=>void, placeHolder?:string}) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [filter, setFilter] = useState('')
   const [filteredAssets, setFitleredAssets] = useState(assets)
@@ -18,7 +20,7 @@ export const SelectAsset = ({assets, asset, onSelect, placeHolder='Select'}) => 
     }
   }, [isOpen])
 
-  const onSelected = (asset) => {
+  const onSelected = (asset:Asset) => {
     onSelect(asset)
     closeModal()
   }
@@ -93,20 +95,21 @@ export const SelectAsset = ({assets, asset, onSelect, placeHolder='Select'}) => 
   )
 }
 
-const Asset = ({i, asset, assets, setAsset, setSupply, removeAsset}) => {
+const SelectableAsset = ({i, asset, assets, setAsset, setSupply, removeAsset}:
+  {i:number, asset: UserAssetSupplied, assets: UserAsset[], setAsset:(i:number, asset:Asset)=>void, setSupply:Function, removeAsset:Function}) => {
   const {userAssets:{loading}} = useAppContext()
+  const [supplied, setSupplied] = useState(asset.tokensSupplied?.toString() || '0')
 
-  const onChangeSupply = (tokens) => {
-    if (!asset.balance) return
-    setSupply(i, tokens)
-  }
+  useEffect(() => {
+    setSupply(i, +supplied)
+  }, [supplied])
 
   const setMax = () => {
     if (!asset.balance) return
-    onChangeSupply(+ethers.utils.formatUnits(asset.balance, asset.contract_decimals))
+    setSupplied(ethers.utils.formatUnits(asset.balance, asset.contract_decimals))
   }
 
-  const onSelect = (asset) => {
+  const onSelect = (asset:Asset) => {
     setAsset(i, asset)
   }
 
@@ -127,9 +130,9 @@ const Asset = ({i, asset, assets, setAsset, setSupply, removeAsset}) => {
           Balance: {!loading?(+ethers.utils.formatUnits(asset?.balance||0, asset?.contract_decimals||1)).toFixed(3):<Skeleton ml={'2'}>Temporary</Skeleton>}
           <Text paddingInline={'1'} backgroundColor='blue.500' color={'white'} ml={'2'} _hover={{cursor: 'pointer', backgroundColor:'blue.300'}} onClick={setMax}>Max</Text>
         </Flex>
-        <NumberInput value={asset.tokensSupplied} size='lg' maxW={32} borderStyle='hidden'
+        <NumberInput value={supplied} size='lg' maxW={32} borderStyle='hidden'
         min={0} max={+ethers.utils.formatUnits(asset?.balance||0, asset?.contract_decimals||1)}
-        defaultValue={0} onChange={(valueAsNumber)=>onChangeSupply(valueAsNumber)}>
+        defaultValue={0} onChange={(valueAsString)=>setSupplied(valueAsString)}>
           <NumberInputField fontSize={'2xl'} textAlign={'end'} pr={'0'}
           boxShadow='none' outline={'none'} borderStyle='hidden'
           _hover={{borderStyle: 'hidden'}} _active={{borderStyle: 'hidden', borderTopColor: 'pink.100', borderColor: 'gray.100', boxShadow: 'none'}}/>
@@ -140,9 +143,9 @@ const Asset = ({i, asset, assets, setAsset, setSupply, removeAsset}) => {
   )
 }
 
-export const SupplyAssets = ({assetsToConvert, setAssetsToConvert}) => {
+export const SupplyAssets = ({assetsToConvert, setAssetsToConvert}: {assetsToConvert: UserAssetSupplied[], setAssetsToConvert: Function}) => {
   const {userAssets, hardRefreshAssets} = useAppContext()
-  const assets = userAssets?.data
+  const assets: UserAssetSupplied[] = userAssets?.data
   const loading = userAssets?.loading
   const userAssetsError = userAssets?.error
 
@@ -186,21 +189,19 @@ export const SupplyAssets = ({assetsToConvert, setAssetsToConvert}) => {
     const temp = [...assetsToConvert]
     temp[i].tokensSupplied = tokens
     const assetDetails = temp[i]
-    const balance = ethers.utils.formatUnits(assetDetails.balance, assetDetails.contract_decimals)
+    const balance = assetDetails.contract_decimals?ethers.utils.formatUnits(assetDetails.balance, assetDetails.contract_decimals):'0'
     const usdAvailable = assetDetails.quote
     const usdSupplied = (usdAvailable*tokens/parseFloat(balance))
     temp[i].usdcValue = usdSupplied
     setAssetsToConvert(temp)
   }
 
-  const setAsset = (i:number, asset:string) => {
+  const setAsset = (i:number, asset:UserAssetSupplied) => {
+    console.log(asset)
     const temp = [...assetsToConvert]
     temp[i] = asset
-    const assetDetails = temp[i]
-    const balance = ethers.utils.formatUnits(assetDetails.balance, assetDetails.contract_decimals)
-    temp[i].tokensAvailable = balance
-    temp[i].tokenDecimals = assetDetails.contract_decimals
     temp[i].tokensSupplied = 0
+    temp[i].usdcValue = 0
     setAssetsToConvert(temp)
   }
 
@@ -217,7 +218,9 @@ export const SupplyAssets = ({assetsToConvert, setAssetsToConvert}) => {
         </Flex>
         {
           assetsToConvert.map((asset, index) => asset?(
-            <Asset key={`SuppliedAsset_${index}`} asset={asset} i={index} assets={filteredAssets} removeAsset={removeAsset} setSupply={setSupply} setAsset={setAsset}></Asset>
+            <SelectableAsset
+              key={`SuppliedAsset_${index}`}
+              asset={asset} i={index} assets={filteredAssets} removeAsset={removeAsset} setSupply={setSupply} setAsset={setAsset}></SelectableAsset>
           ):<></>)
         }
       </Flex>
