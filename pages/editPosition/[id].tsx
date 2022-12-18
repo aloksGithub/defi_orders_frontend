@@ -185,11 +185,11 @@ const EditPosition = () => {
       const promises = liquidationPoints.map(async point=> {
         let watchedAsset: Asset
         let price: number
-        if (point.watchedToken===ethers.constants.AddressZero) {
+        if (point.watchedToken===contracts.positionManager.address) {
           watchedAsset = {
             contract_name: 'Value of self',
             contract_ticker_symbol: 'Self',
-            contract_address: ethers.constants.AddressZero,
+            contract_address: contracts.positionManager.address,
             underlying:[],
             contract_decimals: 18,
             protocol_name: '',

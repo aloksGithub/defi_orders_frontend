@@ -3,7 +3,7 @@ import { Box, Flex, Text, Grid, GridItem, useColorModeValue, Skeleton, TableCont
 import { useEffect, useState } from "react";
 import { useRouter } from 'next/router'
 import { useWeb3React } from "@web3-react/core";
-import { fetchPosition, getGraphData } from "../../contractCalls/dataFetching";
+import { fetchPosition, FetchPositionData, getGraphData } from "../../contractCalls/dataFetching";
 import { fetchImportantPoints } from "../../contractCalls/dataFetching";
 import { LineChart, Line, CartesianGrid, Tooltip, XAxis, YAxis, Label } from 'recharts';
 import { Heading2 } from "../../components/Typography";
@@ -46,7 +46,7 @@ const Analytics = () => {
   const {provider, account} = useWeb3React()
   const router = useRouter()
   const { id } = router.query
-  const [position, setPosition] = useState(undefined)
+  const [position, setPosition] = useState<FetchPositionData>(undefined)
   const [analytics, setAnalytics] = useState(undefined)
   const [roi, setRoi] = useState<string>()
   const [pnl, setPnl] = useState<string>()
@@ -165,7 +165,7 @@ const Analytics = () => {
               <Image mr={'2'} rounded='xl' width='30px' height={'30px'} src={getLogoUrl(position?.name, position?.tokenContract, chainId)}></Image>
               <Box>
                 <Text>{position?.name}</Text>
-                <Text>{nFormatter(position?.positionData.amountDecimal||0, 2)} tokens (${nFormatter(position.usdcValue, 2)})</Text>
+                <Text>{nFormatter(position?.formattedAmount||0, 3)} tokens (${nFormatter(position.usdcValue, 2)})</Text>
               </Box>
             </Flex>:
             <Skeleton width={'60%'} height='20px' />

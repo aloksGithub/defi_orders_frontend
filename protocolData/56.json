@@ -10,6 +10,16 @@
     "logo_url": "https://seeklogo.com/images/B/binance-coin-bnb-logo-CD94CC6D31-seeklogo.com.png?v=637697418070000000"
   },
   {
+    "contract_name": "WBNB",
+    "contract_address": "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c",
+    "contract_ticker_symbol": "WBNB",
+    "contract_decimals": "18",
+    "underlying": [],
+    "logo_url": "https://logos.covalenthq.com/tokens/56/0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c.png",
+    "protocol_name": "ERC20",
+    "chain_id": 56
+  },
+  {
     "contract_name": "USDT",
     "contract_address": "0x55d398326f99059ff775485246999027b3197955",
     "contract_ticker_symbol": "USDT",
@@ -76,16 +86,6 @@
     "contract_decimals": "18",
     "underlying": [],
     "logo_url": "https://logos.covalenthq.com/tokens/56/0xd44fd09d74cd13838f137b590497595d6b3feea4.png",
-    "protocol_name": "ERC20",
-    "chain_id": 56
-  },
-  {
-    "contract_name": "Cake",
-    "contract_address": "0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82",
-    "contract_ticker_symbol": "Cake",
-    "contract_decimals": "18",
-    "underlying": [],
-    "logo_url": "https://logos.covalenthq.com/tokens/56/0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82.png",
     "protocol_name": "ERC20",
     "chain_id": 56
   },
@@ -216,6 +216,16 @@
     "contract_decimals": "18",
     "underlying": [],
     "logo_url": "https://logos.covalenthq.com/tokens/56/0xcf6bb5389c92bdda8a3747ddb454cb7a64626c63.png",
+    "protocol_name": "ERC20",
+    "chain_id": 56
+  },
+  {
+    "contract_name": "Matic Token",
+    "contract_address": "0xcc42724c6683b7e57334c4e856f4c9965ed682bd",
+    "contract_ticker_symbol": "MATIC",
+    "contract_decimals": "18",
+    "underlying": [],
+    "logo_url": "https://logos.covalenthq.com/tokens/56/0xcc42724c6683b7e57334c4e856f4c9965ed682bd.png",
     "protocol_name": "ERC20",
     "chain_id": 56
   },
@@ -1200,31 +1210,6 @@
     "chain_id": 56
   },
   {
-    "contract_name": "Biswap Cake-WBNB LP",
-    "contract_address": "0x3d94d03eb9ea2d4726886ab8ac9fc0f18355fd13",
-    "contract_ticker_symbol": "Biswap LP",
-    "contract_decimals": 18,
-    "underlying": [
-      {
-        "contract_name": "Cake",
-        "contract_address": "0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82",
-        "contract_ticker_symbol": "Cake",
-        "contract_decimals": "18",
-        "logo_url": "https://logos.covalenthq.com/tokens/56/0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82.png"
-      },
-      {
-        "contract_name": "WBNB",
-        "contract_address": "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c",
-        "contract_ticker_symbol": "WBNB",
-        "contract_decimals": "18",
-        "logo_url": "https://logos.covalenthq.com/tokens/56/0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c.png"
-      }
-    ],
-    "logo_url": "https://cryptologos.cc/logos/biswap-bsw-logo.svg?v=023",
-    "protocol_name": "Biswap",
-    "chain_id": 56
-  },
-  {
     "contract_name": "Biswap ADA-WBNB LP",
     "contract_address": "0x8860922eb2795ab0d57363653dd7ebf18d7c0a42",
     "contract_ticker_symbol": "Biswap LP",
@@ -1568,6 +1553,31 @@
         "contract_ticker_symbol": "XVS",
         "contract_decimals": "18",
         "logo_url": "https://logos.covalenthq.com/tokens/56/0xcf6bb5389c92bdda8a3747ddb454cb7a64626c63.png"
+      }
+    ],
+    "logo_url": "https://cryptologos.cc/logos/biswap-bsw-logo.svg?v=023",
+    "protocol_name": "Biswap",
+    "chain_id": 56
+  },
+  {
+    "contract_name": "Biswap WBNB-MATIC LP",
+    "contract_address": "0x3b09e13ca9189fbd6a196cfe5fbd477c885afbf3",
+    "contract_ticker_symbol": "Biswap LP",
+    "contract_decimals": 18,
+    "underlying": [
+      {
+        "contract_name": "WBNB",
+        "contract_address": "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c",
+        "contract_ticker_symbol": "WBNB",
+        "contract_decimals": "18",
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c.png"
+      },
+      {
+        "contract_name": "Matic Token",
+        "contract_address": "0xcc42724c6683b7e57334c4e856f4c9965ed682bd",
+        "contract_ticker_symbol": "MATIC",
+        "contract_decimals": "18",
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0xcc42724c6683b7e57334c4e856f4c9965ed682bd.png"
       }
     ],
     "logo_url": "https://cryptologos.cc/logos/biswap-bsw-logo.svg?v=023",
@@ -3175,24 +3185,6 @@
     "chain_id": 56
   },
   {
-    "contract_name": "Venus USDT",
-    "contract_address": "0xfd5840cd36d94d7229439859c0112a4185bc0255",
-    "contract_ticker_symbol": "vUSDT",
-    "contract_decimals": 18,
-    "underlying": [
-      {
-        "contract_name": "Tether USD",
-        "contract_address": "0x55d398326f99059ff775485246999027b3197955",
-        "contract_ticker_symbol": "USDT",
-        "contract_decimals": 18,
-        "logo_url": "https://logos.covalenthq.com/tokens/56/0x55d398326f99059ff775485246999027b3197955.png"
-      }
-    ],
-    "logo_url": "https://logos.covalenthq.com/tokens/56/0xcf6bb5389c92bdda8a3747ddb454cb7a64626c63.png",
-    "protocol_name": "Venus",
-    "chain_id": 56
-  },
-  {
     "contract_name": "Venus BUSD",
     "contract_address": "0x95c78222b3d6e262426483d42cfa53685a67ab9d",
     "contract_ticker_symbol": "vBUSD",
@@ -3204,6 +3196,24 @@
         "contract_ticker_symbol": "BUSD",
         "contract_decimals": 18,
         "logo_url": "https://logos.covalenthq.com/tokens/56/0xe9e7cea3dedca5984780bafc599bd69add087d56.png"
+      }
+    ],
+    "logo_url": "https://logos.covalenthq.com/tokens/56/0xcf6bb5389c92bdda8a3747ddb454cb7a64626c63.png",
+    "protocol_name": "Venus",
+    "chain_id": 56
+  },
+  {
+    "contract_name": "Venus USDT",
+    "contract_address": "0xfd5840cd36d94d7229439859c0112a4185bc0255",
+    "contract_ticker_symbol": "vUSDT",
+    "contract_decimals": 18,
+    "underlying": [
+      {
+        "contract_name": "Tether USD",
+        "contract_address": "0x55d398326f99059ff775485246999027b3197955",
+        "contract_ticker_symbol": "USDT",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0x55d398326f99059ff775485246999027b3197955.png"
       }
     ],
     "logo_url": "https://logos.covalenthq.com/tokens/56/0xcf6bb5389c92bdda8a3747ddb454cb7a64626c63.png",
@@ -3265,24 +3275,6 @@
     "chain_id": 56
   },
   {
-    "contract_name": "Venus ADA",
-    "contract_address": "0x9a0af7fdb2065ce470d72664de73cae409da28ec",
-    "contract_ticker_symbol": "vADA",
-    "contract_decimals": 18,
-    "underlying": [
-      {
-        "contract_name": "Cardano Token",
-        "contract_address": "0x3ee2200efb3400fabb9aacf31297cbdd1d435d47",
-        "contract_ticker_symbol": "ADA",
-        "contract_decimals": 18,
-        "logo_url": "https://logos.covalenthq.com/tokens/56/0x3ee2200efb3400fabb9aacf31297cbdd1d435d47.png"
-      }
-    ],
-    "logo_url": "https://logos.covalenthq.com/tokens/56/0xcf6bb5389c92bdda8a3747ddb454cb7a64626c63.png",
-    "protocol_name": "Venus",
-    "chain_id": 56
-  },
-  {
     "contract_name": "Venus XRP",
     "contract_address": "0xb248a295732e0225acd3337607cc01068e3b9c10",
     "contract_ticker_symbol": "vXRP",
@@ -3294,6 +3286,24 @@
         "contract_ticker_symbol": "XRP",
         "contract_decimals": 18,
         "logo_url": "https://logos.covalenthq.com/tokens/56/0x1d2f0da169ceb9fc7b3144628db156f3f6c60dbe.png"
+      }
+    ],
+    "logo_url": "https://logos.covalenthq.com/tokens/56/0xcf6bb5389c92bdda8a3747ddb454cb7a64626c63.png",
+    "protocol_name": "Venus",
+    "chain_id": 56
+  },
+  {
+    "contract_name": "Venus ADA",
+    "contract_address": "0x9a0af7fdb2065ce470d72664de73cae409da28ec",
+    "contract_ticker_symbol": "vADA",
+    "contract_decimals": 18,
+    "underlying": [
+      {
+        "contract_name": "Cardano Token",
+        "contract_address": "0x3ee2200efb3400fabb9aacf31297cbdd1d435d47",
+        "contract_ticker_symbol": "ADA",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0x3ee2200efb3400fabb9aacf31297cbdd1d435d47.png"
       }
     ],
     "logo_url": "https://logos.covalenthq.com/tokens/56/0xcf6bb5389c92bdda8a3747ddb454cb7a64626c63.png",
@@ -3355,6 +3365,24 @@
     "chain_id": 56
   },
   {
+    "contract_name": "Venus MATIC",
+    "contract_address": "0x5c9476fcd6a4f9a3654139721c949c2233bbbbc8",
+    "contract_ticker_symbol": "vMATIC",
+    "contract_decimals": 18,
+    "underlying": [
+      {
+        "contract_name": "Matic Token",
+        "contract_address": "0xcc42724c6683b7e57334c4e856f4c9965ed682bd",
+        "contract_ticker_symbol": "MATIC",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0xcc42724c6683b7e57334c4e856f4c9965ed682bd.png"
+      }
+    ],
+    "logo_url": "https://logos.covalenthq.com/tokens/56/0xcf6bb5389c92bdda8a3747ddb454cb7a64626c63.png",
+    "protocol_name": "Venus",
+    "chain_id": 56
+  },
+  {
     "contract_name": "Venus BNB",
     "contract_address": "0xa07c5b74c9b40447a954e1466938b865b6bbea36",
     "contract_ticker_symbol": "vBNB",
@@ -3373,24 +3401,6 @@
     "chain_id": 56
   },
   {
-    "contract_name": "Venus DOT",
-    "contract_address": "0x1610bc33319e9398de5f57b33a5b184c806ad217",
-    "contract_ticker_symbol": "vDOT",
-    "contract_decimals": 18,
-    "underlying": [
-      {
-        "contract_name": "Polkadot Token",
-        "contract_address": "0x7083609fce4d1d8dc0c979aab8c869ea2c873402",
-        "contract_ticker_symbol": "DOT",
-        "contract_decimals": 18,
-        "logo_url": "https://logos.covalenthq.com/tokens/56/0x7083609fce4d1d8dc0c979aab8c869ea2c873402.png"
-      }
-    ],
-    "logo_url": "https://logos.covalenthq.com/tokens/56/0xcf6bb5389c92bdda8a3747ddb454cb7a64626c63.png",
-    "protocol_name": "Venus",
-    "chain_id": 56
-  },
-  {
     "contract_name": "Venus XVS",
     "contract_address": "0x151b1e2635a717bcdc836ecd6fbb62b674fe3e1d",
     "contract_ticker_symbol": "vXVS",
@@ -3402,6 +3412,24 @@
         "contract_ticker_symbol": "XVS",
         "contract_decimals": 18,
         "logo_url": "https://logos.covalenthq.com/tokens/56/0xcf6bb5389c92bdda8a3747ddb454cb7a64626c63.png"
+      }
+    ],
+    "logo_url": "https://logos.covalenthq.com/tokens/56/0xcf6bb5389c92bdda8a3747ddb454cb7a64626c63.png",
+    "protocol_name": "Venus",
+    "chain_id": 56
+  },
+  {
+    "contract_name": "Venus DOT",
+    "contract_address": "0x1610bc33319e9398de5f57b33a5b184c806ad217",
+    "contract_ticker_symbol": "vDOT",
+    "contract_decimals": 18,
+    "underlying": [
+      {
+        "contract_name": "Polkadot Token",
+        "contract_address": "0x7083609fce4d1d8dc0c979aab8c869ea2c873402",
+        "contract_ticker_symbol": "DOT",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0x7083609fce4d1d8dc0c979aab8c869ea2c873402.png"
       }
     ],
     "logo_url": "https://logos.covalenthq.com/tokens/56/0xcf6bb5389c92bdda8a3747ddb454cb7a64626c63.png",
@@ -3550,6 +3578,581 @@
     ],
     "logo_url": "https://logos.covalenthq.com/tokens/56/0xcf6bb5389c92bdda8a3747ddb454cb7a64626c63.png",
     "protocol_name": "Venus",
+    "chain_id": 56
+  },
+  {
+    "contract_name": "Pancakeswap WBNB-BUSD LP",
+    "contract_address": "0x58f876857a02d6762e0101bb5c46a8c1ed44dc16",
+    "contract_ticker_symbol": "Pancake LP",
+    "contract_decimals": 18,
+    "underlying": [
+      {
+        "contract_name": "Wrapped BNB",
+        "contract_address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "contract_ticker_symbol": "WBNB",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c.png"
+      },
+      {
+        "contract_name": "BUSD Token",
+        "contract_address": "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56",
+        "contract_ticker_symbol": "BUSD",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56.png"
+      }
+    ],
+    "logo_url": "https://cryptologos.cc/logos/pancakeswap-cake-logo.svg?v=023",
+    "protocol_name": "Pancakeswap",
+    "chain_id": 56
+  },
+  {
+    "contract_name": "Pancakeswap ETH-WBNB LP",
+    "contract_address": "0x74e4716e431f45807dcf19f284c7aa99f18a4fbc",
+    "contract_ticker_symbol": "Pancake LP",
+    "contract_decimals": 18,
+    "underlying": [
+      {
+        "contract_name": "Ethereum Token",
+        "contract_address": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
+        "contract_ticker_symbol": "ETH",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0x2170Ed0880ac9A755fd29B2688956BD959F933F8.png"
+      },
+      {
+        "contract_name": "Wrapped BNB",
+        "contract_address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "contract_ticker_symbol": "WBNB",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c.png"
+      }
+    ],
+    "logo_url": "https://cryptologos.cc/logos/pancakeswap-cake-logo.svg?v=023",
+    "protocol_name": "Pancakeswap",
+    "chain_id": 56
+  },
+  {
+    "contract_name": "Pancakeswap SQUA-WBNB LP",
+    "contract_address": "0xc70734ef92893cf7ae131b13874f8c531584fc4e",
+    "contract_ticker_symbol": "Pancake LP",
+    "contract_decimals": 18,
+    "underlying": [
+      {
+        "contract_name": "Square Token",
+        "contract_address": "0xB82BEb6Ee0063Abd5fC8E544c852237aA62CBb14",
+        "contract_ticker_symbol": "SQUA",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0xB82BEb6Ee0063Abd5fC8E544c852237aA62CBb14.png"
+      },
+      {
+        "contract_name": "Wrapped BNB",
+        "contract_address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "contract_ticker_symbol": "WBNB",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c.png"
+      }
+    ],
+    "logo_url": "https://cryptologos.cc/logos/pancakeswap-cake-logo.svg?v=023",
+    "protocol_name": "Pancakeswap",
+    "chain_id": 56
+  },
+  {
+    "contract_name": "Pancakeswap BTCB-WBNB LP",
+    "contract_address": "0x61eb789d75a95caa3ff50ed7e47b96c132fec082",
+    "contract_ticker_symbol": "Pancake LP",
+    "contract_decimals": 18,
+    "underlying": [
+      {
+        "contract_name": "BTCB Token",
+        "contract_address": "0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c",
+        "contract_ticker_symbol": "BTCB",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c.png"
+      },
+      {
+        "contract_name": "Wrapped BNB",
+        "contract_address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "contract_ticker_symbol": "WBNB",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c.png"
+      }
+    ],
+    "logo_url": "https://cryptologos.cc/logos/pancakeswap-cake-logo.svg?v=023",
+    "protocol_name": "Pancakeswap",
+    "chain_id": 56
+  },
+  {
+    "contract_name": "Pancakeswap Cake-WBNB LP",
+    "contract_address": "0x0ed7e52944161450477ee417de9cd3a859b14fd0",
+    "contract_ticker_symbol": "Pancake LP",
+    "contract_decimals": 18,
+    "underlying": [
+      {
+        "contract_name": "PancakeSwap Token",
+        "contract_address": "0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82",
+        "contract_ticker_symbol": "Cake",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82.png"
+      },
+      {
+        "contract_name": "Wrapped BNB",
+        "contract_address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "contract_ticker_symbol": "WBNB",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c.png"
+      }
+    ],
+    "logo_url": "https://cryptologos.cc/logos/pancakeswap-cake-logo.svg?v=023",
+    "protocol_name": "Pancakeswap",
+    "chain_id": 56
+  },
+  {
+    "contract_name": "Pancakeswap USDC-WBNB LP",
+    "contract_address": "0xd99c7f6c65857ac913a8f880a4cb84032ab2fc5b",
+    "contract_ticker_symbol": "Pancake LP",
+    "contract_decimals": 18,
+    "underlying": [
+      {
+        "contract_name": "USD Coin",
+        "contract_address": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
+        "contract_ticker_symbol": "USDC",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d.png"
+      },
+      {
+        "contract_name": "Wrapped BNB",
+        "contract_address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "contract_ticker_symbol": "WBNB",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c.png"
+      }
+    ],
+    "logo_url": "https://cryptologos.cc/logos/pancakeswap-cake-logo.svg?v=023",
+    "protocol_name": "Pancakeswap",
+    "chain_id": 56
+  },
+  {
+    "contract_name": "Pancakeswap USDT-DEBT LP",
+    "contract_address": "0xbe46815e0f0123ad626b82a0166eaa32274104f5",
+    "contract_ticker_symbol": "Pancake LP",
+    "contract_decimals": 18,
+    "underlying": [
+      {
+        "contract_name": "Tether USD",
+        "contract_address": "0x55d398326f99059fF775485246999027B3197955",
+        "contract_ticker_symbol": "USDT",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0x55d398326f99059fF775485246999027B3197955.png"
+      },
+      {
+        "contract_name": "DEBT",
+        "contract_address": "0xC632F90affeC7121120275610BF17Df9963F181c",
+        "contract_ticker_symbol": "DEBT",
+        "contract_decimals": 8,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0xC632F90affeC7121120275610BF17Df9963F181c.png"
+      }
+    ],
+    "logo_url": "https://cryptologos.cc/logos/pancakeswap-cake-logo.svg?v=023",
+    "protocol_name": "Pancakeswap",
+    "chain_id": 56
+  },
+  {
+    "contract_name": "Pancakeswap TIME-USDT LP",
+    "contract_address": "0xad1fedfb04377c4b849cef6ef9627bca41955fa0",
+    "contract_ticker_symbol": "Pancake LP",
+    "contract_decimals": 18,
+    "underlying": [
+      {
+        "contract_name": "TIME",
+        "contract_address": "0x26619FA1d4c957C58096bBbeCa6588dCFB12E109",
+        "contract_ticker_symbol": "TIME",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0x26619FA1d4c957C58096bBbeCa6588dCFB12E109.png"
+      },
+      {
+        "contract_name": "Tether USD",
+        "contract_address": "0x55d398326f99059fF775485246999027B3197955",
+        "contract_ticker_symbol": "USDT",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0x55d398326f99059fF775485246999027B3197955.png"
+      }
+    ],
+    "logo_url": "https://cryptologos.cc/logos/pancakeswap-cake-logo.svg?v=023",
+    "protocol_name": "Pancakeswap",
+    "chain_id": 56
+  },
+  {
+    "contract_name": "Pancakeswap META-WBNB LP",
+    "contract_address": "0x713b1479fc9f1564a2ddc90ae7f2c441578aa013",
+    "contract_ticker_symbol": "Pancake LP",
+    "contract_decimals": 18,
+    "underlying": [
+      {
+        "contract_name": "Metaverse",
+        "contract_address": "0x566f47bf6e0Fd69cD97Da548573A6127C18cE1c0",
+        "contract_ticker_symbol": "META",
+        "contract_decimals": 5,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0x566f47bf6e0Fd69cD97Da548573A6127C18cE1c0.png"
+      },
+      {
+        "contract_name": "Wrapped BNB",
+        "contract_address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "contract_ticker_symbol": "WBNB",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c.png"
+      }
+    ],
+    "logo_url": "https://cryptologos.cc/logos/pancakeswap-cake-logo.svg?v=023",
+    "protocol_name": "Pancakeswap",
+    "chain_id": 56
+  },
+  {
+    "contract_name": "Pancakeswap CAT-WBNB LP",
+    "contract_address": "0x51d6e1dbe1bd149259a17594e1394de7634241ce",
+    "contract_ticker_symbol": "Pancake LP",
+    "contract_decimals": 18,
+    "underlying": [
+      {
+        "contract_name": "Cat",
+        "contract_address": "0x0173295183685F27C84db046B5F0bea3e683c24b",
+        "contract_ticker_symbol": "CAT",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0x0173295183685F27C84db046B5F0bea3e683c24b.png"
+      },
+      {
+        "contract_name": "Wrapped BNB",
+        "contract_address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "contract_ticker_symbol": "WBNB",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c.png"
+      }
+    ],
+    "logo_url": "https://cryptologos.cc/logos/pancakeswap-cake-logo.svg?v=023",
+    "protocol_name": "Pancakeswap",
+    "chain_id": 56
+  },
+  {
+    "contract_name": "Pancakeswap STA-USDT LP",
+    "contract_address": "0x47830b76ed49041f10b3c983bc6916688d81c195",
+    "contract_ticker_symbol": "Pancake LP",
+    "contract_decimals": 18,
+    "underlying": [
+      {
+        "contract_name": "STA TOKEN",
+        "contract_address": "0x4D1E90aB966ae26c778b2f9f365aA40abB13f53C",
+        "contract_ticker_symbol": "STA",
+        "contract_decimals": 8,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0x4D1E90aB966ae26c778b2f9f365aA40abB13f53C.png"
+      },
+      {
+        "contract_name": "Tether USD",
+        "contract_address": "0x55d398326f99059fF775485246999027B3197955",
+        "contract_ticker_symbol": "USDT",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0x55d398326f99059fF775485246999027B3197955.png"
+      }
+    ],
+    "logo_url": "https://cryptologos.cc/logos/pancakeswap-cake-logo.svg?v=023",
+    "protocol_name": "Pancakeswap",
+    "chain_id": 56
+  },
+  {
+    "contract_name": "Pancakeswap USDT-HNT LP",
+    "contract_address": "0xf37037019ad9b762992ccdcfe4eb5cacd5669735",
+    "contract_ticker_symbol": "Pancake LP",
+    "contract_decimals": 18,
+    "underlying": [
+      {
+        "contract_name": "Tether USD",
+        "contract_address": "0x55d398326f99059fF775485246999027B3197955",
+        "contract_ticker_symbol": "USDT",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0x55d398326f99059fF775485246999027B3197955.png"
+      },
+      {
+        "contract_name": "HyperNation Token",
+        "contract_address": "0xaC60F566567fBC9c229E10e1fb73e69C8BbfD6e2",
+        "contract_ticker_symbol": "HNT",
+        "contract_decimals": 6,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0xaC60F566567fBC9c229E10e1fb73e69C8BbfD6e2.png"
+      }
+    ],
+    "logo_url": "https://cryptologos.cc/logos/pancakeswap-cake-logo.svg?v=023",
+    "protocol_name": "Pancakeswap",
+    "chain_id": 56
+  },
+  {
+    "contract_name": "Pancakeswap XRP-WBNB LP",
+    "contract_address": "0x03f18135c44c64ebfdcbad8297fe5bdafdbbdd86",
+    "contract_ticker_symbol": "Pancake LP",
+    "contract_decimals": 18,
+    "underlying": [
+      {
+        "contract_name": "XRP Token",
+        "contract_address": "0x1D2F0da169ceB9fC7B3144628dB156f3F6c60dBE",
+        "contract_ticker_symbol": "XRP",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0x1D2F0da169ceB9fC7B3144628dB156f3F6c60dBE.png"
+      },
+      {
+        "contract_name": "Wrapped BNB",
+        "contract_address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "contract_ticker_symbol": "WBNB",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c.png"
+      }
+    ],
+    "logo_url": "https://cryptologos.cc/logos/pancakeswap-cake-logo.svg?v=023",
+    "protocol_name": "Pancakeswap",
+    "chain_id": 56
+  },
+  {
+    "contract_name": "Pancakeswap FIL-WBNB LP",
+    "contract_address": "0xd9bccbbbdfd9d67beb5d2273102ce0762421d1e3",
+    "contract_ticker_symbol": "Pancake LP",
+    "contract_decimals": 18,
+    "underlying": [
+      {
+        "contract_name": "Filecoin",
+        "contract_address": "0x0D8Ce2A99Bb6e3B7Db580eD848240e4a0F9aE153",
+        "contract_ticker_symbol": "FIL",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0x0D8Ce2A99Bb6e3B7Db580eD848240e4a0F9aE153.png"
+      },
+      {
+        "contract_name": "Wrapped BNB",
+        "contract_address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "contract_ticker_symbol": "WBNB",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c.png"
+      }
+    ],
+    "logo_url": "https://cryptologos.cc/logos/pancakeswap-cake-logo.svg?v=023",
+    "protocol_name": "Pancakeswap",
+    "chain_id": 56
+  },
+  {
+    "contract_name": "Pancakeswap MBOX-WBNB LP",
+    "contract_address": "0x8fa59693458289914db0097f5f366d771b7a7c3f",
+    "contract_ticker_symbol": "Pancake LP",
+    "contract_decimals": 18,
+    "underlying": [
+      {
+        "contract_name": "Mobox",
+        "contract_address": "0x3203c9E46cA618C8C1cE5dC67e7e9D75f5da2377",
+        "contract_ticker_symbol": "MBOX",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0x3203c9E46cA618C8C1cE5dC67e7e9D75f5da2377.png"
+      },
+      {
+        "contract_name": "Wrapped BNB",
+        "contract_address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "contract_ticker_symbol": "WBNB",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c.png"
+      }
+    ],
+    "logo_url": "https://cryptologos.cc/logos/pancakeswap-cake-logo.svg?v=023",
+    "protocol_name": "Pancakeswap",
+    "chain_id": 56
+  },
+  {
+    "contract_name": "Pancakeswap BSC-HO-USDT LP",
+    "contract_address": "0xc1b5ce0a8c25e8aba618f96f08d0b6c871b32a59",
+    "contract_ticker_symbol": "Pancake LP",
+    "contract_decimals": 18,
+    "underlying": [
+      {
+        "contract_name": "Binance-Peg BSC-HO",
+        "contract_address": "0x41515885251e724233c6cA94530d6dcf3A20dEc7",
+        "contract_ticker_symbol": "BSC-HO",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0x41515885251e724233c6cA94530d6dcf3A20dEc7.png"
+      },
+      {
+        "contract_name": "Tether USD",
+        "contract_address": "0x55d398326f99059fF775485246999027B3197955",
+        "contract_ticker_symbol": "USDT",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0x55d398326f99059fF775485246999027B3197955.png"
+      }
+    ],
+    "logo_url": "https://cryptologos.cc/logos/pancakeswap-cake-logo.svg?v=023",
+    "protocol_name": "Pancakeswap",
+    "chain_id": 56
+  },
+  {
+    "contract_name": "Pancakeswap ADA-WBNB LP",
+    "contract_address": "0x28415ff2c35b65b9e5c7de82126b4015ab9d031f",
+    "contract_ticker_symbol": "Pancake LP",
+    "contract_decimals": 18,
+    "underlying": [
+      {
+        "contract_name": "Cardano Token",
+        "contract_address": "0x3EE2200Efb3400fAbB9AacF31297cBdD1d435D47",
+        "contract_ticker_symbol": "ADA",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0x3EE2200Efb3400fAbB9AacF31297cBdD1d435D47.png"
+      },
+      {
+        "contract_name": "Wrapped BNB",
+        "contract_address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "contract_ticker_symbol": "WBNB",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c.png"
+      }
+    ],
+    "logo_url": "https://cryptologos.cc/logos/pancakeswap-cake-logo.svg?v=023",
+    "protocol_name": "Pancakeswap",
+    "chain_id": 56
+  },
+  {
+    "contract_name": "Pancakeswap USDT-Nusic LP",
+    "contract_address": "0x4664dd5347113886e989b2a47a2fc45cccf495d9",
+    "contract_ticker_symbol": "Pancake LP",
+    "contract_decimals": 18,
+    "underlying": [
+      {
+        "contract_name": "Tether USD",
+        "contract_address": "0x55d398326f99059fF775485246999027B3197955",
+        "contract_ticker_symbol": "USDT",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0x55d398326f99059fF775485246999027B3197955.png"
+      },
+      {
+        "contract_name": "Nusic Token",
+        "contract_address": "0x7E58a5c150B3C9171100FDeE0Dd22Ee666dB9545",
+        "contract_ticker_symbol": "Nusic",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0x7E58a5c150B3C9171100FDeE0Dd22Ee666dB9545.png"
+      }
+    ],
+    "logo_url": "https://cryptologos.cc/logos/pancakeswap-cake-logo.svg?v=023",
+    "protocol_name": "Pancakeswap",
+    "chain_id": 56
+  },
+  {
+    "contract_name": "Pancakeswap ULX-BUSD LP",
+    "contract_address": "0x65f2ee8b6c52a263b39f1ffc8f97d4b38f14e96d",
+    "contract_ticker_symbol": "Pancake LP",
+    "contract_decimals": 18,
+    "underlying": [
+      {
+        "contract_name": "Ultron",
+        "contract_address": "0xd983AB71a284d6371908420d8Ac6407ca943F810",
+        "contract_ticker_symbol": "ULX",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0xd983AB71a284d6371908420d8Ac6407ca943F810.png"
+      },
+      {
+        "contract_name": "BUSD Token",
+        "contract_address": "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56",
+        "contract_ticker_symbol": "BUSD",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56.png"
+      }
+    ],
+    "logo_url": "https://cryptologos.cc/logos/pancakeswap-cake-logo.svg?v=023",
+    "protocol_name": "Pancakeswap",
+    "chain_id": 56
+  },
+  {
+    "contract_name": "Pancakeswap DOGE-WBNB LP",
+    "contract_address": "0xac109c8025f272414fd9e2faa805a583708a017f",
+    "contract_ticker_symbol": "Pancake LP",
+    "contract_decimals": 18,
+    "underlying": [
+      {
+        "contract_name": "Dogecoin",
+        "contract_address": "0xbA2aE424d960c26247Dd6c32edC70B295c744C43",
+        "contract_ticker_symbol": "DOGE",
+        "contract_decimals": 8,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0xbA2aE424d960c26247Dd6c32edC70B295c744C43.png"
+      },
+      {
+        "contract_name": "Wrapped BNB",
+        "contract_address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "contract_ticker_symbol": "WBNB",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c.png"
+      }
+    ],
+    "logo_url": "https://cryptologos.cc/logos/pancakeswap-cake-logo.svg?v=023",
+    "protocol_name": "Pancakeswap",
+    "chain_id": 56
+  },
+  {
+    "contract_name": "Pancakeswap BTCST-WBNB LP",
+    "contract_address": "0xb2678c414ebc63c9cc6d1a0fc45f43e249b50fde",
+    "contract_ticker_symbol": "Pancake LP",
+    "contract_decimals": 18,
+    "underlying": [
+      {
+        "contract_name": "StandardBTCHashrateToken",
+        "contract_address": "0x78650B139471520656b9E7aA7A5e9276814a38e9",
+        "contract_ticker_symbol": "BTCST",
+        "contract_decimals": 17,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0x78650B139471520656b9E7aA7A5e9276814a38e9.png"
+      },
+      {
+        "contract_name": "Wrapped BNB",
+        "contract_address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "contract_ticker_symbol": "WBNB",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c.png"
+      }
+    ],
+    "logo_url": "https://cryptologos.cc/logos/pancakeswap-cake-logo.svg?v=023",
+    "protocol_name": "Pancakeswap",
+    "chain_id": 56
+  },
+  {
+    "contract_name": "Pancakeswap INXTER-WBNB LP",
+    "contract_address": "0x2d3b2e315e12b9f0417c92e9d841df7230afece9",
+    "contract_ticker_symbol": "Pancake LP",
+    "contract_decimals": 18,
+    "underlying": [
+      {
+        "contract_name": "Inxter Finance",
+        "contract_address": "0xB513381Af3baDb08De7717aCFe3c27FF312C0345",
+        "contract_ticker_symbol": "INXTER",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0xB513381Af3baDb08De7717aCFe3c27FF312C0345.png"
+      },
+      {
+        "contract_name": "Wrapped BNB",
+        "contract_address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "contract_ticker_symbol": "WBNB",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c.png"
+      }
+    ],
+    "logo_url": "https://cryptologos.cc/logos/pancakeswap-cake-logo.svg?v=023",
+    "protocol_name": "Pancakeswap",
+    "chain_id": 56
+  },
+  {
+    "contract_name": "Pancakeswap USDT-MASKCZDAO LP",
+    "contract_address": "0xc1c302aa24b522ba5723f659274bca4b4a3c93ae",
+    "contract_ticker_symbol": "Pancake LP",
+    "contract_decimals": 18,
+    "underlying": [
+      {
+        "contract_name": "Tether USD",
+        "contract_address": "0x55d398326f99059fF775485246999027B3197955",
+        "contract_ticker_symbol": "USDT",
+        "contract_decimals": 18,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0x55d398326f99059fF775485246999027B3197955.png"
+      },
+      {
+        "contract_name": "MASKCZDAO",
+        "contract_address": "0xed1A37e1662315747fBA70254A42B76B894eE814",
+        "contract_ticker_symbol": "MASKCZDAO",
+        "contract_decimals": 9,
+        "logo_url": "https://logos.covalenthq.com/tokens/56/0xed1A37e1662315747fBA70254A42B76B894eE814.png"
+      }
+    ],
+    "logo_url": "https://cryptologos.cc/logos/pancakeswap-cake-logo.svg?v=023",
+    "protocol_name": "Pancakeswap",
     "chain_id": 56
   }
 ]

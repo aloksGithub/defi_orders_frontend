@@ -9,7 +9,7 @@ import { Reload } from "./Reload";
 import { level2 } from "./Theme"
 
 const Condition = ({i, condition, setWatchedAsset, setConvertTo, removeAsset, setLiquidationPoint, setSlippage, loading}) => {
-  const {supportedAssets} = useAppContext()
+  const {supportedAssets, contracts} = useAppContext()
 
   const parseSlippage = (val) => val.replace(/^\%/, '')
   const formatSlippage = (val) => val+`%`
@@ -21,7 +21,7 @@ const Condition = ({i, condition, setWatchedAsset, setConvertTo, removeAsset, se
     label: 'Value of self',
     contract_name: 'Value of self',
     contract_ticker_symbol: 'Self',
-    contract_address: ethers.constants.AddressZero,
+    contract_address: contracts.positionManager.address,
     underlying:[],
     logo_url: 'https://www.svgrepo.com/show/99387/dollar.svg'
   }
@@ -37,7 +37,7 @@ const Condition = ({i, condition, setWatchedAsset, setConvertTo, removeAsset, se
       <GridItem marginBlock={'auto'}>
         <Flex mb={'4'}>
           {/* @ts-ignore */}
-          <SelectAsset asset={condition.watchedAsset} onSelect={setWatchedAsset} assets={[self, ...(withoutNetworkToken||[])]} placeHolder={'Watched price'}/>
+          <SelectAsset asset={condition.watchedAsset} onSelect={setWatchedAsset} assets={[self, ...(supportedAssets||[])]} placeHolder={'Watched price'}/>
         </Flex>
         <Flex alignItems={'center'}>
           {/* @ts-ignore */}
@@ -75,7 +75,7 @@ const Condition = ({i, condition, setWatchedAsset, setConvertTo, removeAsset, se
 
   // @ts-ignore
 const LiquidationConditions = ({assetPrice, initialLiquidationPoints=undefined, liquidationPoints, onChangeConditions, resetFlag, onReload, loading}) => {
-  const {chainId, slippageControl: {slippage}} = useAppContext()
+  const {chainId, slippageControl: {slippage}, contracts} = useAppContext()
   
   const [initialized, setInitialized] = useState(false)
   const [loadingPrices, setLoadingPrices] = useState(Array(liquidationPoints?.length || 0).fill(false))
@@ -150,7 +150,7 @@ const LiquidationConditions = ({assetPrice, initialLiquidationPoints=undefined, 
     const temp = [...liquidationPoints]
     temp[index].watchedAsset = asset
     const setPrice = async () => {
-      if (asset?.contract_address===ethers.constants.AddressZero) {
+      if (asset?.contract_address===contracts.positionManager.address) {
         temp[index].price=assetPrice
       } else {
         if (asset?.contract_address) {
@@ -168,7 +168,7 @@ const LiquidationConditions = ({assetPrice, initialLiquidationPoints=undefined, 
       setLoadingPrices(loadingPrices)
     }
     setPrice()
-    loadingPrices[index] = asset?.contract_address===ethers.constants.AddressZero?false:true
+    loadingPrices[index] = asset?.contract_address===contracts.positionManager.address?false:true
     setLoadingPrices(loadingPrices)
   }
 

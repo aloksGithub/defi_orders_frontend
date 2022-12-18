@@ -139,7 +139,7 @@ const SecureAsset = ({asset, setSecuring}: {asset: UserAsset, setSecuring: Funct
     watchedAsset: {
       "contract_name": "Value of self",
       "contract_ticker_symbol": "Self",
-      "contract_address": "0x0000000000000000000000000000000000000000",
+      "contract_address": contracts.positionManager.address,
       contract_decimals: 18,
       chain_id: chainId,
       protocol_name: '',

@@ -9,7 +9,6 @@ import { PositionStructOutput } from "../codegen/PositionManager";
 import { ERC20__factory } from "../codegen";
 
 export const getAmountsOut = async (contracts: Contracts, signer: JsonRpcSigner, assetsToConvert: UserAssetSupplied[], wantedAssets: WantedAsset[]) => {
-  console.log(assetsToConvert)
   const provided = {
     tokens: assetsToConvert.map(asset=>asset.contract_address),
     amounts: assetsToConvert.map(asset=>ethers.utils.parseUnits(asset.tokensSupplied.toFixed(asset.contract_decimals), asset.contract_decimals)),
@@ -183,7 +182,12 @@ export const fetchImportantPoints = async (contracts: Contracts, id: number | st
   const positionInteractions = await contracts.positionManager.getPositionInteractions(id)
   const depositToken = positionInteractions[0].assets.tokens[0]
   const depositTokenContract = new ethers.Contract(depositToken, erc20Abi, provider)
-  const depositTokenDecimals = await depositTokenContract.decimals()
+  let depositTokenDecimals: number
+  if (depositToken!=ethers.constants.AddressZero) {
+    depositTokenDecimals = await depositTokenContract.decimals()
+  } else {
+    depositTokenDecimals = 18
+  }
   const formattedInteractions = positionInteractions.map(interaction=>{
     if (interaction.action==='deposit') {
       usdcDeposited+=+ethers.utils.formatUnits(interaction.usdValue, stableDecimals)

@@ -26,7 +26,7 @@ import { FancyButton, PrimaryButton, SecondaryButton } from '../components/Butto
 import { useRouter } from "next/router";
 import { getAmountsOut } from '../contractCalls/dataFetching'
 import { getBlockExplorerUrlTransaction } from '../utils'
-import { level1, level2, level3 } from '../components/Theme'
+import { level0, level1, level2, level3 } from '../components/Theme'
 import { defaultUserAssetSupplied, defaultWantedAsset, UserAssetSupplied, WantedAsset } from '../Types'
 import { ConversionStruct, ProvidedStruct, SwapPointStruct } from '../codegen/PositionManager'
 import { DesiredStruct } from '../codegen/UniversalSwap'
@@ -299,7 +299,7 @@ const SelectWantedAsset = ({usdSupplied, selected, setSelected, updateExpected, 
           _hover={{cursor: 'pointer', backgroundColor: 'red.400'}} backgroundColor='red.300'><DeleteIcon/></Text>
           <NumberInput maxWidth={'100'} min={0} max={100}
             value={selected.percentage+'%'} onChange={(valueAsString)=>changePercentage(+valueAsString.replace(/^\%/, ''))}>
-            <NumberInputField backgroundColor={useColorModeValue('white', 'gray.800')}></NumberInputField>
+            <NumberInputField backgroundColor={useColorModeValue(...level0)}></NumberInputField>
           </NumberInput>
         </Flex>
       </Box>

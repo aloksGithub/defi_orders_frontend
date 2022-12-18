@@ -5,10 +5,8 @@ import {Network} from "@web3-react/network";
 import {WalletConnect} from "@web3-react/walletconnect";
 import type {Connector} from "@web3-react/types";
 import { ethers } from "ethers";
-import bswPools from './protocolData/Biswap_56.json'
 import bscAssets from './protocolData/56.json'
-import erc20Tokens from './protocolData/ERC20_56.json'
-import venusPools from './protocolData/Venus_56.json'
+import mainnetAssets from './protocolData/1.json'
 import { Asset } from "./Types";
 
 export function getName(connector: Connector) {
@@ -128,7 +126,10 @@ const logos = {
   AAVE: "https://cryptologos.cc/logos/aave-aave-logo.svg?v=023",
 };
 
-export const getLogoUrl = (name, address, chainId) => {
+export const getLogoUrl = (name:string, address:string, chainId:number) => {
+  if (address===ethers.constants.AddressZero) {
+    return chainLogos[chainId]
+  }
   if (name === "Biswap LPs") {
     return logos.Biswap;
   } else if (name === "Pancake LPs") {
@@ -178,12 +179,6 @@ export const nativeTokens = {
   },
 }
 
-export const defaultProtocolData = {
-  Biswap_56: bswPools,
-  ERC20_56: erc20Tokens,
-  Venus_56: venusPools
-}
-
 interface SupportedChainAssets {
   [key: string]: Asset[]
 }
@@ -191,5 +186,6 @@ interface SupportedChainAssets {
 export const supportedChainAssets: SupportedChainAssets = {
   // @ts-ignore
   56: bscAssets,
-  1: []
+  // @ts-ignore
+  1: mainnetAssets
 }
