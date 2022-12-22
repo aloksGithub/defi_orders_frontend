@@ -435,7 +435,7 @@ const UniversalSwap = () => {
         setSwapping(false)
         return
       }
-      if (asset.tokensSupplied===0) {
+      if (asset.tokensSupplied==='0') {
         createError(`Tokens supplied for asset ${i+1} are 0`)
         setSwapping(false)
         return

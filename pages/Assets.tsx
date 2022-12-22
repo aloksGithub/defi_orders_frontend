@@ -127,7 +127,7 @@ const SecureAsset = ({asset, setSecuring}: {asset: UserAsset, setSecuring: Funct
   const {account, contracts, onError, userAssets: {loading}, softRefreshAssets, chainId, slippageControl: {slippage}} = useAppContext()
   const {provider} = useWeb3React()
   const signer = provider.getSigner(account)
-  const [tokens, setTokens] = useState<number>(0)
+  const [tokens, setTokens] = useState('0')
   const [selectedBank, selectBank] = useState<{address:string, tokenId: BigNumber}>(undefined)
   const [rewards, setRewards] = useState([])
   const [error, setError] = useState("")
@@ -154,7 +154,7 @@ const SecureAsset = ({asset, setSecuring}: {asset: UserAsset, setSecuring: Funct
   }])
 
   useEffect(() => {
-    setCurrentUsd((asset?.quote*tokens/(asset?.formattedBalance)||0).toFixed(3))
+    setCurrentUsd((asset?.quote*+tokens/(+asset?.formattedBalance)||0).toFixed(3))
   }, [tokens])
 
   useEffect(() => {
@@ -192,16 +192,15 @@ const SecureAsset = ({asset, setSecuring}: {asset: UserAsset, setSecuring: Funct
 
   const exitSecuring = () => {
     setSecuring(undefined)
-    setTokens(0)
+    setTokens('0')
   }
 
   const secure = async () => {
     setProcessing(true)
     let invalidConditions = false
-    console.log(typeof(tokens))
     const assetToConvert = [{
       ...defaultUserAssetSupplied,
-      contract_address: asset.contract_address, contract_decimals: asset.contract_decimals, tokensSupplied: +tokens}]
+      contract_address: asset.contract_address, contract_decimals: asset.contract_decimals, tokensSupplied: tokens}]
     // @ts-ignore
     for (const [index, condition] of liquidationConditions.entries()) {
       const desiredAsset = [{
@@ -292,7 +291,7 @@ const SecureAsset = ({asset, setSecuring}: {asset: UserAsset, setSecuring: Funct
         <GridItem colSpan={1}>
           <Heading2>Tokens To Secure</Heading2>
           <Flex>
-          <NumberInput backgroundColor='hidden' size={'lg'} w={'60%'} min={0} max={asset?.formattedBalance} value={tokens}
+          <NumberInput backgroundColor='hidden' size={'lg'} w={'60%'} min={0} max={+asset?.formattedBalance} value={tokens}
           // @ts-ignore
           onChange={(valueAsString)=>setTokens(valueAsString)}>
             <NumberInputField backgroundColor={useColorModeValue('white', 'gray.900')}></NumberInputField>

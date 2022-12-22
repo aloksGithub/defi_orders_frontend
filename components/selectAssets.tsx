@@ -101,12 +101,12 @@ const SelectableAsset = ({i, asset, assets, setAsset, setSupply, removeAsset}:
   const [supplied, setSupplied] = useState(asset.tokensSupplied?.toString() || '0')
 
   useEffect(() => {
-    setSupply(i, +supplied)
+    setSupply(i, supplied)
   }, [supplied])
 
   const setMax = () => {
-    if (!asset.balance) return
-    setSupplied(ethers.utils.formatUnits(asset.balance, asset.contract_decimals))
+    if (!asset.formattedBalance) return
+    setSupplied(asset.formattedBalance)
   }
 
   const onSelect = (asset:Asset) => {
@@ -159,7 +159,7 @@ export const SupplyAssets = ({assetsToConvert, setAssetsToConvert}: {assetsToCon
         if (matchingAsset && matchingAsset.balance) {
           const balance = ethers.utils.formatUnits(matchingAsset.balance, matchingAsset.contract_decimals)
           const usdAvailable = matchingAsset.quote
-          const usdSupplied = (usdAvailable*asset.tokensSupplied/parseFloat(balance))
+          const usdSupplied = (usdAvailable*(+asset.tokensSupplied)/parseFloat(balance))
           return {...asset, balance:matchingAsset.balance, quote:matchingAsset.quote, usdcValue: usdSupplied}
         } else {return {}}
       })
@@ -179,28 +179,27 @@ export const SupplyAssets = ({assetsToConvert, setAssetsToConvert}: {assetsToCon
   const removeAsset = (i: number) => {
     if (assetsToConvert.length===1) return
     const tempAssets = [...assetsToConvert]
-    tempAssets[i].tokensSupplied = 0
+    tempAssets[i].tokensSupplied = '0'
     tempAssets[i].usdcValue = 0
     tempAssets.splice(i, 1)
     setAssetsToConvert(tempAssets)
   }
 
-  const setSupply = (i:number, tokens: number) => {
+  const setSupply = (i:number, tokens: string) => {
     const temp = [...assetsToConvert]
     temp[i].tokensSupplied = tokens
     const assetDetails = temp[i]
     const balance = assetDetails.contract_decimals?ethers.utils.formatUnits(assetDetails.balance, assetDetails.contract_decimals):'0'
     const usdAvailable = assetDetails.quote
-    const usdSupplied = (usdAvailable*tokens/parseFloat(balance))
+    const usdSupplied = (usdAvailable*+tokens/parseFloat(balance))
     temp[i].usdcValue = usdSupplied
     setAssetsToConvert(temp)
   }
 
   const setAsset = (i:number, asset:UserAssetSupplied) => {
-    console.log(asset)
     const temp = [...assetsToConvert]
     temp[i] = asset
-    temp[i].tokensSupplied = 0
+    temp[i].tokensSupplied = '0'
     temp[i].usdcValue = 0
     setAssetsToConvert(temp)
   }

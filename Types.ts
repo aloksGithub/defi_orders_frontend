@@ -41,12 +41,12 @@ export interface UserAsset extends Asset {
   quote: number|undefined
   quote_rate: number|undefined
   balance: string|undefined
-  formattedBalance: number|undefined
+  formattedBalance: string|undefined
 }
 
 export interface UserAssetSupplied extends Asset, UserAsset {
   usdcValue?: number|undefined
-  tokensSupplied?: number|undefined
+  tokensSupplied?: string|undefined
 }
 
 export const defaultUserAssetSupplied: UserAssetSupplied = {
@@ -61,9 +61,9 @@ export const defaultUserAssetSupplied: UserAssetSupplied = {
   quote: 0,
   quote_rate: 0,
   balance: '0',
-  formattedBalance: 0,
+  formattedBalance: '0',
   usdcValue: 0,
-  tokensSupplied: 0,
+  tokensSupplied: '0',
 }
 
 export interface WantedAsset extends Asset {

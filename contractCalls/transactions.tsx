@@ -4,12 +4,12 @@ import npmAbi from "../constants/abis/INonFungiblePositionsManager.json"
 import { getPrice } from "../utils";
 import { Contracts, UserAssetSupplied, WantedAsset } from "../Types";
 import { JsonRpcSigner, JsonRpcProvider } from "@ethersproject/providers";
-import { ConversionStruct, LiquidationConditionStruct, ProvidedStruct, SwapPointStruct } from "../codegen/PositionManager";
+import { ConversionStruct, LiquidationConditionStruct, PositionStruct, ProvidedStruct, SwapPointStruct } from "../codegen/PositionManager";
 import { ERC20__factory, INonFungiblePositionsManager__factory } from "../codegen";
 import { DesiredStruct } from "../codegen/UniversalSwap";
 import { FetchPositionData } from "./dataFetching";
 
-export const depositNew = async (contracts: Contracts, signer: JsonRpcSigner, position, asset) => {
+export const depositNew = async (contracts: Contracts, signer: JsonRpcSigner, position: PositionStruct, asset) => {
   const account = await signer.getAddress()
   let tx: ethers.Transaction
   if (asset.contract_address!=ethers.constants.AddressZero) {
@@ -94,7 +94,7 @@ export const depositAgain = async (contracts: Contracts, signer: JsonRpcSigner, 
   }
   for (const asset of assetsToConvert) {
     provided.tokens.push(asset.contract_address)
-    provided.amounts.push(ethers.utils.parseUnits(asset.tokensSupplied.toFixed(asset.contract_decimals), asset.contract_decimals))
+    provided.amounts.push(ethers.utils.parseUnits(asset.tokensSupplied, asset.contract_decimals))
   }
   const account = await signer.getAddress()
   const usdTotal = assetsToConvert.reduce((a, b)=>a+b.usdcValue, 0)
@@ -129,6 +129,7 @@ export const depositAgain = async (contracts: Contracts, signer: JsonRpcSigner, 
       const supplied = ethers.utils.parseUnits(asset.tokensSupplied.toString(), asset.contract_decimals)
       const contract = ERC20__factory.connect(address, signer)
       const allowance = await contract.allowance(account, contracts.positionManager.address)
+      console.log(allowance.toString(), supplied.toString())
       if (allowance.lt(supplied)){
         await contract.approve(contracts.positionManager.address, supplied)
       }

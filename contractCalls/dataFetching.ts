@@ -11,7 +11,7 @@ import { ERC20__factory } from "../codegen";
 export const getAmountsOut = async (contracts: Contracts, signer: JsonRpcSigner, assetsToConvert: UserAssetSupplied[], wantedAssets: WantedAsset[]) => {
   const provided = {
     tokens: assetsToConvert.map(asset=>asset.contract_address),
-    amounts: assetsToConvert.map(asset=>ethers.utils.parseUnits(asset.tokensSupplied.toFixed(asset.contract_decimals), asset.contract_decimals)),
+    amounts: assetsToConvert.map(asset=>ethers.utils.parseUnits(asset.tokensSupplied, asset.contract_decimals)),
     nfts: []
   }
   const desired: {outputERC20s: string[], outputERC721s: any[], ratios: number[], minAmountsOut: BigNumber[]} = {
@@ -48,7 +48,7 @@ interface PositionToken {
 export interface FetchPositionData {
   positionId: number
   positionData: PositionStructOutput
-  formattedAmount: number
+  formattedAmount: string
   decimals: number
   tokenContract: string
   name: string
@@ -93,7 +93,7 @@ export const fetchPosition = async (id:number, contracts: Contracts, signer: Jso
 
   return {
     positionId: id, positionData:position,
-    formattedAmount: +ethers.utils.formatUnits(position.amount, decimals),
+    formattedAmount: ethers.utils.formatUnits(position.amount, decimals),
     decimals,
     tokenContract:bankTokenInfo.lpToken,
     name,

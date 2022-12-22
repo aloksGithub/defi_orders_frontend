@@ -66,7 +66,7 @@ const Card = ({id}: {id:number}) => {
           symbol = networkAsset.contract_ticker_symbol
           decimals = networkAsset.contract_decimals
         }
-        const amount = +ethers.utils.formatUnits(underlyingAmounts[index], decimals)
+        const amount = ethers.utils.formatUnits(underlyingAmounts[index], decimals)
         const usdValue = +ethers.utils.formatUnits(underlyingValues[index], stableDecimals)
         return {
           contract_name: name, contract_address: token, contract_ticker_symbol: symbol,
@@ -81,7 +81,7 @@ const Card = ({id}: {id:number}) => {
         const symbol = await contract.symbol()
         const name = await contract.name()
         const decimals = await contract.decimals()
-        const amount = +ethers.utils.formatUnits(rewardAmounts[index], decimals)
+        const amount = ethers.utils.formatUnits(rewardAmounts[index], decimals)
         const usdValue = +ethers.utils.formatUnits(rewardValues[index], stableDecimals)
         return {
           contract_name: name, contract_address: token, contract_ticker_symbol: symbol,

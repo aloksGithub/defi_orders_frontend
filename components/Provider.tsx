@@ -76,7 +76,7 @@ export function AppWrapper({ children }) {
       const temp = [...userAssets?.data||[]]
       for (let i = 0; i<temp.length; i++) {
         const {price} = await getPrice(usedChainId, temp[i].contract_address)
-        temp[i].quote = temp[i].formattedBalance*price
+        temp[i].quote = +temp[i].formattedBalance*price
       }
       setUserAssets({...userAssets, data: temp, loading: false})
     }
@@ -140,10 +140,10 @@ export function AppWrapper({ children }) {
     }
   }, [account, usedChainId, provider, reloadTrigger])
   
-  const onError = (error:Error) => {
-    console.log(error)
+  const onError = (error:any) => {
+    console.log(error.reason)
     // @ts-ignore
-    if (error.reason?.includes('slippage')) {
+    if (error.reason?.includes('3')) {
       setErrorMessage("Transaction failed due to high slippage. You can try setting a higher slippage threshold from the settings")
     } else {
       setErrorMessage("Transaction failed with no revert reason. Please contact us at info@de-limit.com")

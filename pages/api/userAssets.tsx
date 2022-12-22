@@ -35,7 +35,7 @@ export default async function serverSideCall(req, res) {
         ...tokenData,
         quote: (+ethers.utils.formatUnits(item.balance, item.contract_decimals))*price,
         quote_rate: price,
-        formattedBalance: +ethers.utils.formatUnits(item.balance, item.contract_decimals),
+        formattedBalance: ethers.utils.formatUnits(item.balance, item.contract_decimals),
         balance: item.balance
       }
       return corrected
