@@ -103,13 +103,7 @@ export function AppWrapper({ children }) {
       }
       try {
         const positionManager = PositionManager__factory.connect(deploymentAddresses[chainId].positionsManager, signer)
-        const numBanks = await positionManager.numBanks()
-        const banks = []
-        for (let i = 0; i<numBanks.toNumber(); i++) {
-          const bankAddress = await positionManager.banks(i)
-          const bank = BankBase__factory.connect(bankAddress, signer)
-          banks.push(bank)
-        }
+        const banks = (await positionManager.getBanks()).map(bank=>BankBase__factory.connect(bank, signer))
         const universalSwap = UniversalSwap__factory.connect(deploymentAddresses[chainId].universalSwap, signer)
         const stableTokenAddress = await positionManager.stableToken()
         const stableToken = ERC20__factory.connect(stableTokenAddress, provider)

@@ -4,15 +4,14 @@ import {
   NumberInput,
   NumberInputField,
   Text,
-  Button,
   Flex,
   Box,
   Tooltip,
-  useDisclosure, NumberDecrementStepper, NumberIncrementStepper, NumberInputStepper, Skeleton, Input, Grid, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, IconButton, useColorMode, useColorModeValue, Image
+  useDisclosure, NumberDecrementStepper, NumberIncrementStepper, NumberInputStepper, Skeleton, Input, Grid, Modal, ModalBody, ModalCloseButton, ModalContent, ModalHeader, ModalOverlay, IconButton, useColorModeValue, Image
 } from '@chakra-ui/react'
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useState } from 'react'
 import { useWeb3React } from '@web3-react/core'
-import { BigNumber, ethers } from 'ethers'
+import { ethers } from 'ethers'
 import erc20Abi from "../constants/abis/ERC20.json"
 import poolAbi from "../constants/abis/IUniswapV3Pool.json"
 import { SupplyAssets, SelectAsset } from '../components/selectAssets';
@@ -22,11 +21,10 @@ import Fraction from 'fraction.js'
 import { getPrice, nFormatter } from '../utils';
 import { swap } from '../contractCalls/transactions'
 import { BiErrorAlt } from "react-icons/bi"
-import { FancyButton, PrimaryButton, SecondaryButton } from '../components/Buttons'
-import { useRouter } from "next/router";
+import { FancyButton, PrimaryButton } from '../components/Buttons'
 import { getAmountsOut } from '../contractCalls/dataFetching'
 import { getBlockExplorerUrlTransaction } from '../utils'
-import { level0, level1, level2, level3 } from '../components/Theme'
+import { level0, level1, level2 } from '../components/Theme'
 import { defaultUserAssetSupplied, defaultWantedAsset, UserAssetSupplied, WantedAsset } from '../Types'
 import { ConversionStruct, ProvidedStruct, SwapPointStruct } from '../codegen/PositionManager'
 import { DesiredStruct } from '../codegen/UniversalSwap'
@@ -468,7 +466,7 @@ const UniversalSwap = () => {
       setSwapping(false)
       return
     }
-    const {swaps, conversions, provided, desired, wantedAssets: expectedAssets} = await getAmountsOut(contracts, signer, assetsToConvert, wantedAssets)
+    const {swaps, conversions, provided, desired, expectedAssets} = await getAmountsOut(contracts, signer, assetsToConvert, wantedAssets)
     setSwapData({swaps, conversions, expectedAssets, provided, desired})
     setDeadline(counter+31)
     onOpenPreview()

@@ -276,7 +276,7 @@ export function Navbar() {
           <ModalBody>
             <Flex alignItems={'center'}>
               <Text width={'50%'} alignItems={'center'}>Slippage:</Text>
-              <NumberInput width={'50%'} min={0} max={100} onChange={(valueString)=>setTemp(parseSlippage(valueString))} value={formatSlippage(temp)}>
+              <NumberInput width={'50%'} min={0.001} max={100} onChange={(valueString)=>setTemp(parseSlippage(valueString))} value={formatSlippage(temp)}>
                 <NumberInputField />
               </NumberInput>
             </Flex>

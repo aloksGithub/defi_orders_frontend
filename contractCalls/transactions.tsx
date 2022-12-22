@@ -2,11 +2,12 @@ import { BigNumberish, ethers } from "ethers";
 import erc20Abi from "../constants/abis/ERC20.json"
 import npmAbi from "../constants/abis/INonFungiblePositionsManager.json"
 import { getPrice } from "../utils";
-import { Contracts, WantedAsset } from "../Types";
+import { Contracts, UserAssetSupplied, WantedAsset } from "../Types";
 import { JsonRpcSigner, JsonRpcProvider } from "@ethersproject/providers";
 import { ConversionStruct, LiquidationConditionStruct, ProvidedStruct, SwapPointStruct } from "../codegen/PositionManager";
 import { ERC20__factory, INonFungiblePositionsManager__factory } from "../codegen";
 import { DesiredStruct } from "../codegen/UniversalSwap";
+import { FetchPositionData } from "./dataFetching";
 
 export const depositNew = async (contracts: Contracts, signer: JsonRpcSigner, position, asset) => {
   const account = await signer.getAddress()
@@ -79,7 +80,7 @@ export const swap = async (
   return {expectedAssets, hash}
 }
 
-export const depositAgain = async (contracts: Contracts, signer: JsonRpcSigner, position, assetsToConvert, chainId: number, slippage: number) => {
+export const depositAgain = async (contracts: Contracts, signer: JsonRpcSigner, position: FetchPositionData, assetsToConvert: UserAssetSupplied[], chainId: number, slippage: number) => {
   const provided = {
     tokens: [],
     amounts: [],
@@ -93,12 +94,12 @@ export const depositAgain = async (contracts: Contracts, signer: JsonRpcSigner, 
   }
   for (const asset of assetsToConvert) {
     provided.tokens.push(asset.contract_address)
-    provided.amounts.push(ethers.utils.parseUnits(asset.tokensSupplied, asset.contract_decimals))
+    provided.amounts.push(ethers.utils.parseUnits(asset.tokensSupplied.toFixed(asset.contract_decimals), asset.contract_decimals))
   }
   const account = await signer.getAddress()
   const usdTotal = assetsToConvert.reduce((a, b)=>a+b.usdcValue, 0)
-  const bankId = position.positionData.bankId.toNumber()
-  const bankContract = contracts.banks[bankId]
+  const bankAddress = position.positionData.bank
+  const bankContract = contracts.banks.find(bank=>bank.address===bankAddress)
   const underlyingTokens = await bankContract.callStatic.getUnderlyingForRecurringDeposit(position.positionData.bankToken)
   let swaps, conversions
   if (underlyingTokens[0].length===1 && underlyingTokens[0][0]===provided.tokens[0] && provided.tokens.length===1) {
@@ -125,14 +126,14 @@ export const depositAgain = async (contracts: Contracts, signer: JsonRpcSigner, 
   for (const asset of assetsToConvert) {
     const address = asset.contract_address
     if (address!=ethers.constants.AddressZero) {
-      const supplied = ethers.utils.parseUnits(asset.tokensSupplied.toString(), asset.tokenDecimals)
+      const supplied = ethers.utils.parseUnits(asset.tokensSupplied.toString(), asset.contract_decimals)
       const contract = ERC20__factory.connect(address, signer)
       const allowance = await contract.allowance(account, contracts.positionManager.address)
       if (allowance.lt(supplied)){
         await contract.approve(contracts.positionManager.address, supplied)
       }
     } else {
-      ethSupplied = ethers.utils.parseUnits(asset.tokensSupplied.toString(), asset.tokenDecimals)
+      ethSupplied = ethers.utils.parseUnits(asset.tokensSupplied.toString(), asset.contract_decimals)
     }
   }
   const addressZeroIndex = provided.tokens.findIndex(token=>token===ethers.constants.AddressZero)

@@ -130,7 +130,7 @@ export type ConversionStructOutput = [
 
 export type PositionStruct = {
   user: PromiseOrValue<string>;
-  bankId: PromiseOrValue<BigNumberish>;
+  bank: PromiseOrValue<string>;
   bankToken: PromiseOrValue<BigNumberish>;
   amount: PromiseOrValue<BigNumberish>;
   liquidationPoints: LiquidationConditionStruct[];
@@ -138,13 +138,13 @@ export type PositionStruct = {
 
 export type PositionStructOutput = [
   string,
-  BigNumber,
+  string,
   BigNumber,
   BigNumber,
   LiquidationConditionStructOutput[]
 ] & {
   user: string;
-  bankId: BigNumber;
+  bank: string;
   bankToken: BigNumber;
   amount: BigNumber;
   liquidationPoints: LiquidationConditionStructOutput[];
@@ -241,33 +241,27 @@ export interface PositionManagerInterface extends utils.Interface {
     "botLiquidate(uint256,uint256,(uint256,uint256,uint256,uint256,int256,address,address,address,address[])[],((address,address,uint256,uint256,bytes),address,uint256,address[],uint256[])[])": FunctionFragment;
     "checkLiquidate(uint256)": FunctionFragment;
     "close(uint256)": FunctionFragment;
-    "computeDevFee(uint256)": FunctionFragment;
-    "defaultFeeModel()": FunctionFragment;
-    "deposit((address,uint256,uint256,uint256,(address,address,bool,uint256,uint256)[]),address[],uint256[])": FunctionFragment;
+    "deposit((address,address,uint256,uint256,(address,address,bool,uint256,uint256)[]),address[],uint256[])": FunctionFragment;
     "depositInExisting(uint256,(address[],uint256[],(address,address,uint256,uint256,bytes)[]),(uint256,uint256,uint256,uint256,int256,address,address,address,address[])[],((address,address,uint256,uint256,bytes),address,uint256,address[],uint256[])[],uint256[])": FunctionFragment;
-    "devShare(uint256)": FunctionFragment;
     "estimateValue(uint256,address)": FunctionFragment;
-    "feeModels(uint256)": FunctionFragment;
+    "getBanks()": FunctionFragment;
     "getPosition(uint256)": FunctionFragment;
     "getPositionInteractions(uint256)": FunctionFragment;
     "getPositionRewards(uint256)": FunctionFragment;
     "getPositionTokens(uint256)": FunctionFragment;
+    "getPositions(address)": FunctionFragment;
     "harvestAndRecompound(uint256,(uint256,uint256,uint256,uint256,int256,address,address,address,address[])[],((address,address,uint256,uint256,bytes),address,uint256,address[],uint256[])[],uint256[])": FunctionFragment;
     "harvestRewards(uint256)": FunctionFragment;
+    "helper()": FunctionFragment;
     "keepers(address)": FunctionFragment;
-    "migrateBank(uint256,address)": FunctionFragment;
     "networkToken()": FunctionFragment;
-    "numBanks()": FunctionFragment;
     "numPositions()": FunctionFragment;
-    "numUserPositions(address)": FunctionFragment;
     "owner()": FunctionFragment;
     "positionClosed(uint256)": FunctionFragment;
     "positionInteractions(uint256,uint256)": FunctionFragment;
     "positions(uint256)": FunctionFragment;
     "recommendBank(address)": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
-    "setDefaultFeeModel(address)": FunctionFragment;
-    "setFeeModel(uint256,address)": FunctionFragment;
     "setKeeper(address,bool)": FunctionFragment;
     "setUniversalSwap(address)": FunctionFragment;
     "stableToken()": FunctionFragment;
@@ -285,33 +279,27 @@ export interface PositionManagerInterface extends utils.Interface {
       | "botLiquidate"
       | "checkLiquidate"
       | "close"
-      | "computeDevFee"
-      | "defaultFeeModel"
       | "deposit"
       | "depositInExisting"
-      | "devShare"
       | "estimateValue"
-      | "feeModels"
+      | "getBanks"
       | "getPosition"
       | "getPositionInteractions"
       | "getPositionRewards"
       | "getPositionTokens"
+      | "getPositions"
       | "harvestAndRecompound"
       | "harvestRewards"
+      | "helper"
       | "keepers"
-      | "migrateBank"
       | "networkToken"
-      | "numBanks"
       | "numPositions"
-      | "numUserPositions"
       | "owner"
       | "positionClosed"
       | "positionInteractions"
       | "positions"
       | "recommendBank"
       | "renounceOwnership"
-      | "setDefaultFeeModel"
-      | "setFeeModel"
       | "setKeeper"
       | "setUniversalSwap"
       | "stableToken"
@@ -351,14 +339,6 @@ export interface PositionManagerInterface extends utils.Interface {
     values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
-    functionFragment: "computeDevFee",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "defaultFeeModel",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
     functionFragment: "deposit",
     values: [
       PositionStruct,
@@ -377,17 +357,10 @@ export interface PositionManagerInterface extends utils.Interface {
     ]
   ): string;
   encodeFunctionData(
-    functionFragment: "devShare",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(
     functionFragment: "estimateValue",
     values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
   ): string;
-  encodeFunctionData(
-    functionFragment: "feeModels",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
+  encodeFunctionData(functionFragment: "getBanks", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "getPosition",
     values: [PromiseOrValue<BigNumberish>]
@@ -405,6 +378,10 @@ export interface PositionManagerInterface extends utils.Interface {
     values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
+    functionFragment: "getPositions",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
     functionFragment: "harvestAndRecompound",
     values: [
       PromiseOrValue<BigNumberish>,
@@ -417,26 +394,18 @@ export interface PositionManagerInterface extends utils.Interface {
     functionFragment: "harvestRewards",
     values: [PromiseOrValue<BigNumberish>]
   ): string;
+  encodeFunctionData(functionFragment: "helper", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "keepers",
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "migrateBank",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
     functionFragment: "networkToken",
     values?: undefined
   ): string;
-  encodeFunctionData(functionFragment: "numBanks", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "numPositions",
     values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "numUserPositions",
-    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
@@ -458,14 +427,6 @@ export interface PositionManagerInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "renounceOwnership",
     values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setDefaultFeeModel",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setFeeModel",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "setKeeper",
@@ -511,25 +472,16 @@ export interface PositionManagerInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "close", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "computeDevFee",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "defaultFeeModel",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "depositInExisting",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "devShare", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "estimateValue",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "feeModels", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "getBanks", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getPosition",
     data: BytesLike
@@ -547,6 +499,10 @@ export interface PositionManagerInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "getPositions",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "harvestAndRecompound",
     data: BytesLike
   ): Result;
@@ -554,22 +510,14 @@ export interface PositionManagerInterface extends utils.Interface {
     functionFragment: "harvestRewards",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "helper", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "keepers", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "migrateBank",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "networkToken",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "numBanks", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "numPositions",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "numUserPositions",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
@@ -588,14 +536,6 @@ export interface PositionManagerInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "renounceOwnership",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setDefaultFeeModel",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setFeeModel",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "setKeeper", data: BytesLike): Result;
@@ -622,60 +562,29 @@ export interface PositionManagerInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
 
   events: {
-    "BankAdded(address,uint256)": EventFragment;
-    "BankUpdated(address,address,uint256)": EventFragment;
-    "Deposit(uint256,uint256,uint256,address,uint256,tuple[])": EventFragment;
-    "FeeClaimed(uint256,uint256)": EventFragment;
+    "Deposit(uint256,address,uint256,address,uint256,tuple[])": EventFragment;
     "Harvest(uint256,address[],uint256[])": EventFragment;
     "HarvestRecompound(uint256,uint256)": EventFragment;
     "IncreasePosition(uint256,uint256)": EventFragment;
     "KeeperUpdate(address,bool)": EventFragment;
-    "LiquidationPointsUpdate(uint256,tuple[])": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
     "PositionClose(uint256)": EventFragment;
     "Withdraw(uint256,uint256)": EventFragment;
   };
 
-  getEvent(nameOrSignatureOrTopic: "BankAdded"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "BankUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Deposit"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "FeeClaimed"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Harvest"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "HarvestRecompound"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "IncreasePosition"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "KeeperUpdate"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "LiquidationPointsUpdate"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "PositionClose"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Withdraw"): EventFragment;
 }
 
-export interface BankAddedEventObject {
-  bank: string;
-  bankId: BigNumber;
-}
-export type BankAddedEvent = TypedEvent<
-  [string, BigNumber],
-  BankAddedEventObject
->;
-
-export type BankAddedEventFilter = TypedEventFilter<BankAddedEvent>;
-
-export interface BankUpdatedEventObject {
-  newBankAddress: string;
-  oldBankAddress: string;
-  bankId: BigNumber;
-}
-export type BankUpdatedEvent = TypedEvent<
-  [string, string, BigNumber],
-  BankUpdatedEventObject
->;
-
-export type BankUpdatedEventFilter = TypedEventFilter<BankUpdatedEvent>;
-
 export interface DepositEventObject {
   positionId: BigNumber;
-  bankId: BigNumber;
+  bank: string;
   bankToken: BigNumber;
   user: string;
   amount: BigNumber;
@@ -684,7 +593,7 @@ export interface DepositEventObject {
 export type DepositEvent = TypedEvent<
   [
     BigNumber,
-    BigNumber,
+    string,
     BigNumber,
     string,
     BigNumber,
@@ -694,17 +603,6 @@ export type DepositEvent = TypedEvent<
 >;
 
 export type DepositEventFilter = TypedEventFilter<DepositEvent>;
-
-export interface FeeClaimedEventObject {
-  positionId: BigNumber;
-  usdcClaimed: BigNumber;
-}
-export type FeeClaimedEvent = TypedEvent<
-  [BigNumber, BigNumber],
-  FeeClaimedEventObject
->;
-
-export type FeeClaimedEventFilter = TypedEventFilter<FeeClaimedEvent>;
 
 export interface HarvestEventObject {
   positionId: BigNumber;
@@ -752,18 +650,6 @@ export type KeeperUpdateEvent = TypedEvent<
 >;
 
 export type KeeperUpdateEventFilter = TypedEventFilter<KeeperUpdateEvent>;
-
-export interface LiquidationPointsUpdateEventObject {
-  positionId: BigNumber;
-  liquidationPoints: LiquidationConditionStructOutput[];
-}
-export type LiquidationPointsUpdateEvent = TypedEvent<
-  [BigNumber, LiquidationConditionStructOutput[]],
-  LiquidationPointsUpdateEventObject
->;
-
-export type LiquidationPointsUpdateEventFilter =
-  TypedEventFilter<LiquidationPointsUpdateEvent>;
 
 export interface OwnershipTransferredEventObject {
   previousOwner: string;
@@ -859,13 +745,6 @@ export interface PositionManager extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    computeDevFee(
-      positionId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    defaultFeeModel(overrides?: CallOverrides): Promise<[string]>;
-
     deposit(
       position: PositionStruct,
       suppliedTokens: PromiseOrValue<string>[],
@@ -882,21 +761,13 @@ export interface PositionManager extends BaseContract {
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    devShare(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
     estimateValue(
       positionId: PromiseOrValue<BigNumberish>,
       inTermsOf: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    feeModels(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
+    getBanks(overrides?: CallOverrides): Promise<[string[]]>;
 
     getPosition(
       positionId: PromiseOrValue<BigNumberish>,
@@ -912,9 +783,10 @@ export interface PositionManager extends BaseContract {
       positionId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<
-      [string[], BigNumber[]] & {
+      [string[], BigNumber[], BigNumber[]] & {
         rewards: string[];
         rewardAmounts: BigNumber[];
+        rewardValues: BigNumber[];
       }
     >;
 
@@ -922,8 +794,17 @@ export interface PositionManager extends BaseContract {
       positionId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<
-      [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
+      [string[], BigNumber[], BigNumber[]] & {
+        tokens: string[];
+        amounts: BigNumber[];
+        values: BigNumber[];
+      }
     >;
+
+    getPositions(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber[]]>;
 
     harvestAndRecompound(
       positionId: PromiseOrValue<BigNumberish>,
@@ -938,27 +819,16 @@ export interface PositionManager extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    helper(overrides?: CallOverrides): Promise<[string]>;
+
     keepers(
       arg0: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
-    migrateBank(
-      bankId: PromiseOrValue<BigNumberish>,
-      newBankAddress: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
     networkToken(overrides?: CallOverrides): Promise<[string]>;
 
-    numBanks(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     numPositions(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    numUserPositions(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
 
     owner(overrides?: CallOverrides): Promise<[string]>;
 
@@ -993,9 +863,9 @@ export interface PositionManager extends BaseContract {
       arg0: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<
-      [string, BigNumber, BigNumber, BigNumber] & {
+      [string, string, BigNumber, BigNumber] & {
         user: string;
-        bankId: BigNumber;
+        bank: string;
         bankToken: BigNumber;
         amount: BigNumber;
       }
@@ -1004,20 +874,9 @@ export interface PositionManager extends BaseContract {
     recommendBank(
       lpToken: PromiseOrValue<string>,
       overrides?: CallOverrides
-    ): Promise<[BigNumber[], string[], BigNumber[]]>;
+    ): Promise<[string[], BigNumber[]]>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setDefaultFeeModel(
-      feeModel: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setFeeModel(
-      positionId: PromiseOrValue<BigNumberish>,
-      feeModel: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -1088,13 +947,6 @@ export interface PositionManager extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  computeDevFee(
-    positionId: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  defaultFeeModel(overrides?: CallOverrides): Promise<string>;
-
   deposit(
     position: PositionStruct,
     suppliedTokens: PromiseOrValue<string>[],
@@ -1111,21 +963,13 @@ export interface PositionManager extends BaseContract {
     overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  devShare(
-    arg0: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
   estimateValue(
     positionId: PromiseOrValue<BigNumberish>,
     inTermsOf: PromiseOrValue<string>,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  feeModels(
-    arg0: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  getBanks(overrides?: CallOverrides): Promise<string[]>;
 
   getPosition(
     positionId: PromiseOrValue<BigNumberish>,
@@ -1141,15 +985,28 @@ export interface PositionManager extends BaseContract {
     positionId: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
   ): Promise<
-    [string[], BigNumber[]] & { rewards: string[]; rewardAmounts: BigNumber[] }
+    [string[], BigNumber[], BigNumber[]] & {
+      rewards: string[];
+      rewardAmounts: BigNumber[];
+      rewardValues: BigNumber[];
+    }
   >;
 
   getPositionTokens(
     positionId: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
   ): Promise<
-    [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
+    [string[], BigNumber[], BigNumber[]] & {
+      tokens: string[];
+      amounts: BigNumber[];
+      values: BigNumber[];
+    }
   >;
+
+  getPositions(
+    user: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber[]>;
 
   harvestAndRecompound(
     positionId: PromiseOrValue<BigNumberish>,
@@ -1164,27 +1021,16 @@ export interface PositionManager extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  helper(overrides?: CallOverrides): Promise<string>;
+
   keepers(
     arg0: PromiseOrValue<string>,
     overrides?: CallOverrides
   ): Promise<boolean>;
 
-  migrateBank(
-    bankId: PromiseOrValue<BigNumberish>,
-    newBankAddress: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
   networkToken(overrides?: CallOverrides): Promise<string>;
 
-  numBanks(overrides?: CallOverrides): Promise<BigNumber>;
-
   numPositions(overrides?: CallOverrides): Promise<BigNumber>;
-
-  numUserPositions(
-    arg0: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
 
   owner(overrides?: CallOverrides): Promise<string>;
 
@@ -1219,9 +1065,9 @@ export interface PositionManager extends BaseContract {
     arg0: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
   ): Promise<
-    [string, BigNumber, BigNumber, BigNumber] & {
+    [string, string, BigNumber, BigNumber] & {
       user: string;
-      bankId: BigNumber;
+      bank: string;
       bankToken: BigNumber;
       amount: BigNumber;
     }
@@ -1230,20 +1076,9 @@ export interface PositionManager extends BaseContract {
   recommendBank(
     lpToken: PromiseOrValue<string>,
     overrides?: CallOverrides
-  ): Promise<[BigNumber[], string[], BigNumber[]]>;
+  ): Promise<[string[], BigNumber[]]>;
 
   renounceOwnership(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setDefaultFeeModel(
-    feeModel: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setFeeModel(
-    positionId: PromiseOrValue<BigNumberish>,
-    feeModel: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -1314,13 +1149,6 @@ export interface PositionManager extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    computeDevFee(
-      positionId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    defaultFeeModel(overrides?: CallOverrides): Promise<string>;
-
     deposit(
       position: PositionStruct,
       suppliedTokens: PromiseOrValue<string>[],
@@ -1337,21 +1165,13 @@ export interface PositionManager extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    devShare(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     estimateValue(
       positionId: PromiseOrValue<BigNumberish>,
       inTermsOf: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    feeModels(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string>;
+    getBanks(overrides?: CallOverrides): Promise<string[]>;
 
     getPosition(
       positionId: PromiseOrValue<BigNumberish>,
@@ -1367,9 +1187,10 @@ export interface PositionManager extends BaseContract {
       positionId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<
-      [string[], BigNumber[]] & {
+      [string[], BigNumber[], BigNumber[]] & {
         rewards: string[];
         rewardAmounts: BigNumber[];
+        rewardValues: BigNumber[];
       }
     >;
 
@@ -1377,8 +1198,17 @@ export interface PositionManager extends BaseContract {
       positionId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<
-      [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
+      [string[], BigNumber[], BigNumber[]] & {
+        tokens: string[];
+        amounts: BigNumber[];
+        values: BigNumber[];
+      }
     >;
+
+    getPositions(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber[]>;
 
     harvestAndRecompound(
       positionId: PromiseOrValue<BigNumberish>,
@@ -1391,34 +1221,18 @@ export interface PositionManager extends BaseContract {
     harvestRewards(
       positionId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<
-      [string[], BigNumber[]] & {
-        rewards: string[];
-        rewardAmounts: BigNumber[];
-      }
-    >;
+    ): Promise<[string[], BigNumber[]]>;
+
+    helper(overrides?: CallOverrides): Promise<string>;
 
     keepers(
       arg0: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    migrateBank(
-      bankId: PromiseOrValue<BigNumberish>,
-      newBankAddress: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     networkToken(overrides?: CallOverrides): Promise<string>;
 
-    numBanks(overrides?: CallOverrides): Promise<BigNumber>;
-
     numPositions(overrides?: CallOverrides): Promise<BigNumber>;
-
-    numUserPositions(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<string>;
 
@@ -1453,9 +1267,9 @@ export interface PositionManager extends BaseContract {
       arg0: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<
-      [string, BigNumber, BigNumber, BigNumber] & {
+      [string, string, BigNumber, BigNumber] & {
         user: string;
-        bankId: BigNumber;
+        bank: string;
         bankToken: BigNumber;
         amount: BigNumber;
       }
@@ -1464,20 +1278,9 @@ export interface PositionManager extends BaseContract {
     recommendBank(
       lpToken: PromiseOrValue<string>,
       overrides?: CallOverrides
-    ): Promise<[BigNumber[], string[], BigNumber[]]>;
+    ): Promise<[string[], BigNumber[]]>;
 
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
-
-    setDefaultFeeModel(
-      feeModel: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setFeeModel(
-      positionId: PromiseOrValue<BigNumberish>,
-      feeModel: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
 
     setKeeper(
       keeperAddress: PromiseOrValue<string>,
@@ -1513,26 +1316,9 @@ export interface PositionManager extends BaseContract {
   };
 
   filters: {
-    "BankAdded(address,uint256)"(
-      bank?: null,
-      bankId?: null
-    ): BankAddedEventFilter;
-    BankAdded(bank?: null, bankId?: null): BankAddedEventFilter;
-
-    "BankUpdated(address,address,uint256)"(
-      newBankAddress?: null,
-      oldBankAddress?: null,
-      bankId?: null
-    ): BankUpdatedEventFilter;
-    BankUpdated(
-      newBankAddress?: null,
-      oldBankAddress?: null,
-      bankId?: null
-    ): BankUpdatedEventFilter;
-
-    "Deposit(uint256,uint256,uint256,address,uint256,tuple[])"(
+    "Deposit(uint256,address,uint256,address,uint256,tuple[])"(
       positionId?: null,
-      bankId?: null,
+      bank?: null,
       bankToken?: null,
       user?: null,
       amount?: null,
@@ -1540,18 +1326,12 @@ export interface PositionManager extends BaseContract {
     ): DepositEventFilter;
     Deposit(
       positionId?: null,
-      bankId?: null,
+      bank?: null,
       bankToken?: null,
       user?: null,
       amount?: null,
       liquidationPoints?: null
     ): DepositEventFilter;
-
-    "FeeClaimed(uint256,uint256)"(
-      positionId?: null,
-      usdcClaimed?: null
-    ): FeeClaimedEventFilter;
-    FeeClaimed(positionId?: null, usdcClaimed?: null): FeeClaimedEventFilter;
 
     "Harvest(uint256,address[],uint256[])"(
       positionId?: null,
@@ -1587,15 +1367,6 @@ export interface PositionManager extends BaseContract {
       active?: null
     ): KeeperUpdateEventFilter;
     KeeperUpdate(keeper?: null, active?: null): KeeperUpdateEventFilter;
-
-    "LiquidationPointsUpdate(uint256,tuple[])"(
-      positionId?: null,
-      liquidationPoints?: null
-    ): LiquidationPointsUpdateEventFilter;
-    LiquidationPointsUpdate(
-      positionId?: null,
-      liquidationPoints?: null
-    ): LiquidationPointsUpdateEventFilter;
 
     "OwnershipTransferred(address,address)"(
       previousOwner?: PromiseOrValue<string> | null,
@@ -1651,13 +1422,6 @@ export interface PositionManager extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    computeDevFee(
-      positionId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    defaultFeeModel(overrides?: CallOverrides): Promise<BigNumber>;
-
     deposit(
       position: PositionStruct,
       suppliedTokens: PromiseOrValue<string>[],
@@ -1674,21 +1438,13 @@ export interface PositionManager extends BaseContract {
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    devShare(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     estimateValue(
       positionId: PromiseOrValue<BigNumberish>,
       inTermsOf: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    feeModels(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    getBanks(overrides?: CallOverrides): Promise<BigNumber>;
 
     getPosition(
       positionId: PromiseOrValue<BigNumberish>,
@@ -1710,6 +1466,11 @@ export interface PositionManager extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    getPositions(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     harvestAndRecompound(
       positionId: PromiseOrValue<BigNumberish>,
       swaps: SwapPointStruct[],
@@ -1723,27 +1484,16 @@ export interface PositionManager extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    helper(overrides?: CallOverrides): Promise<BigNumber>;
+
     keepers(
       arg0: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    migrateBank(
-      bankId: PromiseOrValue<BigNumberish>,
-      newBankAddress: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
     networkToken(overrides?: CallOverrides): Promise<BigNumber>;
 
-    numBanks(overrides?: CallOverrides): Promise<BigNumber>;
-
     numPositions(overrides?: CallOverrides): Promise<BigNumber>;
-
-    numUserPositions(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1769,17 +1519,6 @@ export interface PositionManager extends BaseContract {
     ): Promise<BigNumber>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setDefaultFeeModel(
-      feeModel: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setFeeModel(
-      positionId: PromiseOrValue<BigNumberish>,
-      feeModel: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -1851,13 +1590,6 @@ export interface PositionManager extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    computeDevFee(
-      positionId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    defaultFeeModel(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     deposit(
       position: PositionStruct,
       suppliedTokens: PromiseOrValue<string>[],
@@ -1874,21 +1606,13 @@ export interface PositionManager extends BaseContract {
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    devShare(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     estimateValue(
       positionId: PromiseOrValue<BigNumberish>,
       inTermsOf: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    feeModels(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    getBanks(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getPosition(
       positionId: PromiseOrValue<BigNumberish>,
@@ -1910,6 +1634,11 @@ export interface PositionManager extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    getPositions(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     harvestAndRecompound(
       positionId: PromiseOrValue<BigNumberish>,
       swaps: SwapPointStruct[],
@@ -1923,27 +1652,16 @@ export interface PositionManager extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
+    helper(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     keepers(
       arg0: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    migrateBank(
-      bankId: PromiseOrValue<BigNumberish>,
-      newBankAddress: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
     networkToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    numBanks(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     numPositions(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    numUserPositions(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
 
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -1969,17 +1687,6 @@ export interface PositionManager extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setDefaultFeeModel(
-      feeModel: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setFeeModel(
-      positionId: PromiseOrValue<BigNumberish>,
-      feeModel: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 

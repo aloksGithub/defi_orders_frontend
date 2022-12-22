@@ -13,11 +13,9 @@ const Condition = ({i, condition, setWatchedAsset, setConvertTo, removeAsset, se
 
   const parseSlippage = (val) => val.replace(/^\%/, '')
   const formatSlippage = (val) => val+`%`
-  // Need to remove network token as in the contracts, the network token and the position are both referred to with the zero address
   // @ts-ignore
-  const withoutNetworkToken = supportedAssets?.filter(asset=>asset.contract_address!=ethers.constants.AddressZero)
   const self = {
-    value: ethers.constants.AddressZero,
+    value: contracts.positionManager.address,
     label: 'Value of self',
     contract_name: 'Value of self',
     contract_ticker_symbol: 'Self',
@@ -47,7 +45,7 @@ const Condition = ({i, condition, setWatchedAsset, setConvertTo, removeAsset, se
       <GridItem display={'flex'} flexDirection='column'>
         <Text mb={'2'} as='b'>Slippage</Text>
         <NumberInput minWidth={'100'} width={'90%'}
-         min={0} max={100} onChange={(valueString)=>setSlippage(parseSlippage(valueString))} value={formatSlippage(condition.slippage)}>
+         min={0.001} max={100} onChange={(valueString)=>setSlippage(parseSlippage(valueString))} value={formatSlippage(condition.slippage)}>
           <NumberInputField paddingInline='4' backgroundColor={useColorModeValue('white', 'gray.800')}></NumberInputField>
         </NumberInput>
       </GridItem>
@@ -96,8 +94,9 @@ const LiquidationConditions = ({assetPrice, initialLiquidationPoints=undefined, 
   useEffect(() => {
     if (liquidationPoints) {
       const temp = [...liquidationPoints]
+      console.log(temp)
       for (const condition of temp) {
-        if (condition.watchedAsset?.contract_address===ethers.constants.AddressZero) {
+        if (condition.watchedAsset?.contract_address===contracts.positionManager.address) {
           condition.price = assetPrice
           condition.lessThan = +condition.liquidationPoint<+assetPrice
         }

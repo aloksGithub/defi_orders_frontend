@@ -22,58 +22,9 @@ const _abi = [
         name: "_stableToken",
         type: "address",
       },
-      {
-        internalType: "address",
-        name: "_defaultFeeModel",
-        type: "address",
-      },
     ],
     stateMutability: "nonpayable",
     type: "constructor",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "address",
-        name: "bank",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "bankId",
-        type: "uint256",
-      },
-    ],
-    name: "BankAdded",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "address",
-        name: "newBankAddress",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "address",
-        name: "oldBankAddress",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "bankId",
-        type: "uint256",
-      },
-    ],
-    name: "BankUpdated",
-    type: "event",
   },
   {
     anonymous: false,
@@ -86,9 +37,9 @@ const _abi = [
       },
       {
         indexed: false,
-        internalType: "uint256",
-        name: "bankId",
-        type: "uint256",
+        internalType: "address",
+        name: "bank",
+        type: "address",
       },
       {
         indexed: false,
@@ -143,25 +94,6 @@ const _abi = [
       },
     ],
     name: "Deposit",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "positionId",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "usdcClaimed",
-        type: "uint256",
-      },
-    ],
-    name: "FeeClaimed",
     type: "event",
   },
   {
@@ -244,52 +176,6 @@ const _abi = [
       },
     ],
     name: "KeeperUpdate",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "positionId",
-        type: "uint256",
-      },
-      {
-        components: [
-          {
-            internalType: "address",
-            name: "watchedToken",
-            type: "address",
-          },
-          {
-            internalType: "address",
-            name: "liquidateTo",
-            type: "address",
-          },
-          {
-            internalType: "bool",
-            name: "lessThan",
-            type: "bool",
-          },
-          {
-            internalType: "uint256",
-            name: "liquidationPoint",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "slippage",
-            type: "uint256",
-          },
-        ],
-        indexed: false,
-        internalType: "struct LiquidationCondition[]",
-        name: "liquidationPoints",
-        type: "tuple[]",
-      },
-    ],
-    name: "LiquidationPointsUpdate",
     type: "event",
   },
   {
@@ -589,32 +475,6 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "uint256",
-        name: "positionId",
-        type: "uint256",
-      },
-    ],
-    name: "computeDevFee",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "defaultFeeModel",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
         components: [
           {
             internalType: "address",
@@ -622,9 +482,9 @@ const _abi = [
             type: "address",
           },
           {
-            internalType: "uint256",
-            name: "bankId",
-            type: "uint256",
+            internalType: "address",
+            name: "bank",
+            type: "address",
           },
           {
             internalType: "uint256",
@@ -877,25 +737,6 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    name: "devShare",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
         name: "positionId",
         type: "uint256",
       },
@@ -917,19 +758,13 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    name: "feeModels",
+    inputs: [],
+    name: "getBanks",
     outputs: [
       {
-        internalType: "address",
+        internalType: "address payable[]",
         name: "",
-        type: "address",
+        type: "address[]",
       },
     ],
     stateMutability: "view",
@@ -955,9 +790,9 @@ const _abi = [
                 type: "address",
               },
               {
-                internalType: "uint256",
-                name: "bankId",
-                type: "uint256",
+                internalType: "address",
+                name: "bank",
+                type: "address",
               },
               {
                 internalType: "uint256",
@@ -1187,6 +1022,11 @@ const _abi = [
         name: "rewardAmounts",
         type: "uint256[]",
       },
+      {
+        internalType: "uint256[]",
+        name: "rewardValues",
+        type: "uint256[]",
+      },
     ],
     stateMutability: "view",
     type: "function",
@@ -1209,6 +1049,30 @@ const _abi = [
       {
         internalType: "uint256[]",
         name: "amounts",
+        type: "uint256[]",
+      },
+      {
+        internalType: "uint256[]",
+        name: "values",
+        type: "uint256[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "user",
+        type: "address",
+      },
+    ],
+    name: "getPositions",
+    outputs: [
+      {
+        internalType: "uint256[]",
+        name: "",
         type: "uint256[]",
       },
     ],
@@ -1362,16 +1226,29 @@ const _abi = [
     outputs: [
       {
         internalType: "address[]",
-        name: "rewards",
+        name: "",
         type: "address[]",
       },
       {
         internalType: "uint256[]",
-        name: "rewardAmounts",
+        name: "",
         type: "uint256[]",
       },
     ],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "helper",
+    outputs: [
+      {
+        internalType: "contract ManagerHelper",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -1394,24 +1271,6 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "bankId",
-        type: "uint256",
-      },
-      {
-        internalType: "address",
-        name: "newBankAddress",
-        type: "address",
-      },
-    ],
-    name: "migrateBank",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
     inputs: [],
     name: "networkToken",
     outputs: [
@@ -1426,39 +1285,7 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "numBanks",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
     name: "numPositions",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    name: "numUserPositions",
     outputs: [
       {
         internalType: "uint256",
@@ -1610,9 +1437,9 @@ const _abi = [
         type: "address",
       },
       {
-        internalType: "uint256",
-        name: "bankId",
-        type: "uint256",
+        internalType: "address",
+        name: "bank",
+        type: "address",
       },
       {
         internalType: "uint256",
@@ -1639,14 +1466,9 @@ const _abi = [
     name: "recommendBank",
     outputs: [
       {
-        internalType: "uint256[]",
+        internalType: "address[]",
         name: "",
-        type: "uint256[]",
-      },
-      {
-        internalType: "string[]",
-        name: "",
-        type: "string[]",
+        type: "address[]",
       },
       {
         internalType: "uint256[]",
@@ -1660,37 +1482,6 @@ const _abi = [
   {
     inputs: [],
     name: "renounceOwnership",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "feeModel",
-        type: "address",
-      },
-    ],
-    name: "setDefaultFeeModel",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "positionId",
-        type: "uint256",
-      },
-      {
-        internalType: "address",
-        name: "feeModel",
-        type: "address",
-      },
-    ],
-    name: "setFeeModel",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

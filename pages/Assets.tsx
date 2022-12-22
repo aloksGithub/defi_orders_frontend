@@ -26,7 +26,7 @@ import {
 } from '@chakra-ui/react'
 import { useEffect, useState, useRef } from "react"
 import { ArrowBackIcon, CheckCircleIcon } from "@chakra-ui/icons"
-import { ethers } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import erc20Abi from "../constants/abis/ERC20.json"
 import bankAbi from "../constants/abis/BankBase.json"
 import { useWeb3React } from "@web3-react/core";
@@ -57,7 +57,7 @@ const Card = ({asset, index, setSecuring}: {asset: UserAsset, index: number, set
         p={6}
         textAlign={'center'}>
         <Flex mb={'3'} pb={'3'} justifyContent={'center'} alignItems={'center'}>
-        <Image src={asset.logo_url} fallbackSrc='https://www.svgrepo.com/show/99387/dollar.svg' style={{width: "30px", height: "30px"}}/>
+        <Image src={asset.logo_url} fallbackSrc='https://www.svgrepo.com/show/99387/dollar.svg' borderRadius={'full'} style={{width: "30px", height: "30px"}}/>
         <a href={getBlockExplorerUrl(chainId, asset.contract_address)} target="_blank" rel="noopener noreferrer">
         <Heading _hover={{color: 'blue.500'}} ml={'3'} fontSize={'xl'}>
         {asset.contract_ticker_symbol}
@@ -87,7 +87,8 @@ const Card = ({asset, index, setSecuring}: {asset: UserAsset, index: number, set
                 asset.underlying.map(token=> {
                   return (
                     <Flex alignItems={'center'} paddingBlock={'1'} marginBlock={'1'} >
-                      <img src={token.logo_url} style={{width: "20px", height: "20px", borderRadius: '15px'}}/>
+                      <Image src={token.logo_url} width='20px' height={'20px'} borderRadius='full'/>
+                      {/* <img src={token.logo_url} style={{width: "20px", height: "20px", borderRadius: '15px'}}/> */}
                       <a href={getBlockExplorerUrl(chainId, token.contract_address)} target="_blank" rel="noopener noreferrer">
                       <Text _hover={{color: 'blue.500', cursor: 'pointer'}} display={'flex'} alignItems={'center'} ml={'2'} mr={'1'}>
                         {token.contract_ticker_symbol}
@@ -127,7 +128,7 @@ const SecureAsset = ({asset, setSecuring}: {asset: UserAsset, setSecuring: Funct
   const {provider} = useWeb3React()
   const signer = provider.getSigner(account)
   const [tokens, setTokens] = useState<number>(0)
-  const [selectedBank, selectBank] = useState(undefined)
+  const [selectedBank, selectBank] = useState<{address:string, tokenId: BigNumber}>(undefined)
   const [rewards, setRewards] = useState([])
   const [error, setError] = useState("")
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -161,10 +162,9 @@ const SecureAsset = ({asset, setSecuring}: {asset: UserAsset, setSecuring: Funct
       if (!contracts?.positionManager) {
         return
       }
-      const [bankIds, bankNames, tokenIds] = await contracts.positionManager.recommendBank(asset.contract_address)
+      const [bankIds, tokenIds] = await contracts.positionManager.recommendBank(asset.contract_address)
       selectBank({
-        id: bankIds[bankIds.length-1],
-        name: bankNames[bankNames.length-1],
+        address: bankIds[bankIds.length-1],
         tokenId: tokenIds[tokenIds.length-1]
       })
     }
@@ -173,8 +173,7 @@ const SecureAsset = ({asset, setSecuring}: {asset: UserAsset, setSecuring: Funct
 
   useEffect(() => {
     const getRewards = async () => {
-      const bankAddress = await contracts.positionManager.functions.banks(selectedBank.id)
-      const bankContract = new ethers.Contract(bankAddress[0], bankAbi, provider)
+      const bankContract = new ethers.Contract(selectedBank.address, bankAbi, provider)
       const rewards = await bankContract.functions.getRewards(selectedBank.tokenId)
       const rewardNames = []
       for (const reward of rewards.rewardsArray) {
@@ -212,12 +211,12 @@ const SecureAsset = ({asset, setSecuring}: {asset: UserAsset, setSecuring: Funct
         minOut: 0,
         contract_decimals: condition.convertTo.contract_decimals
       }]
-      const {wantedAssets} = await getAmountsOut(contracts, signer, assetToConvert, desiredAsset)
-      const expectedUsdOut = wantedAssets[0].quote
+      const {expectedAssets} = await getAmountsOut(contracts, signer, assetToConvert, desiredAsset)
+      const expectedUsdOut = expectedAssets[0].quote
       const slippage = 100*(+currentUsd-expectedUsdOut)/+currentUsd
-      if (slippage>condition.slippage+0.2) {
+      if (+slippage+0.2>+condition.slippage) {
         setError(`Calculated slippage for condition ${index+1} was ${slippage.toFixed(3)}% which is too close to the input slippage.
-        Please increase the slippage tolerance to ${condition.slippage+0.2} or greater`)
+        Please increase the slippage tolerance to ${(+slippage+0.2).toFixed(2)}% or greater`)
         onOpen()
         setProcessing(false)
         return
@@ -256,7 +255,7 @@ const SecureAsset = ({asset, setSecuring}: {asset: UserAsset, setSecuring: Funct
     }
     const position = {
       user: account,
-      bankId: selectedBank.id,
+      bank: selectedBank.address,
       bankToken: selectedBank.tokenId,
       amount: ethers.utils.parseUnits(tokens.toString(), asset.contract_decimals),
       liquidationPoints: formattedConditions

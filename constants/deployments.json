@@ -1,12 +1,10 @@
 {
   "1337": {
-    "positionsManager": "0xf641e24cda0685Aabe2bb88eF14D085cc3d76134",
-    "universalSwap": "0x52705086Ae19feAef97aB0F3905A360857b82199",
-    "uniswapV3PoolInteractor": "0xB9d9e972100a1dD01cd441774b45b5821e136043"
+    "positionsManager": "0xec3427370F4dCfFc3DaAEFF14141eeB3b91Ba933",
+    "universalSwap": "0xc0a05e3E421e5Dd7FE7160ca5dE32836D0C02059"
   },
   "97": {
-    "positionsManager": "0xC73a59dE44C5004C16371E368564c0BAD733E5a0",
-    "universalSwap": "0x5C6101951a55F2a6C222F961985c4f14b2767272",
-    "uniswapV3PoolInteractor": "0xFa8d5c5d105dcaC5467d72071bE699f1c32A4B9B"
+    "positionsManager": "0x14f231283fc2Bd7C18aF8282c39224EAD4562F7e",
+    "universalSwap": "0xEF1981894A9f032DA478239BBa0D392a427330E9"
   }
 }

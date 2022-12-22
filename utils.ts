@@ -6,6 +6,7 @@ import {WalletConnect} from "@web3-react/walletconnect";
 import type {Connector} from "@web3-react/types";
 import { ethers } from "ethers";
 import bscAssets from './protocolData/56.json'
+import bscTestnetAssets from './protocolData/97.json'
 import mainnetAssets from './protocolData/1.json'
 import { Asset } from "./Types";
 
@@ -127,6 +128,11 @@ const logos = {
 };
 
 export const getLogoUrl = (name:string, address:string, chainId:number) => {
+  const supportedAssets = supportedChainAssets[chainId]
+  const asset = supportedAssets.find(asset=>asset.contract_address.toLowerCase()===address.toLowerCase())
+  if (asset) {
+    return asset.logo_url
+  }
   if (address===ethers.constants.AddressZero) {
     return chainLogos[chainId]
   }
@@ -187,5 +193,7 @@ export const supportedChainAssets: SupportedChainAssets = {
   // @ts-ignore
   56: bscAssets,
   // @ts-ignore
-  1: mainnetAssets
+  1: mainnetAssets,
+  // @ts-ignore
+  97: bscTestnetAssets
 }

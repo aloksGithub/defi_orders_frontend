@@ -94,7 +94,7 @@ const WithdrawModal = ({position, refreshData, closeSelf}: {position: FetchPosit
   )
 }
 
-const DepositModal = ({position, refreshData, closeSelf}) => {
+const DepositModal = ({position, refreshData, closeSelf}: {position: FetchPositionData, refreshData: Function, closeSelf: Function}) => {
   const [assetsToConvert, setAssetsToConvert] = useState<UserAssetSupplied[]>([defaultUserAssetSupplied])
   const {contracts, chainId, slippageControl: {slippage}, onError} = useAppContext()
   const {provider ,account} = useWeb3React()
@@ -201,7 +201,7 @@ const EditPosition = () => {
           watchedAsset = supportedAssets.find((asset:any)=>asset.contract_address.toLowerCase()===point.watchedToken.toLowerCase())
           price = (await getPrice(chainId, point.watchedToken)).price
         }
-        const convertTo = supportedAssets.find((asset:any)=>asset.contract_address===point.liquidateTo.toLowerCase())
+        const convertTo = supportedAssets.find((asset:any)=>asset.contract_address.toLowerCase()===point.liquidateTo.toLowerCase())
         const lessThan: boolean = point.lessThan
         const liquidationPoint = +ethers.utils.formatUnits(point.liquidationPoint.toString(), 18)
         const slippage = +ethers.utils.formatUnits(point.slippage, 18)*100
@@ -284,12 +284,12 @@ const EditPosition = () => {
         minOut: 0,
         contract_decimals: condition.convertTo.contract_decimals
       }]
-      const {wantedAssets} = await getAmountsOut(contracts, signer, assetToConvert, desiredAsset)
-      const expectedUsdOut = wantedAssets[0].quote
+      const {expectedAssets} = await getAmountsOut(contracts, signer, assetToConvert, desiredAsset)
+      const expectedUsdOut = expectedAssets[0].quote
       const slippage = 100*(+position.usdcValue-expectedUsdOut)/+position.usdcValue
-      if (slippage>condition.slippage+0.2) {
+      if (+slippage+0.2>+condition.slippage) {
         setError(`Calculated slippage for condition ${index+1} was ${slippage.toFixed(3)}% which is too close to the input slippage.
-        Please increase the slippage tolerance to ${condition.slippage+0.2} or greater`)
+        Please increase the slippage tolerance to ${(+slippage+0.2).toFixed(2)}% or greater`)
         openError()
         setAdjusting(false)
         return

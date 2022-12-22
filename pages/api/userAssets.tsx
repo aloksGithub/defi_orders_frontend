@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 import { UserAsset } from "../../Types";
-import { getPriceActual } from "./tokenPrice";
+import { getPriceActual, getPriceUniversalSwap } from "./tokenPrice";
 import { fetchTokenDetails } from "./tokenPrice";
 
 export default async function serverSideCall(req, res) {
@@ -24,12 +24,13 @@ export default async function serverSideCall(req, res) {
     })
     let modifiedItems: UserAsset[] = await Promise.all(data.map(async item=> {
       const tokenData = fetchTokenDetails(chainId, item.contract_address)
-      let price: number
-      if (['Pancake LPs', 'Biswap LPs', 'SushiSwap LP Token', 'Uniswap V2'].includes(item.contract_name)) {
-        price = await getPriceActual(chainId, item.contract_address)
-      } else {
-        price = +item.quote_rate
-      }
+      const {price} = await getPriceUniversalSwap(chainId, item.contract_address)
+      // let price: number
+      // if (['Pancake LPs', 'Biswap LPs', 'SushiSwap LP Token', 'Uniswap V2'].includes(item.contract_name)) {
+      //   price = await getPriceActual(chainId, item.contract_address)
+      // } else {
+      //   price = +item.quote_rate
+      // }
       const corrected = {
         ...tokenData,
         quote: (+ethers.utils.formatUnits(item.balance, item.contract_decimals))*price,

@@ -33,10 +33,13 @@ export interface BankBaseInterface extends utils.Interface {
     "decodeId(uint256)": FunctionFragment;
     "getIdFromLpToken(address)": FunctionFragment;
     "getLPToken(uint256)": FunctionFragment;
+    "getPendingRewardsForUser(uint256,address)": FunctionFragment;
+    "getPositionTokens(uint256,address)": FunctionFragment;
     "getRewards(uint256)": FunctionFragment;
     "getUnderlyingForFirstDeposit(uint256)": FunctionFragment;
     "getUnderlyingForRecurringDeposit(uint256)": FunctionFragment;
     "harvest(uint256,address,address)": FunctionFragment;
+    "isUnderlyingERC721()": FunctionFragment;
     "mint(uint256,address,address[],uint256[])": FunctionFragment;
     "mintRecurring(uint256,address,address[],uint256[])": FunctionFragment;
     "name()": FunctionFragment;
@@ -51,10 +54,13 @@ export interface BankBaseInterface extends utils.Interface {
       | "decodeId"
       | "getIdFromLpToken"
       | "getLPToken"
+      | "getPendingRewardsForUser"
+      | "getPositionTokens"
       | "getRewards"
       | "getUnderlyingForFirstDeposit"
       | "getUnderlyingForRecurringDeposit"
       | "harvest"
+      | "isUnderlyingERC721"
       | "mint"
       | "mintRecurring"
       | "name"
@@ -85,6 +91,14 @@ export interface BankBaseInterface extends utils.Interface {
     values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
+    functionFragment: "getPendingRewardsForUser",
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getPositionTokens",
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
     functionFragment: "getRewards",
     values: [PromiseOrValue<BigNumberish>]
   ): string;
@@ -103,6 +117,10 @@ export interface BankBaseInterface extends utils.Interface {
       PromiseOrValue<string>,
       PromiseOrValue<string>
     ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "isUnderlyingERC721",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "mint",
@@ -140,6 +158,14 @@ export interface BankBaseInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "getLPToken", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getPendingRewardsForUser",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getPositionTokens",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "getRewards", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getUnderlyingForFirstDeposit",
@@ -150,6 +176,10 @@ export interface BankBaseInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "harvest", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "isUnderlyingERC721",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "mint", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "mintRecurring",
@@ -278,6 +308,22 @@ export interface BankBase extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
+    getPendingRewardsForUser(
+      tokenId: PromiseOrValue<BigNumberish>,
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<
+      [string[], BigNumber[]] & { rewards: string[]; amounts: BigNumber[] }
+    >;
+
+    getPositionTokens(
+      tokenId: PromiseOrValue<BigNumberish>,
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<
+      [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
+    >;
+
     getRewards(
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
@@ -301,6 +347,8 @@ export interface BankBase extends BaseContract {
       receiver: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
+
+    isUnderlyingERC721(overrides?: CallOverrides): Promise<[boolean]>;
 
     mint(
       tokenId: PromiseOrValue<BigNumberish>,
@@ -355,6 +403,22 @@ export interface BankBase extends BaseContract {
     overrides?: CallOverrides
   ): Promise<string>;
 
+  getPendingRewardsForUser(
+    tokenId: PromiseOrValue<BigNumberish>,
+    user: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<
+    [string[], BigNumber[]] & { rewards: string[]; amounts: BigNumber[] }
+  >;
+
+  getPositionTokens(
+    tokenId: PromiseOrValue<BigNumberish>,
+    user: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<
+    [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
+  >;
+
   getRewards(
     tokenId: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
@@ -378,6 +442,8 @@ export interface BankBase extends BaseContract {
     receiver: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
+
+  isUnderlyingERC721(overrides?: CallOverrides): Promise<boolean>;
 
   mint(
     tokenId: PromiseOrValue<BigNumberish>,
@@ -432,6 +498,22 @@ export interface BankBase extends BaseContract {
       overrides?: CallOverrides
     ): Promise<string>;
 
+    getPendingRewardsForUser(
+      tokenId: PromiseOrValue<BigNumberish>,
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<
+      [string[], BigNumber[]] & { rewards: string[]; amounts: BigNumber[] }
+    >;
+
+    getPositionTokens(
+      tokenId: PromiseOrValue<BigNumberish>,
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<
+      [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
+    >;
+
     getRewards(
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
@@ -460,6 +542,8 @@ export interface BankBase extends BaseContract {
         rewardAmounts: BigNumber[];
       }
     >;
+
+    isUnderlyingERC721(overrides?: CallOverrides): Promise<boolean>;
 
     mint(
       tokenId: PromiseOrValue<BigNumberish>,
@@ -555,6 +639,18 @@ export interface BankBase extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    getPendingRewardsForUser(
+      tokenId: PromiseOrValue<BigNumberish>,
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getPositionTokens(
+      tokenId: PromiseOrValue<BigNumberish>,
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     getRewards(
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
@@ -576,6 +672,8 @@ export interface BankBase extends BaseContract {
       receiver: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
+
+    isUnderlyingERC721(overrides?: CallOverrides): Promise<BigNumber>;
 
     mint(
       tokenId: PromiseOrValue<BigNumberish>,
@@ -631,6 +729,18 @@ export interface BankBase extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    getPendingRewardsForUser(
+      tokenId: PromiseOrValue<BigNumberish>,
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getPositionTokens(
+      tokenId: PromiseOrValue<BigNumberish>,
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     getRewards(
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
@@ -651,6 +761,10 @@ export interface BankBase extends BaseContract {
       userAddress: PromiseOrValue<string>,
       receiver: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    isUnderlyingERC721(
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     mint(

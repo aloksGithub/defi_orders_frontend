@@ -1,22 +1,21 @@
 import { useWeb3React } from "@web3-react/core";
 import { useAppContext } from "../components/Provider"
-import { Box, Flex, Table, TableContainer, Tbody, Th, Thead, Tr, Text, Td, Button, Center, Heading, Stack, useColorModeValue, SkeletonText, Skeleton, HStack, VStack, Image } from "@chakra-ui/react";
+import { Box, Flex, Text, Button, Heading, Stack, useColorModeValue, Skeleton, VStack, Image } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import Link from 'next/link';
 import { Pagination } from "../components/Pagination";
-import { Heading1 } from "../components/Typography";
 import { VscGraphLine } from 'react-icons/vsc'
 import { IoMdSettings } from 'react-icons/io'
 import { ethers } from "ethers";
 import { getBlockExplorerUrl, getBlockExplorerUrlTransaction, getLogoUrl, nFormatter, supportedChainAssets } from "../utils";
 import erc20Abi from "../constants/abis/ERC20.json"
-import { AiOutlineShrink, AiOutlineExpandAlt } from 'react-icons/ai'
+import { AiOutlineShrink } from 'react-icons/ai'
 import { harvest, compound } from "../contractCalls/transactions";
 import { nativeTokens } from "../utils";
 import { PrimaryButton } from "../components/Buttons";
 import { level1, level2 } from "../components/Theme";
 import { PositionStructOutput } from "../codegen/PositionManager";
-import { BankBase__factory, ERC20__factory } from "../codegen";
+import { ERC20__factory } from "../codegen";
 import { Asset, UserAsset } from "../Types";
 
 const Card = ({id}: {id:number}) => {
@@ -151,7 +150,7 @@ const Card = ({id}: {id:number}) => {
         <Flex mb={'3'} pb={'3'} justifyContent={'center'} alignItems={'center'}>
           {
             asset?
-          <Flex><Image src={asset.logo_url} fallbackSrc='https://www.svgrepo.com/show/99387/dollar.svg' style={{width: "30px", height: "30px"}}/>
+          <Flex><Image src={asset.logo_url} fallbackSrc='https://www.svgrepo.com/show/99387/dollar.svg' borderRadius={'full'} style={{width: "30px", height: "30px"}}/>
           <a href={getBlockExplorerUrl(chainId, asset.contract_address)} target="_blank" rel="noopener noreferrer">
           <Heading _hover={{color: 'blue.500'}} ml={'3'} fontSize={'xl'}>
           {asset.contract_ticker_symbol}
@@ -258,13 +257,8 @@ const Positions = () => {
   useEffect(() => {
     if (!contracts?.positionManager) return
     const getPositions = async () => {
-      const numPositions = await contracts.positionManager.numUserPositions(account)
-      const positions: number[] = []
-      for (let i = 0; i<numPositions.toNumber(); i++) {
-        const position = await contracts.positionManager.userPositions(account, i)
-        positions.push(position.toNumber())
-      }
-      setUserPositions(positions)
+      const positions = await contracts.positionManager.getPositions(account)
+      setUserPositions(positions.map(position=>position.toNumber()))
     }
     getPositions()
   }, [contracts, provider, account])

@@ -28,12 +28,14 @@ export const getAmountsOut = async (contracts: Contracts, signer: JsonRpcSigner,
   const {amounts, swaps, conversions, expectedUSDValues} = await contracts.universalSwap.getAmountsOut(provided, desired)
   const stableTokenAddress = await contracts.universalSwap.stableToken()
   const stableToken = new ethers.Contract(stableTokenAddress, erc20Abi, signer)
-  const decimals = await stableToken.decimals()
-  for (const [index, asset] of wantedAssets.entries()) {
-    wantedAssets[index].expected = +ethers.utils.formatUnits(amounts[index], asset.contract_decimals)
-    wantedAssets[index].quote = +ethers.utils.formatUnits(expectedUSDValues[index], decimals)
-  }
-  return {swaps, conversions, provided, desired, wantedAssets}
+  const expectedAssets:WantedAsset[] = wantedAssets.map((asset, index)=> {
+    return {
+      ...asset,
+      expected: +ethers.utils.formatUnits(amounts[index], asset.contract_decimals),
+      quote: +ethers.utils.formatUnits(amounts[index], asset.contract_decimals)
+    }
+  })
+  return {swaps, conversions, provided, desired, wantedAssets, expectedAssets}
 }
 
 interface PositionToken {
