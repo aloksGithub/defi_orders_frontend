@@ -7,6 +7,12 @@ var cache = require('memory-cache');
 import { supportedChainAssets } from '../../utils'
 import { SupportedChains } from '../../Types'
 
+const rpcs = {
+  97: process.env.RPC_97,
+  56: process.env.RPC_56,
+  1: process.env.RPC_1
+}
+
 const getPriceCovalent = async (chainId:number, address:string) => {
   for (let i = 0; i<5; i++) {
     try {
@@ -24,9 +30,7 @@ const chainStableTokens = {}
 
 export const getPriceUniversalSwap = async (chainId:SupportedChains, address:string) => {
   const prod = process.env.NEXT_PUBLIC_CURRENTLY_FORKING==='0'
-  const environmentVariables = {...process.env}
-  throw Error(`${environmentVariables[`RPC_${chainId}`]}, ${`RPC_${chainId}`}, ${process.env.RPC_97}, ${environmentVariables.RPC_97}`)
-  const provider = new ethers.providers.JsonRpcProvider(prod?process.env[`RPC_${chainId}`]:'http://127.0.0.1:8545/')
+  const provider = new ethers.providers.JsonRpcProvider(prod?rpcs[chainId]:'http://127.0.0.1:8545/')
   const universalSwapAddress = prod?deploymentAddresses[chainId].universalSwap:deploymentAddresses["1337"].universalSwap
   const universalSwap = new ethers.Contract(universalSwapAddress, universalSwapAbi, provider)
   if (!(chainId.toString() in chainStableTokens)) {
