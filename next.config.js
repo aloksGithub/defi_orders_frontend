@@ -6,9 +6,9 @@ const nextConfig = {
     infuraKey: process.env.INFURA_KEY,
     alchemyKey: process.env.ALCHEMY_KEY,
     COVALENT_KEY: process.env.COVALENT_KEY,
-    1: process.env['1'],
-    56: process.env['56'],
-    97: process.env['97']
+    RPC_1: process.env.RPC_1,
+    RPC_56: process.env.RPC_56,
+    RPC_97: process.env.RPC_97
   },
 }
 
