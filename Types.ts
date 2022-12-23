@@ -3,7 +3,7 @@ import { BigNumber } from 'ethers';
 import { ReactElement } from 'react'
 import { PositionManager, UniversalSwap, BankBase, ERC20, UniswapV3PoolInteractor } from './codegen';
 
-export type SupportedChains = 56|1
+export type SupportedChains = 56|1|97
 
 interface AssetUnderlying {
   contract_name: string;
