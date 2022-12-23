@@ -24,7 +24,8 @@ const chainStableTokens = {}
 
 export const getPriceUniversalSwap = async (chainId:SupportedChains, address:string) => {
   const prod = process.env.NEXT_PUBLIC_CURRENTLY_FORKING==='0'
-  throw Error(`${process.env[`RPC_${chainId}`]}, chainID: ${chainId}, ${process.env.RPC_97}`)
+  const environmentVariables = {...process.env}
+  throw Error(`${environmentVariables[`RPC_${chainId}`]}, ${`RPC_${chainId}`}, ${process.env.RPC_97}, ${environmentVariables.RPC_97}`)
   const provider = new ethers.providers.JsonRpcProvider(prod?process.env[`RPC_${chainId}`]:'http://127.0.0.1:8545/')
   const universalSwapAddress = prod?deploymentAddresses[chainId].universalSwap:deploymentAddresses["1337"].universalSwap
   const universalSwap = new ethers.Contract(universalSwapAddress, universalSwapAbi, provider)
