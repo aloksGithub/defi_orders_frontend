@@ -24,6 +24,7 @@ const chainStableTokens = {}
 
 export const getPriceUniversalSwap = async (chainId:SupportedChains, address:string) => {
   const prod = process.env.NEXT_PUBLIC_CURRENTLY_FORKING==='0'
+  throw Error(`${process.env[`RPC_${chainId}`]}, chainID: ${chainId}`)
   const provider = new ethers.providers.JsonRpcProvider(prod?process.env[`RPC_${chainId}`]:'http://127.0.0.1:8545/')
   const universalSwapAddress = prod?deploymentAddresses[chainId].universalSwap:deploymentAddresses["1337"].universalSwap
   const universalSwap = new ethers.Contract(universalSwapAddress, universalSwapAbi, provider)
@@ -105,7 +106,7 @@ export default async function serverSideCall(req, res) {
     if (['Pancake LPs', 'Biswap LPs', 'SushiSwap LP Token', 'Uniswap V2'].includes(response.data[0].items[0].contract_metadata.contract_name)) {
       price = await getPriceActual(chainId, address)
     }
-    
+
     const decimals = response.data[0].items[0].contract_metadata.contract_decimals
     res.status(200).json({
       data: {price, decimals},
