@@ -105,6 +105,7 @@ export default async function serverSideCall(req, res) {
     if (['Pancake LPs', 'Biswap LPs', 'SushiSwap LP Token', 'Uniswap V2'].includes(response.data[0].items[0].contract_metadata.contract_name)) {
       price = await getPriceActual(chainId, address)
     }
+    
     const decimals = response.data[0].items[0].contract_metadata.contract_decimals
     res.status(200).json({
       data: {price, decimals},
