@@ -351,9 +351,9 @@ const _abi = [
             type: "address",
           },
           {
-            internalType: "address",
-            name: "swapper",
-            type: "address",
+            internalType: "address[]",
+            name: "swappers",
+            type: "address[]",
           },
           {
             internalType: "address",
@@ -361,9 +361,9 @@ const _abi = [
             type: "address",
           },
           {
-            internalType: "address[]",
-            name: "path",
-            type: "address[]",
+            internalType: "address[][]",
+            name: "paths",
+            type: "address[][]",
           },
         ],
         internalType: "struct SwapPoint[]",
@@ -644,9 +644,9 @@ const _abi = [
             type: "address",
           },
           {
-            internalType: "address",
-            name: "swapper",
-            type: "address",
+            internalType: "address[]",
+            name: "swappers",
+            type: "address[]",
           },
           {
             internalType: "address",
@@ -654,9 +654,9 @@ const _abi = [
             type: "address",
           },
           {
-            internalType: "address[]",
-            name: "path",
-            type: "address[]",
+            internalType: "address[][]",
+            name: "paths",
+            type: "address[][]",
           },
         ],
         internalType: "struct SwapPoint[]",
@@ -1119,9 +1119,9 @@ const _abi = [
             type: "address",
           },
           {
-            internalType: "address",
-            name: "swapper",
-            type: "address",
+            internalType: "address[]",
+            name: "swappers",
+            type: "address[]",
           },
           {
             internalType: "address",
@@ -1129,9 +1129,9 @@ const _abi = [
             type: "address",
           },
           {
-            internalType: "address[]",
-            name: "path",
-            type: "address[]",
+            internalType: "address[][]",
+            name: "paths",
+            type: "address[][]",
           },
         ],
         internalType: "struct SwapPoint[]",

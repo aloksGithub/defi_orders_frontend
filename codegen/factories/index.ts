@@ -4,8 +4,11 @@
 export { BankBase__factory } from "./BankBase__factory";
 export { ERC20__factory } from "./ERC20__factory";
 export { INonFungiblePositionsManager__factory } from "./INonFungiblePositionsManager__factory";
+export { IOracle__factory } from "./IOracle__factory";
+export { ISwapper__factory } from "./ISwapper__factory";
 export { IUniswapV2Pair__factory } from "./IUniswapV2Pair__factory";
 export { IUniswapV3Pool__factory } from "./IUniswapV3Pool__factory";
 export { PositionManager__factory } from "./PositionManager__factory";
+export { SwapHelper__factory } from "./SwapHelper__factory";
 export { UniswapV3PoolInteractor__factory } from "./UniswapV3PoolInteractor__factory";
 export { UniversalSwap__factory } from "./UniversalSwap__factory";

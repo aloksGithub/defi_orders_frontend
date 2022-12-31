@@ -3,12 +3,12 @@ import erc20Abi from "../constants/abis/ERC20.json"
 import { nativeTokens } from "../utils";
 import { blockExplorerAPIs } from "../utils";
 import EthDater from 'ethereum-block-by-date'
-import { Contracts, UserAssetSupplied, WantedAsset } from "../Types";
+import { SwapContracts, UserAssetSupplied, WantedAsset } from "../Types";
 import { JsonRpcSigner, JsonRpcProvider } from "@ethersproject/providers";
 import { PositionStructOutput } from "../codegen/PositionManager";
 import { ERC20__factory } from "../codegen";
 
-export const getAmountsOut = async (contracts: Contracts, signer: JsonRpcSigner, assetsToConvert: UserAssetSupplied[], wantedAssets: WantedAsset[]) => {
+export const getAmountsOut = async (contracts: SwapContracts, signer: JsonRpcSigner, assetsToConvert: UserAssetSupplied[], wantedAssets: WantedAsset[]) => {
   const provided = {
     tokens: assetsToConvert.map(asset=>asset.contract_address),
     amounts: assetsToConvert.map(asset=>ethers.utils.parseUnits(asset.tokensSupplied, asset.contract_decimals)),
@@ -55,9 +55,10 @@ export interface FetchPositionData {
   usdcValue: number
   rewards: PositionToken[]
   underlying: PositionToken[]
+  closed: boolean
 }
 
-export const fetchPosition = async (id:number, contracts: Contracts, signer: JsonRpcSigner, chainId: number) => {
+export const fetchPosition = async (id:number, contracts: SwapContracts, signer: JsonRpcSigner, chainId: number) => {
   if (!contracts.positionManager) return
   let positionData = await contracts.positionManager.getPosition(id)
   const {position, bankTokenInfo, underlyingTokens, underlyingAmounts, underlyingValues, rewardTokens, rewardAmounts, rewardValues, usdValue} = positionData
@@ -91,6 +92,8 @@ export const fetchPosition = async (id:number, contracts: Contracts, signer: Jso
     return {name, amount, value, address:token}
   }))
 
+  const closed = await contracts.positionManager.positionClosed(id)
+
   return {
     positionId: id, positionData:position,
     formattedAmount: ethers.utils.formatUnits(position.amount, decimals),
@@ -99,7 +102,8 @@ export const fetchPosition = async (id:number, contracts: Contracts, signer: Jso
     name,
     usdcValue,
     rewards,
-    underlying
+    underlying,
+    closed
   }
 }
 
@@ -120,7 +124,7 @@ const getBlockFromProvider = async (provider: JsonRpcProvider, daysAgo: number) 
   return block.block
 }
 
-export const getGraphData = async (contracts: Contracts, id, provider: JsonRpcProvider, duration: number) => {
+export const getGraphData = async (contracts: SwapContracts, id, provider: JsonRpcProvider, duration: number) => {
   const usdcDecimals = await contracts.stableToken.decimals()
   const blocks = []
   const timestamps = []
@@ -176,7 +180,7 @@ export const getGraphData = async (contracts: Contracts, id, provider: JsonRpcPr
   return graphData
 }
 
-export const fetchImportantPoints = async (contracts: Contracts, id: number | string, provider: JsonRpcProvider) => {
+export const fetchImportantPoints = async (contracts: SwapContracts, id: number | string, provider: JsonRpcProvider) => {
   const stableDecimals = await contracts.stableToken.decimals()
   let usdcDeposited = 0
   let usdcWithdrawn = 0
@@ -191,10 +195,15 @@ export const fetchImportantPoints = async (contracts: Contracts, id: number | st
     depositTokenDecimals = 18
   }
   const formattedInteractions = positionInteractions.map(interaction=>{
-    if (interaction.action==='deposit') {
+    if (interaction.action.toLowerCase()==='deposit') {
       usdcDeposited+=+ethers.utils.formatUnits(interaction.usdValue, stableDecimals)
     }
-    if (interaction.action==='harvest' || interaction.action==='withdraw' || interaction.action==='liquidate' || interaction.action==='close') {
+    if (
+      interaction.action.toLowerCase()==='harvest' ||
+      interaction.action.toLowerCase()==='withdraw' ||
+      interaction.action.toLowerCase()==='liquidate' ||
+      interaction.action.toLowerCase()==='close' || 
+      interaction.action.toLowerCase().includes('executed order')) {
       usdcWithdrawn+=+ethers.utils.formatUnits(interaction.usdValue, stableDecimals)
     }
     return {

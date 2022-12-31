@@ -6,99 +6,21 @@ import Link from 'next/link';
 import { Pagination } from "../components/Pagination";
 import { VscGraphLine } from 'react-icons/vsc'
 import { IoMdSettings } from 'react-icons/io'
-import { ethers } from "ethers";
-import { getBlockExplorerUrl, getBlockExplorerUrlTransaction, getLogoUrl, nFormatter, supportedChainAssets } from "../utils";
-import erc20Abi from "../constants/abis/ERC20.json"
+import { BigNumber } from "ethers";
+import { getBlockExplorerUrl, getBlockExplorerUrlTransaction, nFormatter } from "../utils";
 import { AiOutlineShrink } from 'react-icons/ai'
 import { harvest, compound } from "../contractCalls/transactions";
-import { nativeTokens } from "../utils";
 import { PrimaryButton } from "../components/Buttons";
 import { level1, level2 } from "../components/Theme";
-import { PositionStructOutput } from "../codegen/PositionManager";
-import { ERC20__factory } from "../codegen";
-import { Asset, UserAsset } from "../Types";
+import usePosition from "../hooks/usePosition";
 
 const Card = ({id}: {id:number}) => {
   const {contracts, chainId, onError, slippageControl: {slippage}, successModal} = useAppContext()
-  const {provider} = useWeb3React()
-  const [asset, setAsset] = useState<Asset>(undefined)
-  const [underlying, setUnderlying] = useState<UserAsset[]>(undefined)
-  const [positionInfo, setPositionInfo] = useState<PositionStructOutput>()
-  const [rewards, setRewards] = useState<UserAsset[]>(undefined)
-  const [usdcValue, setUsdcValue] = useState<string>()
+  const [refresh, setRefresh] = useState(false)
+  const {data: {positionInfo, asset, underlying, rewards, usdcValue}, loading} = usePosition(id, refresh)
   const [expandRewards, setExpandRewards] = useState(false)
   const [isHarvesting, setHarvesting] = useState(false)
   const [isCompounding, setCompounding] = useState(false)
-  const [refresh, setRefresh] = useState(false)
-  const [isClosed, setIsClosed] = useState(false)
-
-  useEffect(() => {
-    contracts.positionManager.getPosition(id).then(async (positionData) => {
-      const {position, bankTokenInfo, underlyingTokens, underlyingAmounts, underlyingValues, rewardTokens, rewardAmounts, rewardValues, usdValue} = positionData
-      setPositionInfo(position)
-      const stableDecimals = await contracts.stableToken.decimals()
-      const usd = ethers.utils.formatUnits(usdValue, stableDecimals)
-      setUsdcValue(nFormatter(usd, 3))
-      const getAssetData = async () => {
-        if (bankTokenInfo.lpToken!=ethers.constants.AddressZero) {
-          const contract = ERC20__factory.connect(bankTokenInfo.lpToken, provider)
-          const symbol = await contract.symbol()
-          const name = await contract.name()
-          setAsset({
-            contract_name: name,
-            chain_id: chainId, contract_decimals: undefined, underlying: [], protocol_name: undefined,
-            contract_ticker_symbol: symbol, contract_address: bankTokenInfo.lpToken, logo_url: getLogoUrl(name, contract.address, chainId)})
-        } else {
-          setAsset(nativeTokens[chainId])
-        }
-      }
-      getAssetData()
-      const underlyingPromises = underlyingTokens.map(async (token:string, index:number) => {
-        let name: string; let decimals: number; let symbol: string;
-        if (token!=ethers.constants.AddressZero) {
-          const contract = new ethers.Contract(token, erc20Abi, provider)
-          symbol = await contract.symbol()
-          name = await contract.name()
-          decimals = await contract.decimals()
-        } else {
-          const networkAsset = supportedChainAssets[chainId].find(asset=>asset.contract_address===ethers.constants.AddressZero)
-          name = networkAsset.contract_name
-          symbol = networkAsset.contract_ticker_symbol
-          decimals = networkAsset.contract_decimals
-        }
-        const amount = ethers.utils.formatUnits(underlyingAmounts[index], decimals)
-        const usdValue = +ethers.utils.formatUnits(underlyingValues[index], stableDecimals)
-        return {
-          contract_name: name, contract_address: token, contract_ticker_symbol: symbol,
-          contract_decimals: decimals, quote: usdValue, quote_rate: 0, chain_id: chainId,
-          balance: underlyingAmounts[index].toString(), formattedBalance: amount, underlying: [], protocol_name: '',
-          logo_url: getLogoUrl(name, token, chainId)
-        }
-      })
-      Promise.all(underlyingPromises).then((underlying)=>setUnderlying(underlying))
-      const rewardPromises = rewardTokens.map(async (token:string, index:number) => {
-        const contract = ERC20__factory.connect(token, provider)
-        const symbol = await contract.symbol()
-        const name = await contract.name()
-        const decimals = await contract.decimals()
-        const amount = ethers.utils.formatUnits(rewardAmounts[index], decimals)
-        const usdValue = +ethers.utils.formatUnits(rewardValues[index], stableDecimals)
-        return {
-          contract_name: name, contract_address: token, contract_ticker_symbol: symbol,
-          contract_decimals: decimals, quote: usdValue, quote_rate: 0, chain_id: chainId,
-          balance: rewardAmounts[index].toString(), formattedBalance: amount, underlying: [], protocol_name: '',
-          logo_url: getLogoUrl(name, contract.address, chainId)}
-      })
-      Promise.all(rewardPromises).then((rewardsData)=>setRewards(rewardsData))
-    })
-    contracts.positionManager.positionClosed(id).then(positionClosed=> {
-      if (positionClosed) {
-        setIsClosed(true)
-        // setUsdcValue('0')
-        // setRewards([])
-      }
-    })
-  }, [id, refresh, contracts.positionManager.signer])
 
   const harvestPosition = () => {
     setHarvesting(true)
@@ -149,7 +71,7 @@ const Card = ({id}: {id:number}) => {
         textAlign={'center'}>
         <Flex mb={'3'} pb={'3'} justifyContent={'center'} alignItems={'center'}>
           {
-            asset?
+            !loading?
           <Flex><Image src={asset.logo_url} fallbackSrc='https://www.svgrepo.com/show/99387/dollar.svg' borderRadius={'full'} style={{width: "30px", height: "30px"}}/>
           <a href={getBlockExplorerUrl(chainId, asset.contract_address)} target="_blank" rel="noopener noreferrer">
           <Heading _hover={{color: 'blue.500'}} ml={'3'} fontSize={'xl'}>
@@ -167,7 +89,7 @@ const Card = ({id}: {id:number}) => {
           </Heading>
           <Box mt={'1'}>
           {
-            underlying?underlying.map((token)=> 
+            !loading?underlying?.map((token)=> 
             <Flex alignItems={'center'}>
               <img src={token.logo_url} style={{width: "20px", height: "20px", borderRadius: '15px'}}/>
               <a href={getBlockExplorerUrl(chainId, token.contract_address)} target="_blank" rel="noopener noreferrer">
@@ -176,7 +98,7 @@ const Card = ({id}: {id:number}) => {
               </Text>
               </a>
             </Flex>):<VStack gap={'1'} m='1'>
-              <Skeleton><Text>Temp Token</Text></Skeleton><Skeleton><Text>Temp Token</Text></Skeleton>
+              <Skeleton><Text>Temp Token</Text></Skeleton>
               </VStack>
           }
           </Box>
@@ -185,7 +107,7 @@ const Card = ({id}: {id:number}) => {
           <Heading fontSize={'m'} >
           USD Value
           </Heading>
-          <Flex justifyContent={'center'}>${usdcValue?usdcValue:<Skeleton m='1'><Text>Temp</Text></Skeleton>}</Flex>
+          <Flex justifyContent={'center'}>${!loading?usdcValue:<Skeleton m='1'><Text>Temp</Text></Skeleton>}</Flex>
         </Flex>
         </Box>
         {
@@ -200,7 +122,7 @@ const Card = ({id}: {id:number}) => {
             onClick={()=>!expandRewards?setExpandRewards(!expandRewards):{}} position={expandRewards?'absolute':'static'}
             right='24px' left='0px' boxShadow={expandRewards?'xl':'none'} sx={{'transition': '0.4s'}}>
               {
-                rewards?.map(reward=> <Flex>
+                rewards.map(reward=> <Flex>
                   <Image src={reward.logo_url} fallbackSrc='https://www.svgrepo.com/show/99387/dollar.svg'
                   style={{width: "20px", height: "20px", borderRadius: '15px'}}/>
                   <a href={getBlockExplorerUrl(chainId, reward.contract_address)} target="_blank" rel="noopener noreferrer">
@@ -230,8 +152,8 @@ const Card = ({id}: {id:number}) => {
         </Flex>
 
         <Stack mt={8} direction={'row'} spacing={4}>
-        <Link href={`/editPosition/${id}`}>
-          <PrimaryButton disabled={isClosed} flex={1}>
+        <Link href={`/editOrders/${id}`}>
+          <PrimaryButton flex={1}>
             <IoMdSettings fontSize={'1.3rem'}></IoMdSettings>
             &nbsp;Edit
           </PrimaryButton>
@@ -253,19 +175,45 @@ const Positions = () => {
   const {contracts} = useAppContext()
   const {account, provider} = useWeb3React()
   const [userPositions, setUserPositions] = useState<number[]>()
+  const [active, setActive] = useState(true)
+  const [needSelector, setNeedSelector] = useState(false)
 
   useEffect(() => {
     if (!contracts?.positionManager) return
     const getPositions = async () => {
       const positions = await contracts.positionManager.getPositions(account)
-      setUserPositions(positions.map(position=>position.toNumber()))
+      const filteredPositions: BigNumber[] = []
+      const activePositions: number[] = []
+      const closedPositions: number[] = []
+      for (const position of positions) {
+        const closed = await contracts.positionManager.positionClosed(position)
+        if (closed) {
+          closedPositions.push(position.toNumber())
+        } else {
+          activePositions.push(position.toNumber())
+        }
+        if (closed!=active) {
+          filteredPositions.push(position)
+        }
+      }
+      if (activePositions.length+closedPositions.length>6) {
+        setNeedSelector(true)
+        setUserPositions(active?activePositions:closedPositions)
+      } else {
+        setUserPositions(activePositions.concat(closedPositions))
+      }
+      setUserPositions(filteredPositions.map(position=>position.toNumber()))
     }
     getPositions()
-  }, [contracts, provider, account])
+  }, [contracts, provider, account, active])
 
   return <>
     <Flex marginTop={'50px'} direction={'column'} justifyContent={'center'}>
-      <Flex marginInline={'auto'} wrap={'wrap'} justifyContent={'center'} alignContent={'stretch'} maxW={'1000px'}>
+      <Flex marginInline={'auto'} flexDirection={"column"} wrap={'wrap'} justifyContent={'center'} alignContent={'stretch'} maxW={'1000px'}>
+      <Flex p='1' display={needSelector?'flex':'none'} mt={'-10'} mb={'4'} alignSelf={'end'} bgColor={useColorModeValue(...level2)} borderRadius='xl'>
+        <Button mr={'1'} colorScheme={active?'blue':'gray'} borderRadius='xl' size={'sm'} onClick={()=>setActive(true)}>Active Orders</Button>
+        <Button colorScheme={active?'gray':'blue'} borderRadius='xl' size={'sm'} onClick={()=>setActive(false)}>Closed Orders</Button>
+      </Flex>
       <Pagination
       cards={userPositions?.map(id=><Card id={id}></Card>)}
       placeholder={

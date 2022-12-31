@@ -40,7 +40,7 @@ import { BiErrorAlt } from "react-icons/bi"
 import { FancyButton } from "../components/Buttons";
 import Link from "next/link";
 import { level1 } from "../components/Theme";
-import { getAmountsOut } from "../contractCalls/dataFetching";
+import { getAmountsOut } from "../contractCalls/routeCalculation";
 import { defaultUserAssetSupplied, defaultWantedAsset, LiquidationCondition, UserAsset } from "../Types";
 
 const Card = ({asset, index, setSecuring}: {asset: UserAsset, index: number, setSecuring: Function}) => {
@@ -115,7 +115,7 @@ const Card = ({asset, index, setSecuring}: {asset: UserAsset, index: number, set
           _focus={{
             bg: 'blue.500',
           }}>
-          Open Position
+          Create Orders
         </Button>
         </Stack>
       </Flex>
@@ -210,7 +210,7 @@ const SecureAsset = ({asset, setSecuring}: {asset: UserAsset, setSecuring: Funct
         minOut: 0,
         contract_decimals: condition.convertTo.contract_decimals
       }]
-      const {expectedAssets} = await getAmountsOut(contracts, signer, assetToConvert, desiredAsset)
+      const {expectedAssets} = await getAmountsOut(contracts, assetToConvert, desiredAsset)
       const expectedUsdOut = expectedAssets[0].quote
       const slippage = 100*(+currentUsd-expectedUsdOut)/+currentUsd
       if (+slippage+0.2>+condition.slippage) {
@@ -232,7 +232,7 @@ const SecureAsset = ({asset, setSecuring}: {asset: UserAsset, setSecuring: Funct
         }
       } catch {
         invalidConditions = true
-        setError(`Invalid data for liquidation condition ${index+1}`)
+        setError(`Invalid data for limit order ${index+1}`)
       }
     })
     if (invalidConditions) {
@@ -278,7 +278,7 @@ const SecureAsset = ({asset, setSecuring}: {asset: UserAsset, setSecuring: Funct
       rounded={'lg'}
       p={{base:4, md: 8}}>
       <Flex mb={'3'} justifyContent={'space-between'}>
-        <Heading2>Secure {asset?.contract_name}</Heading2>
+        <Heading2>Create {asset?.contract_name} Orders</Heading2>
         <Button onClick={exitSecuring} alignSelf={'start'} marginBottom={3}><ArrowBackIcon/>Back</Button>
       </Flex>
       <Grid
@@ -289,7 +289,7 @@ const SecureAsset = ({asset, setSecuring}: {asset: UserAsset, setSecuring: Funct
         mb={'8'}
       >
         <GridItem colSpan={1}>
-          <Heading2>Tokens To Secure</Heading2>
+          <Heading2>Tokens To Use</Heading2>
           <Flex>
           <NumberInput backgroundColor='hidden' size={'lg'} w={'60%'} min={0} max={+asset?.formattedBalance} value={tokens}
           // @ts-ignore
@@ -303,7 +303,7 @@ const SecureAsset = ({asset, setSecuring}: {asset: UserAsset, setSecuring: Funct
           </Flex>
         </GridItem>
         <GridItem colSpan={1}>
-          <Heading2>Secured USD</Heading2>
+          <Heading2>USD Value</Heading2>
           <Text fontSize='l'>${currentUsd}</Text>
         </GridItem>
         <GridItem rowStart={2} colSpan={1}>
@@ -323,7 +323,7 @@ const SecureAsset = ({asset, setSecuring}: {asset: UserAsset, setSecuring: Funct
           <Text>Coming Soon</Text>
         </GridItem>
       </Grid>
-      <Heading2>Liquidation Conditions</Heading2>
+      <Heading2>Limit Orders</Heading2>
       <Flex margin={'auto'} marginTop={{base:'0px', sm: '-40px'}}>
         <LiquidationConditions
         liquidationPoints = {liquidationConditions}
@@ -333,7 +333,7 @@ const SecureAsset = ({asset, setSecuring}: {asset: UserAsset, setSecuring: Funct
       <Flex marginBlock={'10'} justifyContent={'center'}>
       <FancyButton
         disabled={!selectedBank || +tokens===0 || processing || !rewards}
-        isLoading={processing} width='70%' height='85px' onClick={secure}><Text fontSize={'3xl'} color={'white'}>Secure</Text></FancyButton>
+        isLoading={processing} width='70%' height='85px' onClick={secure}><Text fontSize={'3xl'} color={'white'}>Place Orders</Text></FancyButton>
       </Flex>
       <Modal size={'sm'} isCentered isOpen={isOpenSuceess} onClose={onCloseSuccess}>
         <ModalOverlay
@@ -394,7 +394,7 @@ const Assets = () => {
   }, assets)
 
   return (
-    <Box justifyContent={'center'} justifySelf='center' maxWidth='1200px' marginTop={'50px'} marginInline={'auto'}>
+    <Box justifyContent={'center'} justifySelf='center' maxWidth='1200px' marginTop={'40px'} marginInline={'auto'}>
       {
         securing!=undefined && assets?
         <SecureAsset asset={assets[securing]} setSecuring={setSecuring} />:       

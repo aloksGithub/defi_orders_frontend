@@ -7,7 +7,7 @@ import {
   Flex,
   Box,
   Tooltip,
-  useDisclosure, NumberDecrementStepper, NumberIncrementStepper, NumberInputStepper, Skeleton, Input, Grid, Modal, ModalBody, ModalCloseButton, ModalContent, ModalHeader, ModalOverlay, IconButton, useColorModeValue, Image
+  useDisclosure, NumberDecrementStepper, NumberIncrementStepper, NumberInputStepper, Skeleton, Input, Grid, Modal, ModalBody, ModalCloseButton, ModalContent, ModalHeader, ModalOverlay, IconButton, useColorModeValue, Image, GridItem
 } from '@chakra-ui/react'
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react'
 import { useWeb3React } from '@web3-react/core'
@@ -22,12 +22,10 @@ import { getPrice, nFormatter } from '../utils';
 import { swap } from '../contractCalls/transactions'
 import { BiErrorAlt } from "react-icons/bi"
 import { FancyButton, PrimaryButton } from '../components/Buttons'
-import { getAmountsOut } from '../contractCalls/dataFetching'
 import { getBlockExplorerUrlTransaction } from '../utils'
 import { level0, level1, level2 } from '../components/Theme'
 import { defaultUserAssetSupplied, defaultWantedAsset, UserAssetSupplied, WantedAsset } from '../Types'
-import { ConversionStruct, ProvidedStruct, SwapPointStruct } from '../codegen/PositionManager'
-import { DesiredStruct } from '../codegen/UniversalSwap'
+import useUniversalSwapGetAmounts from '../hooks/useUniversalSwapGetAmounts'
 
   // @ts-ignore
 const TickPicker = forwardRef(({pool, usdSupplied}, _ref) => {
@@ -303,7 +301,7 @@ const SelectWantedAsset = ({usdSupplied, selected, setSelected, updateExpected, 
       </Box>
       <Flex flexDirection={'column'} alignItems={'end'} textAlign={'end'}>
         <Flex>Price: ${!loadingSelf?<Text>{nFormatter(selected.price, 3)}</Text>:<Skeleton>Temp</Skeleton>}</Flex>
-        {!loadingSelf?<Input isReadOnly height={'48px'} textAlign={'end'} variant='unstyled' fontSize={'2xl'} size={'lg'} maxWidth='150px' value={selected.expected}></Input>:<Skeleton>Temporary Temporary</Skeleton>}
+        {!loadingSelf?<Input my={'2'} isReadOnly height={'48px'} textAlign={'end'} variant='unstyled' fontSize={'2xl'} size={'lg'} maxWidth='150px' value={selected.expected}></Input>:<Skeleton>Temporary Temporary</Skeleton>}
         {!loadingSelf?<Text>Min: ~{minOut.toFixed(3)} (${minUsd.toFixed(3)})</Text>:<Skeleton>Temporary</Skeleton>}
       </Flex>
     </Flex>
@@ -389,13 +387,16 @@ const UniversalSwap = () => {
   const {contracts, onError, hardRefreshAssets, chainId, counter} = useAppContext()
   const {provider, account} = useWeb3React()
   const signer = provider?.getSigner(account)
+  const [previewing, setPreviewing] = useState(false)
   const [swapping, setSwapping] = useState(false)
-  const [swapData, setSwapData] = useState<{
-    swaps: SwapPointStruct[], conversions: ConversionStruct[],
-    provided: ProvidedStruct,
-    desired: DesiredStruct,
-    expectedAssets: WantedAsset[]
-  }>()
+
+  const triggerError = (error: string) => {
+    setError(error)
+    onOpen()
+    setPreviewing(false)
+    setSwapping(false)
+  }
+  const {data:swapData, loading: previewLoading, loadingText: previewLoadingText} = useUniversalSwapGetAmounts({assetsToConvert, wantedAssets, parentLoading: previewing, triggerError})
   const [deadline, setDeadline] = useState(0)
   const [obtainedAssets, setObtainedAssets] = useState<WantedAsset[]>()
   const [hash, setHash] = useState('')
@@ -405,78 +406,22 @@ const UniversalSwap = () => {
     setUsdSupplied(usdSupplied)
   }, [assetsToConvert])
 
-  const createError = (error:string) => {
-    setError(error)
-    onOpen()
-  }
-
+  useEffect(() => {
+    if (previewing && !previewLoading && swapData.expectedAssets) {
+      setDeadline(counter+31)
+      onOpenPreview()
+      setPreviewing(false)
+    }
+  }, [swapData.expectedAssets])
 
   const preview = async () => {
-    setSwapping(true)
-    if (!contracts?.universalSwap) {
-      createError('Looks like Delimit contracts have not yet been deployed on this chain, please switch to BSC')
-      setSwapping(false)
-      return
-    }
-    if (usdSupplied===0) {
-      createError(`No USD supplied`)
-      setSwapping(false)
-      return
-    }
-    for (let i = 0; i<assetsToConvert.length; i++) {
-      const asset = assetsToConvert[i]
-      if (!('contract_address' in asset)) {
-        createError(`Please select asset for supplied asset ${i+1}`)
-        setSwapping(false)
-        return
-      }
-      if (!asset.tokensSupplied) {
-        createError(`Please specify tokens supplied for supplied asset ${i+1}`)
-        setSwapping(false)
-        return
-      }
-      if (asset.tokensSupplied==='0') {
-        createError(`Tokens supplied for asset ${i+1} are 0`)
-        setSwapping(false)
-        return
-      }
-    }
-    let percentageTotal = 0
-    for (let i = 0; i<wantedAssets.length; i++) {
-      const asset = wantedAssets[i]
-      percentageTotal+=+asset.percentage
-      if (!('contract_address' in asset)) {
-        createError(`Please select asset for wanted asset ${i+1}`)
-        setSwapping(false)
-        return
-      }
-      if (!asset.percentage) {
-        createError(`Please specify percentage for wanted asset ${i+1}`)
-        setSwapping(false)
-        return
-      }
-      if (asset.percentage===0) {
-        createError(`Percentage for wanted asset ${i+1} is 0`)
-        setSwapping(false)
-        return
-      }
-    }
-    if (percentageTotal!=100) {
-      createError('Total percentage is not 100%')
-      setSwapping(false)
-      return
-    }
-    const {swaps, conversions, provided, desired, expectedAssets} = await getAmountsOut(contracts, signer, assetsToConvert, wantedAssets)
-    setSwapData({swaps, conversions, expectedAssets, provided, desired})
-    setDeadline(counter+31)
-    onOpenPreview()
-    setSwapping(false)
+    setPreviewing(true)
   }
 
   const proceed = () => {
     setSwapping(true)
     if (!contracts.universalSwap) {
-      createError('Looks like Delimit contracts have not yet been deployed on this chain, please switch to BSC')
+      triggerError('Looks like Delimit contracts have not yet been deployed on this chain, please switch to BSC')
       setSwapping(false)
       return
     }
@@ -500,17 +445,24 @@ const UniversalSwap = () => {
   return (
     <Flex alignItems={'center'} direction={'column'} marginTop={'10vh'}>
       <Grid width={'100%'} templateColumns={{base: '1fr', lg: '6fr 1fr 6fr'}}>
-        <Flex justifyContent={{lg: 'end', base:'center'}}>
-          <SupplyAssets assetsToConvert={assetsToConvert} setAssetsToConvert={setAssetsToConvert}/>
-        </Flex>
-        <Flex marginBlock={{lg: '24', base: '5'}} justifyContent={'center'} >
-          <ArrowForwardIcon transform={{base:'rotate(90deg)', lg: 'rotate(0deg)'}} fontSize={'2rem'}/>
-        </Flex>
-        <Flex justifyContent={{lg: 'start', base:'center'}}>
-          <ConvertTo usdSupplied={usdSupplied} wantedAssets={wantedAssets} updateWantedAssets={updateWantedAssets}></ConvertTo>
-        </Flex>
+        <GridItem>
+          <Flex justifyContent={{lg: 'end', base:'center'}}>
+            <SupplyAssets assetsToConvert={assetsToConvert} setAssetsToConvert={setAssetsToConvert}/>
+          </Flex>
+        </GridItem>
+        <GridItem>
+          <Flex marginBlock={{lg: '24', base: '5'}} justifyContent={'center'} >
+            <ArrowForwardIcon transform={{base:'rotate(90deg)', lg: 'rotate(0deg)'}} fontSize={'2rem'}/>
+          </Flex>
+        </GridItem>
+        <GridItem>
+          <Flex justifyContent={{lg: 'start', base:'center'}}>
+            <ConvertTo usdSupplied={usdSupplied} wantedAssets={wantedAssets} updateWantedAssets={updateWantedAssets}></ConvertTo>
+          </Flex>
+        </GridItem>
       </Grid>
-      <FancyButton isLoading={swapping} mt='20' height='85px' width='70%' onClick={preview}><Text fontSize={'3xl'} color={'white'}>Preview</Text></FancyButton>
+      <FancyButton loadingText={previewLoadingText}
+       isLoading={previewing} mt='20' height='85px' width='70%' onClick={preview}><Text fontSize={'3xl'} color={'white'}>Preview</Text></FancyButton>
       <Modal size={'sm'} isCentered isOpen={isPreviewOpen} onClose={onClosePreview}>
         <ModalOverlay
           bg='blackAlpha.300'
@@ -525,9 +477,9 @@ const UniversalSwap = () => {
           <ModalCloseButton />
           <ModalBody>
             <Box mb={'6'}>
-              <Text textAlign={'end'}><Text as='b'>Total:</Text> ${nFormatter(swapData?.expectedAssets.reduce((a, b)=>a+(+b.quote), 0), 3)}</Text>
+              <Text textAlign={'end'}><Text as='b'>Total:</Text> ${nFormatter(swapData?.expectedAssets?.reduce((a, b)=>a+(+b.quote), 0), 3)}</Text>
               {
-                swapData?.expectedAssets.map((asset) => {
+                swapData?.expectedAssets?.map((asset) => {
                   return (
                     <Flex backgroundColor={useColorModeValue(...level2)} alignItems={'center'} justifyContent={'space-between'} marginBlock={'4'} padding='4' borderRadius={'2xl'}>
                       <Flex width={'40%'} alignItems={'center'}>
@@ -545,7 +497,7 @@ const UniversalSwap = () => {
                 })
               }
               <Flex justifyContent={'center'}>
-              <FancyButton isLoading={swapping} mt='4' height='85px' width='100%'
+              <FancyButton isLoading={swapping||previewing} mt='4' height='85px' width='100%'
               onClick={deadline>counter?proceed:preview}
               >
                 <Text fontSize={'2xl'} color={'white'}>

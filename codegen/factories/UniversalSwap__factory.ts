@@ -35,7 +35,7 @@ const _abi = [
         type: "address[]",
       },
       {
-        internalType: "contract IOracle",
+        internalType: "address",
         name: "_oracle",
         type: "address",
       },
@@ -117,6 +117,19 @@ const _abi = [
     ],
     name: "OwnershipTransferred",
     type: "event",
+  },
+  {
+    inputs: [],
+    name: "conversionHelper",
+    outputs: [
+      {
+        internalType: "contract ConversionHelper",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
   },
   {
     inputs: [
@@ -412,9 +425,9 @@ const _abi = [
             type: "address",
           },
           {
-            internalType: "address",
-            name: "swapper",
-            type: "address",
+            internalType: "address[]",
+            name: "swappers",
+            type: "address[]",
           },
           {
             internalType: "address",
@@ -422,9 +435,9 @@ const _abi = [
             type: "address",
           },
           {
-            internalType: "address[]",
-            name: "path",
-            type: "address[]",
+            internalType: "address[][]",
+            name: "paths",
+            type: "address[][]",
           },
         ],
         internalType: "struct SwapPoint[]",
@@ -502,14 +515,606 @@ const _abi = [
   {
     inputs: [
       {
+        components: [
+          {
+            internalType: "address[]",
+            name: "tokens",
+            type: "address[]",
+          },
+          {
+            internalType: "uint256[]",
+            name: "amounts",
+            type: "uint256[]",
+          },
+          {
+            components: [
+              {
+                internalType: "address",
+                name: "pool",
+                type: "address",
+              },
+              {
+                internalType: "address",
+                name: "manager",
+                type: "address",
+              },
+              {
+                internalType: "uint256",
+                name: "tokenId",
+                type: "uint256",
+              },
+              {
+                internalType: "uint256",
+                name: "liquidity",
+                type: "uint256",
+              },
+              {
+                internalType: "bytes",
+                name: "data",
+                type: "bytes",
+              },
+            ],
+            internalType: "struct Asset[]",
+            name: "nfts",
+            type: "tuple[]",
+          },
+        ],
+        internalType: "struct Provided",
+        name: "provided",
+        type: "tuple",
+      },
+      {
+        components: [
+          {
+            internalType: "address[]",
+            name: "outputERC20s",
+            type: "address[]",
+          },
+          {
+            components: [
+              {
+                internalType: "address",
+                name: "pool",
+                type: "address",
+              },
+              {
+                internalType: "address",
+                name: "manager",
+                type: "address",
+              },
+              {
+                internalType: "uint256",
+                name: "tokenId",
+                type: "uint256",
+              },
+              {
+                internalType: "uint256",
+                name: "liquidity",
+                type: "uint256",
+              },
+              {
+                internalType: "bytes",
+                name: "data",
+                type: "bytes",
+              },
+            ],
+            internalType: "struct Asset[]",
+            name: "outputERC721s",
+            type: "tuple[]",
+          },
+          {
+            internalType: "uint256[]",
+            name: "ratios",
+            type: "uint256[]",
+          },
+          {
+            internalType: "uint256[]",
+            name: "minAmountsOut",
+            type: "uint256[]",
+          },
+        ],
+        internalType: "struct Desired",
+        name: "desired",
+        type: "tuple",
+      },
+    ],
+    name: "getAmountsOut2",
+    outputs: [
+      {
+        internalType: "uint256[]",
+        name: "amounts",
+        type: "uint256[]",
+      },
+      {
+        components: [
+          {
+            internalType: "uint256",
+            name: "amountIn",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "valueIn",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "amountOut",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "valueOut",
+            type: "uint256",
+          },
+          {
+            internalType: "int256",
+            name: "slippage",
+            type: "int256",
+          },
+          {
+            internalType: "address",
+            name: "tokenIn",
+            type: "address",
+          },
+          {
+            internalType: "address[]",
+            name: "swappers",
+            type: "address[]",
+          },
+          {
+            internalType: "address",
+            name: "tokenOut",
+            type: "address",
+          },
+          {
+            internalType: "address[][]",
+            name: "paths",
+            type: "address[][]",
+          },
+        ],
+        internalType: "struct SwapPoint[]",
+        name: "swaps",
+        type: "tuple[]",
+      },
+      {
+        components: [
+          {
+            components: [
+              {
+                internalType: "address",
+                name: "pool",
+                type: "address",
+              },
+              {
+                internalType: "address",
+                name: "manager",
+                type: "address",
+              },
+              {
+                internalType: "uint256",
+                name: "tokenId",
+                type: "uint256",
+              },
+              {
+                internalType: "uint256",
+                name: "liquidity",
+                type: "uint256",
+              },
+              {
+                internalType: "bytes",
+                name: "data",
+                type: "bytes",
+              },
+            ],
+            internalType: "struct Asset",
+            name: "desiredERC721",
+            type: "tuple",
+          },
+          {
+            internalType: "address",
+            name: "desiredERC20",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "value",
+            type: "uint256",
+          },
+          {
+            internalType: "address[]",
+            name: "underlying",
+            type: "address[]",
+          },
+          {
+            internalType: "uint256[]",
+            name: "underlyingValues",
+            type: "uint256[]",
+          },
+        ],
+        internalType: "struct Conversion[]",
+        name: "conversions",
+        type: "tuple[]",
+      },
+      {
+        internalType: "uint256[]",
+        name: "expectedUSDValues",
+        type: "uint256[]",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        components: [
+          {
+            internalType: "address[]",
+            name: "tokens",
+            type: "address[]",
+          },
+          {
+            internalType: "uint256[]",
+            name: "amounts",
+            type: "uint256[]",
+          },
+          {
+            components: [
+              {
+                internalType: "address",
+                name: "pool",
+                type: "address",
+              },
+              {
+                internalType: "address",
+                name: "manager",
+                type: "address",
+              },
+              {
+                internalType: "uint256",
+                name: "tokenId",
+                type: "uint256",
+              },
+              {
+                internalType: "uint256",
+                name: "liquidity",
+                type: "uint256",
+              },
+              {
+                internalType: "bytes",
+                name: "data",
+                type: "bytes",
+              },
+            ],
+            internalType: "struct Asset[]",
+            name: "nfts",
+            type: "tuple[]",
+          },
+        ],
+        internalType: "struct Provided",
+        name: "provided",
+        type: "tuple",
+      },
+      {
+        components: [
+          {
+            internalType: "address[]",
+            name: "outputERC20s",
+            type: "address[]",
+          },
+          {
+            components: [
+              {
+                internalType: "address",
+                name: "pool",
+                type: "address",
+              },
+              {
+                internalType: "address",
+                name: "manager",
+                type: "address",
+              },
+              {
+                internalType: "uint256",
+                name: "tokenId",
+                type: "uint256",
+              },
+              {
+                internalType: "uint256",
+                name: "liquidity",
+                type: "uint256",
+              },
+              {
+                internalType: "bytes",
+                name: "data",
+                type: "bytes",
+              },
+            ],
+            internalType: "struct Asset[]",
+            name: "outputERC721s",
+            type: "tuple[]",
+          },
+          {
+            internalType: "uint256[]",
+            name: "ratios",
+            type: "uint256[]",
+          },
+          {
+            internalType: "uint256[]",
+            name: "minAmountsOut",
+            type: "uint256[]",
+          },
+        ],
+        internalType: "struct Desired",
+        name: "desired",
+        type: "tuple",
+      },
+      {
+        components: [
+          {
+            internalType: "uint256",
+            name: "amountIn",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "valueIn",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "amountOut",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "valueOut",
+            type: "uint256",
+          },
+          {
+            internalType: "int256",
+            name: "slippage",
+            type: "int256",
+          },
+          {
+            internalType: "address",
+            name: "tokenIn",
+            type: "address",
+          },
+          {
+            internalType: "address[]",
+            name: "swappers",
+            type: "address[]",
+          },
+          {
+            internalType: "address",
+            name: "tokenOut",
+            type: "address",
+          },
+          {
+            internalType: "address[][]",
+            name: "paths",
+            type: "address[][]",
+          },
+        ],
+        internalType: "struct SwapPoint[]",
+        name: "swaps",
+        type: "tuple[]",
+      },
+      {
+        components: [
+          {
+            components: [
+              {
+                internalType: "address",
+                name: "pool",
+                type: "address",
+              },
+              {
+                internalType: "address",
+                name: "manager",
+                type: "address",
+              },
+              {
+                internalType: "uint256",
+                name: "tokenId",
+                type: "uint256",
+              },
+              {
+                internalType: "uint256",
+                name: "liquidity",
+                type: "uint256",
+              },
+              {
+                internalType: "bytes",
+                name: "data",
+                type: "bytes",
+              },
+            ],
+            internalType: "struct Asset",
+            name: "desiredERC721",
+            type: "tuple",
+          },
+          {
+            internalType: "address",
+            name: "desiredERC20",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "value",
+            type: "uint256",
+          },
+          {
+            internalType: "address[]",
+            name: "underlying",
+            type: "address[]",
+          },
+          {
+            internalType: "uint256[]",
+            name: "underlyingValues",
+            type: "uint256[]",
+          },
+        ],
+        internalType: "struct Conversion[]",
+        name: "conversions",
+        type: "tuple[]",
+      },
+    ],
+    name: "getAmountsOutWithSwaps",
+    outputs: [
+      {
+        internalType: "uint256[]",
+        name: "amounts",
+        type: "uint256[]",
+      },
+      {
+        internalType: "uint256[]",
+        name: "expectedUSDValues",
+        type: "uint256[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getNFTPoolInteractors",
+    outputs: [
+      {
+        internalType: "address[]",
+        name: "",
+        type: "address[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getPoolInteractors",
+    outputs: [
+      {
+        internalType: "address[]",
+        name: "",
+        type: "address[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+    ],
+    name: "getProtocol",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getSwappers",
+    outputs: [
+      {
+        internalType: "address[]",
+        name: "",
+        type: "address[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "address[]",
         name: "tokens",
         type: "address[]",
       },
       {
         internalType: "uint256[]",
-        name: "amounts",
+        name: "tokenAmounts",
         type: "uint256[]",
+      },
+    ],
+    name: "getTokenValues",
+    outputs: [
+      {
+        internalType: "uint256[]",
+        name: "values",
+        type: "uint256[]",
+      },
+      {
+        internalType: "uint256",
+        name: "total",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        components: [
+          {
+            internalType: "address[]",
+            name: "tokens",
+            type: "address[]",
+          },
+          {
+            internalType: "uint256[]",
+            name: "amounts",
+            type: "uint256[]",
+          },
+          {
+            components: [
+              {
+                internalType: "address",
+                name: "pool",
+                type: "address",
+              },
+              {
+                internalType: "address",
+                name: "manager",
+                type: "address",
+              },
+              {
+                internalType: "uint256",
+                name: "tokenId",
+                type: "uint256",
+              },
+              {
+                internalType: "uint256",
+                name: "liquidity",
+                type: "uint256",
+              },
+              {
+                internalType: "bytes",
+                name: "data",
+                type: "bytes",
+              },
+            ],
+            internalType: "struct Asset[]",
+            name: "nfts",
+            type: "tuple[]",
+          },
+        ],
+        internalType: "struct Provided",
+        name: "provided",
+        type: "tuple",
       },
     ],
     name: "getUnderlying",
@@ -529,13 +1134,19 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "helper",
+    inputs: [
+      {
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+    ],
+    name: "isSimpleToken",
     outputs: [
       {
-        internalType: "contract SwapHelper",
+        internalType: "bool",
         name: "",
-        type: "address",
+        type: "bool",
       },
     ],
     stateMutability: "view",
@@ -574,8 +1185,59 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    name: "nftPoolInteractors",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "oracle",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "owner",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    name: "poolInteractors",
     outputs: [
       {
         internalType: "address",
@@ -692,7 +1354,7 @@ const _abi = [
         type: "tuple",
       },
     ],
-    name: "preSwapComputation",
+    name: "preSwapCalculateSwaps",
     outputs: [
       {
         components: [
@@ -727,9 +1389,9 @@ const _abi = [
             type: "address",
           },
           {
-            internalType: "address",
-            name: "swapper",
-            type: "address",
+            internalType: "address[]",
+            name: "swappers",
+            type: "address[]",
           },
           {
             internalType: "address",
@@ -737,9 +1399,9 @@ const _abi = [
             type: "address",
           },
           {
-            internalType: "address[]",
-            name: "path",
-            type: "address[]",
+            internalType: "address[][]",
+            name: "paths",
+            type: "address[][]",
           },
         ],
         internalType: "struct SwapPoint[]",
@@ -810,8 +1472,269 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        components: [
+          {
+            internalType: "address[]",
+            name: "tokens",
+            type: "address[]",
+          },
+          {
+            internalType: "uint256[]",
+            name: "amounts",
+            type: "uint256[]",
+          },
+          {
+            components: [
+              {
+                internalType: "address",
+                name: "pool",
+                type: "address",
+              },
+              {
+                internalType: "address",
+                name: "manager",
+                type: "address",
+              },
+              {
+                internalType: "uint256",
+                name: "tokenId",
+                type: "uint256",
+              },
+              {
+                internalType: "uint256",
+                name: "liquidity",
+                type: "uint256",
+              },
+              {
+                internalType: "bytes",
+                name: "data",
+                type: "bytes",
+              },
+            ],
+            internalType: "struct Asset[]",
+            name: "nfts",
+            type: "tuple[]",
+          },
+        ],
+        internalType: "struct Provided",
+        name: "provided",
+        type: "tuple",
+      },
+      {
+        components: [
+          {
+            internalType: "address[]",
+            name: "outputERC20s",
+            type: "address[]",
+          },
+          {
+            components: [
+              {
+                internalType: "address",
+                name: "pool",
+                type: "address",
+              },
+              {
+                internalType: "address",
+                name: "manager",
+                type: "address",
+              },
+              {
+                internalType: "uint256",
+                name: "tokenId",
+                type: "uint256",
+              },
+              {
+                internalType: "uint256",
+                name: "liquidity",
+                type: "uint256",
+              },
+              {
+                internalType: "bytes",
+                name: "data",
+                type: "bytes",
+              },
+            ],
+            internalType: "struct Asset[]",
+            name: "outputERC721s",
+            type: "tuple[]",
+          },
+          {
+            internalType: "uint256[]",
+            name: "ratios",
+            type: "uint256[]",
+          },
+          {
+            internalType: "uint256[]",
+            name: "minAmountsOut",
+            type: "uint256[]",
+          },
+        ],
+        internalType: "struct Desired",
+        name: "desired",
+        type: "tuple",
+      },
+    ],
+    name: "preSwapCalculateUnderlying",
+    outputs: [
+      {
+        internalType: "address[]",
+        name: "",
+        type: "address[]",
+      },
+      {
+        internalType: "uint256[]",
+        name: "",
+        type: "uint256[]",
+      },
+      {
+        internalType: "uint256[]",
+        name: "",
+        type: "uint256[]",
+      },
+      {
+        components: [
+          {
+            components: [
+              {
+                internalType: "address",
+                name: "pool",
+                type: "address",
+              },
+              {
+                internalType: "address",
+                name: "manager",
+                type: "address",
+              },
+              {
+                internalType: "uint256",
+                name: "tokenId",
+                type: "uint256",
+              },
+              {
+                internalType: "uint256",
+                name: "liquidity",
+                type: "uint256",
+              },
+              {
+                internalType: "bytes",
+                name: "data",
+                type: "bytes",
+              },
+            ],
+            internalType: "struct Asset",
+            name: "desiredERC721",
+            type: "tuple",
+          },
+          {
+            internalType: "address",
+            name: "desiredERC20",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "value",
+            type: "uint256",
+          },
+          {
+            internalType: "address[]",
+            name: "underlying",
+            type: "address[]",
+          },
+          {
+            internalType: "uint256[]",
+            name: "underlyingValues",
+            type: "uint256[]",
+          },
+        ],
+        internalType: "struct Conversion[]",
+        name: "",
+        type: "tuple[]",
+      },
+      {
+        internalType: "address[]",
+        name: "",
+        type: "address[]",
+      },
+      {
+        internalType: "uint256[]",
+        name: "",
+        type: "uint256[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "providedHelper",
+    outputs: [
+      {
+        internalType: "contract ProvidedHelper",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "renounceOwnership",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address[]",
+        name: "_nftPoolInteractors",
+        type: "address[]",
+      },
+    ],
+    name: "setNFTPoolInteractors",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_oracle",
+        type: "address",
+      },
+    ],
+    name: "setOracle",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address[]",
+        name: "_poolInteractors",
+        type: "address[]",
+      },
+    ],
+    name: "setPoolInteractors",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address[]",
+        name: "_swappers",
+        type: "address[]",
+      },
+    ],
+    name: "setSwappers",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -913,9 +1836,9 @@ const _abi = [
             type: "address",
           },
           {
-            internalType: "address",
-            name: "swapper",
-            type: "address",
+            internalType: "address[]",
+            name: "swappers",
+            type: "address[]",
           },
           {
             internalType: "address",
@@ -923,9 +1846,9 @@ const _abi = [
             type: "address",
           },
           {
-            internalType: "address[]",
-            name: "path",
-            type: "address[]",
+            internalType: "address[][]",
+            name: "paths",
+            type: "address[][]",
           },
         ],
         internalType: "struct SwapPoint[]",
@@ -1146,9 +2069,9 @@ const _abi = [
             type: "address",
           },
           {
-            internalType: "address",
-            name: "swapper",
-            type: "address",
+            internalType: "address[]",
+            name: "swappers",
+            type: "address[]",
           },
           {
             internalType: "address",
@@ -1156,9 +2079,9 @@ const _abi = [
             type: "address",
           },
           {
-            internalType: "address[]",
-            name: "path",
-            type: "address[]",
+            internalType: "address[][]",
+            name: "paths",
+            type: "address[][]",
           },
         ],
         internalType: "struct SwapPoint[]",
@@ -1293,6 +2216,38 @@ const _abi = [
       },
     ],
     stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "swapHelper",
+    outputs: [
+      {
+        internalType: "contract SwapHelper",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    name: "swappers",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {

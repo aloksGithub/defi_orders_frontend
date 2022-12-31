@@ -1,7 +1,7 @@
 import { Connector } from '@web3-react/types'
 import { BigNumber } from 'ethers';
 import { ReactElement } from 'react'
-import { PositionManager, UniversalSwap, BankBase, ERC20, UniswapV3PoolInteractor } from './codegen';
+import { PositionManager, UniversalSwap, BankBase, ERC20, UniswapV3PoolInteractor, SwapHelper, ISwapper, IOracle } from './codegen';
 
 export type SupportedChains = 56|1|97
 
@@ -107,7 +107,15 @@ export const defaultLiquidationCondition: LiquidationCondition = {
 
 }
 
-export interface Contracts {positionManager: PositionManager, universalSwap: UniversalSwap, banks: BankBase[], stableToken: ERC20}
+export interface SwapContracts {
+  positionManager: PositionManager,
+  universalSwap: UniversalSwap,
+  swappers: ISwapper[],
+  oracle: IOracle,
+  banks: BankBase[],
+  networkToken: ERC20,
+  stableToken: ERC20
+}
 
 export interface ContextType {
   userAssets: {data: UserAsset[], loading: boolean, error: boolean}
@@ -117,7 +125,7 @@ export interface ContextType {
   chainId: undefined|number
   connector: undefined|Connector
   supportedAssets: Asset[]
-  contracts: Contracts | undefined
+  contracts: SwapContracts | undefined
   slippageControl: {slippage: number, setSlippage: (slippage:number)=>void}
   counter: number
   onError: (error:Error)=>void

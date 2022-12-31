@@ -2,14 +2,15 @@ import { BigNumberish, ethers } from "ethers";
 import erc20Abi from "../constants/abis/ERC20.json"
 import npmAbi from "../constants/abis/INonFungiblePositionsManager.json"
 import { getPrice } from "../utils";
-import { Contracts, UserAssetSupplied, WantedAsset } from "../Types";
+import { SwapContracts, UserAssetSupplied, WantedAsset } from "../Types";
 import { JsonRpcSigner, JsonRpcProvider } from "@ethersproject/providers";
 import { ConversionStruct, LiquidationConditionStruct, PositionStruct, ProvidedStruct, SwapPointStruct } from "../codegen/PositionManager";
 import { ERC20__factory, INonFungiblePositionsManager__factory } from "../codegen";
 import { DesiredStruct } from "../codegen/UniversalSwap";
 import { FetchPositionData } from "./dataFetching";
+import { getSwapsAndConversionsFromProvidedAndDesired } from "./routeCalculation";
 
-export const depositNew = async (contracts: Contracts, signer: JsonRpcSigner, position: PositionStruct, asset) => {
+export const depositNew = async (contracts: SwapContracts, signer: JsonRpcSigner, position: PositionStruct, asset) => {
   const account = await signer.getAddress()
   let tx: ethers.Transaction
   if (asset.contract_address!=ethers.constants.AddressZero) {
@@ -26,7 +27,7 @@ export const depositNew = async (contracts: Contracts, signer: JsonRpcSigner, po
 }
 
 export const swap = async (
-  contracts: Contracts,
+  contracts: SwapContracts,
   signer: JsonRpcSigner,
   provided: ProvidedStruct, desired: DesiredStruct,
   swaps: SwapPointStruct[], conversions: ConversionStruct[],
@@ -35,10 +36,8 @@ export const swap = async (
   let ethSupplied: BigNumberish = ethers.BigNumber.from('0')
   for (const [i, token] of provided.tokens.entries()) {
     if (token!=ethers.constants.AddressZero) {
-      console.log("CHECK", token, signer)
       // @ts-ignore
       const assetContract = ERC20__factory.connect(token, signer)
-      console.log("Success")
       const tokensSupplied = provided.amounts[i]
       const currentAllowance = await assetContract.allowance(account, contracts.universalSwap.address)
       if (currentAllowance<tokensSupplied) {
@@ -80,7 +79,40 @@ export const swap = async (
   return {expectedAssets, hash}
 }
 
-export const depositAgain = async (contracts: Contracts, signer: JsonRpcSigner, position: FetchPositionData, assetsToConvert: UserAssetSupplied[], chainId: number, slippage: number) => {
+export const approveAssets = async (assetsToConvert: UserAssetSupplied[], spender: string, signer: JsonRpcSigner) => {
+  const provided = {
+    tokens: [],
+    amounts: [],
+    nfts: []
+  }
+  for (const asset of assetsToConvert) {
+    provided.tokens.push(asset.contract_address)
+    provided.amounts.push(ethers.utils.parseUnits(asset.tokensSupplied, asset.contract_decimals))
+  }
+  const account = await signer.getAddress()
+  let ethSupplied = ethers.BigNumber.from('0')
+  for (const asset of assetsToConvert) {
+    const address = asset.contract_address
+    if (address!=ethers.constants.AddressZero) {
+      const supplied = ethers.utils.parseUnits(asset.tokensSupplied.toString(), asset.contract_decimals)
+      const contract = ERC20__factory.connect(address, signer)
+      const allowance = await contract.allowance(account, spender)
+      if (allowance.lt(supplied)){
+        await contract.approve(spender, supplied)
+      }
+    } else {
+      ethSupplied = ethers.utils.parseUnits(asset.tokensSupplied.toString(), asset.contract_decimals)
+    }
+  }
+  const addressZeroIndex = provided.tokens.findIndex(token=>token===ethers.constants.AddressZero)
+  if (addressZeroIndex>-1) {
+      provided.tokens.splice(addressZeroIndex, 1)
+      provided.amounts.splice(addressZeroIndex, 1)
+  }
+  return {ethSupplied, provided}
+}
+
+export const depositAgain = async (contracts: SwapContracts, signer: JsonRpcSigner, position: FetchPositionData, assetsToConvert: UserAssetSupplied[], chainId: number, slippage: number) => {
   const provided = {
     tokens: [],
     amounts: [],
@@ -118,7 +150,7 @@ export const depositAgain = async (contracts: Contracts, signer: JsonRpcSigner, 
       desired.outputERC20s.push(token)
       desired.ratios.push(underlyingTokens[1][index].toNumber())
     }
-    const {swaps:s, conversions:c} = await contracts.universalSwap.preSwapComputation(provided, desired)
+    const {swaps:s, conversions:c} = await contracts.universalSwap.preSwapCalculateSwaps(provided, desired)
     swaps = s
     conversions = c
   }
@@ -139,24 +171,24 @@ export const depositAgain = async (contracts: Contracts, signer: JsonRpcSigner, 
   }
   const addressZeroIndex = provided.tokens.findIndex(token=>token===ethers.constants.AddressZero)
   if (addressZeroIndex>-1) {
-      provided.tokens.splice(addressZeroIndex, 1)
-      provided.amounts.splice(addressZeroIndex, 1)
+    provided.tokens.splice(addressZeroIndex, 1)
+    provided.amounts.splice(addressZeroIndex, 1)
   }
   const tx = await contracts.positionManager.depositInExisting(position.positionId, provided, swaps, conversions, desired.minAmountsOut, {value: ethSupplied})
   return tx.hash
 }
 
-export const adjustLiquidationPoints = async (contracts: Contracts, positionId: BigNumberish, liquidationConditions: LiquidationConditionStruct[]) => {
+export const adjustLiquidationPoints = async (contracts: SwapContracts, positionId: BigNumberish, liquidationConditions: LiquidationConditionStruct[]) => {
   const tx = await contracts.positionManager.adjustLiquidationPoints(positionId, liquidationConditions)
   return tx.hash
 }
 
-export const harvest = async (contracts: Contracts, positionId: BigNumberish) => {
+export const harvest = async (contracts: SwapContracts, positionId: BigNumberish) => {
   const tx = await contracts.positionManager.harvestRewards(positionId)
   return tx.hash
 }
 
-export const compound = async (contracts: Contracts, positionId: BigNumberish, positionInfo, slippage: number, chainId: number) => {
+export const compound = async (contracts: SwapContracts, positionId: BigNumberish, positionInfo, slippage: number, chainId: number) => {
   const {rewards, rewardAmounts} = await contracts.positionManager.getPositionRewards(positionId)
   const provided = {
     tokens: [],
@@ -186,7 +218,6 @@ export const compound = async (contracts: Contracts, positionId: BigNumberish, p
   const bankContract = contracts.banks[bankId]
   const [underlying, ratios] = await bankContract.getUnderlyingForRecurringDeposit(positionInfo.bankToken)
   const totalRatio = ratios.reduce((a, b)=>a.add(b), ethers.BigNumber.from('0'))
-  console.log(underlying, positionInfo.bankToken, bankId)
   for (const [index, token] of underlying.entries()) {
     desired.outputERC20s.push(token)
     desired.ratios.push(ratios[index])
@@ -198,17 +229,17 @@ export const compound = async (contracts: Contracts, positionId: BigNumberish, p
     const minAmount = ethers.utils.parseUnits(allowedSlippage.toFixed(decimals).toString(), decimals)
     desired.minAmountsOut.push(minAmount)
   }
-  const {swaps, conversions} = await contracts.universalSwap.preSwapComputation(provided, desired)
+  const {swaps, conversions} = await getSwapsAndConversionsFromProvidedAndDesired(contracts, provided, desired)
   const tx = await contracts.positionManager.harvestAndRecompound(positionId, swaps, conversions, desired.minAmountsOut)
   return tx.hash
 }
 
-export const withdraw = async (contracts: Contracts, positionId: BigNumberish, amount: BigNumberish) => {
+export const withdraw = async (contracts: SwapContracts, positionId: BigNumberish, amount: BigNumberish) => {
   const tx = await contracts.positionManager.withdraw(positionId, amount)
   return tx.hash
 }
 
-export const close = async (contracts: Contracts, positionId: BigNumberish) => {
+export const close = async (contracts: SwapContracts, positionId: BigNumberish) => {
   const tx = await contracts.positionManager.close(positionId)
   return tx.hash
 }

@@ -20,13 +20,16 @@ import { BiErrorAlt } from "react-icons/bi"
 import { CheckCircleIcon } from '@chakra-ui/icons'
 import { Footer } from './Footer'
 import { level0 } from './Theme'
-import { Asset, defaultContext, UserAsset } from '../Types'
+import { Asset, SwapContracts, defaultContext, UserAsset } from '../Types'
 import { 
   PositionManager__factory,
   UniversalSwap__factory,
   BankBase__factory,
   ERC20__factory,
-  UniswapV3PoolInteractor__factory
+  UniswapV3PoolInteractor__factory,
+  SwapHelper__factory,
+  ISwapper__factory,
+  IOracle__factory
  } from '../codegen'
 
 const AppContext = createContext(defaultContext);
@@ -47,7 +50,7 @@ export function AppWrapper({ children }) {
 
   const [userAssets, setUserAssets] = useState<{data: UserAsset[], loading: boolean, error: boolean}>({data: [], loading: true, error: false})
   const [supportedAssets, setSupportedAssets] = useState<Asset[]>([])
-  const [contracts, setContracts] = useState<any>()
+  const [contracts, setContracts] = useState<SwapContracts>()
 
   const [counter, setCounter] = useState(0);
   useEffect(() => {
@@ -98,19 +101,24 @@ export function AppWrapper({ children }) {
       const signer = provider.getSigner(account)
       if (!(chainId in deploymentAddresses)) {
         onOpen()
-        setContracts({positionManager:undefined, banks:undefined, universalSwap:undefined, stableToken:undefined, uniswapV3PoolInteractor:undefined})
         return
       }
       try {
         const positionManager = PositionManager__factory.connect(deploymentAddresses[chainId].positionsManager, signer)
         const banks = (await positionManager.getBanks()).map(bank=>BankBase__factory.connect(bank, signer))
         const universalSwap = UniversalSwap__factory.connect(deploymentAddresses[chainId].universalSwap, signer)
+        const oracleAddress = await universalSwap.oracle()
+        const oracle = IOracle__factory.connect(oracleAddress, signer)
+        const swapperAddresses = await universalSwap.getSwappers()
+        const swappers = swapperAddresses.map(address=>ISwapper__factory.connect(address, signer))
+        const networkTokenAddress = await universalSwap.networkToken()
+        const networkToken = ERC20__factory.connect(networkTokenAddress, signer)
         const stableTokenAddress = await positionManager.stableToken()
         const stableToken = ERC20__factory.connect(stableTokenAddress, provider)
         const uniswapV3PoolInteractor = undefined
-        setContracts({positionManager, banks, universalSwap, stableToken})
-      } catch {
-        
+        setContracts({positionManager, banks, universalSwap, oracle, swappers, networkToken, stableToken})
+      } catch (error) {
+        console.log(error)
       }
     }
     if (provider && chainId) {
@@ -261,7 +269,7 @@ const Wrapper = ({children}) => {
       width={'100%'}
       minHeight={'100vh'}
       paddingTop={'80px'}
-      paddingBottom={'140px'}
+      pb='32'
       backgroundColor={useColorModeValue(...level0)}
       // bgGradient='linear(to-r, white, #e0e8ff, #e0e8ff, #e0e8ff, #e0e8ff, #e0e8ff, white)'
       // bgGradient='linear(to-b, gray.100, #edfdff)'

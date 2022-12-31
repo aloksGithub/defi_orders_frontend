@@ -340,9 +340,9 @@
             "type": "address"
           },
           {
-            "internalType": "address",
-            "name": "swapper",
-            "type": "address"
+            "internalType": "address[]",
+            "name": "swappers",
+            "type": "address[]"
           },
           {
             "internalType": "address",
@@ -350,9 +350,9 @@
             "type": "address"
           },
           {
-            "internalType": "address[]",
-            "name": "path",
-            "type": "address[]"
+            "internalType": "address[][]",
+            "name": "paths",
+            "type": "address[][]"
           }
         ],
         "internalType": "struct SwapPoint[]",
@@ -633,9 +633,9 @@
             "type": "address"
           },
           {
-            "internalType": "address",
-            "name": "swapper",
-            "type": "address"
+            "internalType": "address[]",
+            "name": "swappers",
+            "type": "address[]"
           },
           {
             "internalType": "address",
@@ -643,9 +643,9 @@
             "type": "address"
           },
           {
-            "internalType": "address[]",
-            "name": "path",
-            "type": "address[]"
+            "internalType": "address[][]",
+            "name": "paths",
+            "type": "address[][]"
           }
         ],
         "internalType": "struct SwapPoint[]",
@@ -1108,9 +1108,9 @@
             "type": "address"
           },
           {
-            "internalType": "address",
-            "name": "swapper",
-            "type": "address"
+            "internalType": "address[]",
+            "name": "swappers",
+            "type": "address[]"
           },
           {
             "internalType": "address",
@@ -1118,9 +1118,9 @@
             "type": "address"
           },
           {
-            "internalType": "address[]",
-            "name": "path",
-            "type": "address[]"
+            "internalType": "address[][]",
+            "name": "paths",
+            "type": "address[][]"
           }
         ],
         "internalType": "struct SwapPoint[]",

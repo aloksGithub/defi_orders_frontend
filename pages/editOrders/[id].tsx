@@ -1,143 +1,28 @@
 import { useAppContext } from "../../components/Provider"
-import { Box, Flex, Text, Button, Grid, GridItem, NumberInput, NumberInputField, useDisclosure, Modal, ModalBody, ModalCloseButton, ModalContent, ModalHeader, ModalOverlay, Slider, SliderFilledTrack, SliderThumb, SliderTrack, useColorModeValue, ModalFooter } from "@chakra-ui/react";
-import { useEffect, useRef, useState } from "react";
+import { Box, Flex, Text, Grid, GridItem, useDisclosure, Modal, ModalBody, ModalCloseButton, ModalContent, ModalHeader, ModalOverlay, useColorModeValue, ModalFooter, Button } from "@chakra-ui/react";
+import { useEffect, useState } from "react";
 import { useRouter } from 'next/router'
 import { useWeb3React } from "@web3-react/core";
 import { ethers } from "ethers";
-import { fetchPosition, FetchPositionData, getAmountsOut } from "../../contractCalls/dataFetching";
-import { depositAgain, close, withdraw, adjustLiquidationPoints } from "../../contractCalls/transactions";
+import { fetchPosition, FetchPositionData } from "../../contractCalls/dataFetching";
+import { getAmountsOut } from "../../contractCalls/routeCalculation";
+import { close, adjustLiquidationPoints } from "../../contractCalls/transactions";
 import LiquidationConditions from "../../components/LiquidationConditions";
-import { SupplyAssets } from "../../components/selectAssets";
 import { Heading2 } from "../../components/Typography";
 import { DangerButton, PrimaryButton, SecondaryButton } from "../../components/Buttons";
 import { getBlockExplorerUrlTransaction, getPrice, nFormatter } from "../../utils";
 import { BiErrorAlt } from "react-icons/bi";
-import { level0, level1 } from "../../components/Theme";
-import { Asset, defaultUserAssetSupplied, defaultWantedAsset, LiquidationCondition, UserAssetSupplied } from "../../Types";
+import { level1 } from "../../components/Theme";
+import { Asset, defaultUserAssetSupplied, defaultWantedAsset, LiquidationCondition } from "../../Types";
 import { LiquidationConditionStruct } from "../../codegen/PositionManager";
-
-const WithdrawModal = ({position, refreshData, closeSelf}: {position: FetchPositionData, refreshData:Function, closeSelf: Function}) => {
-  const positionSizeDecimals = +position?.formattedAmount||0
-  const {contracts, onError, chainId, successModal} = useAppContext()
-  const [value, setValue] = useState(0)
-  const [isWithdrawing, setWithdrawing] = useState(false)
-  const [percentage, setPercentage] = useState('0')
-  const usdWithdraw = (value/positionSizeDecimals)*position.usdcValue || 0
-  const handleChange = (value) => {
-    setValue(+value)
-    setPercentage((value*100/positionSizeDecimals).toFixed(1))
-  }
-  const hangleChangeSlider = (value) => {
-    setPercentage(value)
-    setValue(positionSizeDecimals*value/100)
-  }
-  const withdrawFromPostion = () => {
-    if (value===0) return
-    console.log(typeof(value))
-    setWithdrawing(true)
-    withdraw(contracts, position.positionId, ethers.utils.parseUnits(value.toFixed(position.decimals), position.decimals)).then((hash)=>{
-      setWithdrawing(false)
-      refreshData()
-      closeSelf()
-      successModal("Withdrawal Successful", 
-        <Text>
-          Assets were withdrawn successfully, 
-          View <a href={getBlockExplorerUrlTransaction(chainId, hash)} target="_blank" rel="noopener noreferrer"><Text as='u' textColor={'blue.500'}>transaction</Text></a>
-          &nbsp;on block explorer.
-        </Text>
-      )
-    }).catch((error)=>{
-      onError(error)
-      setWithdrawing(false)
-    })
-  }
-  return (
-    <Box>
-      <Box backgroundColor={useColorModeValue(...level0)} padding='4' borderRadius={'lg'}>
-        <Flex mb={'4'} justifyContent={'space-between'}>
-          <Box>
-            <Text as={'b'} mr={'4'}>USD Value:</Text>
-            <Flex alignItems={'center'}>
-              <Text>${usdWithdraw.toFixed(4)}</Text>
-            </Flex>
-          </Box>
-          <Box mb={'4'}>
-            <Text as={'b'} mr={'4'}>Available:</Text>
-            <Text>{nFormatter(positionSizeDecimals, 5)}</Text>
-          </Box>
-        </Flex>
-        <Box margin={'auto'} width={'100%'}>
-          <NumberInput bgColor='hidden' min={0} max={positionSizeDecimals} value={value} onChange={handleChange} size='lg'>
-            <NumberInputField bgColor={useColorModeValue('white', 'gray.900')}/>
-          </NumberInput>
-          <Box width={'93%'} margin='auto'>
-          <Slider aria-label='slider-ex-1'
-            textColor='black'
-            flex='1'
-            focusThumbOnChange={false}
-            value={+percentage}
-            max={100}
-            onChange={hangleChangeSlider}
-          >
-            <SliderTrack>
-              <SliderFilledTrack />
-            </SliderTrack>
-            <SliderThumb fontSize='sm' boxSize='32px' children={percentage} />
-          </Slider>
-          </Box>
-        </Box>
-      </Box>
-      <Flex mt={'4'} justifyContent={'center'}>
-      <PrimaryButton isLoading={isWithdrawing} size='large' margin={'auto'} onClick={withdrawFromPostion}>Withdraw</PrimaryButton>
-      </Flex>
-    </Box>
-  )
-}
-
-const DepositModal = ({position, refreshData, closeSelf}: {position: FetchPositionData, refreshData: Function, closeSelf: Function}) => {
-  const [assetsToConvert, setAssetsToConvert] = useState<UserAssetSupplied[]>([defaultUserAssetSupplied])
-  const {contracts, chainId, slippageControl: {slippage}, onError} = useAppContext()
-  const {provider ,account} = useWeb3React()
-  const {successModal} = useAppContext()
-  const [isDepositing, setDepositing] = useState(false)
-  
-  const supply = async () => {
-    setDepositing(true)
-    depositAgain(contracts,provider?.getSigner(account), position, assetsToConvert, chainId, slippage).then((hash)=>{
-      setDepositing(false)
-      refreshData()
-      closeSelf()
-      successModal("Deposit Successful", 
-        <Text>
-          Asset was deposited successfully, 
-          View <a href={getBlockExplorerUrlTransaction(chainId, hash)} target="_blank" rel="noopener noreferrer"><Text as='u' textColor={'blue.500'}>transaction</Text></a>
-          &nbsp;on block explorer.
-        </Text>
-      )
-    }).catch((error)=>{
-      setDepositing(false)
-      onError(error)
-    })
-  }
-
-  return (
-    <Flex bgColor={useColorModeValue('white', 'gray.900')} alignItems={'center'} direction={'column'} width={'100%'}>
-      <Box width={'100%'}>
-        <div style={{overflow: 'auto', maxHeight: '60vh'}}>
-        <Flex width={'100%'} justifyContent={'center'}>
-          <SupplyAssets assetsToConvert={assetsToConvert} setAssetsToConvert={setAssetsToConvert}/>
-        </Flex>
-        </div>
-        <Flex mt={'6'} justifyContent={'center'}><PrimaryButton isLoading={isDepositing} size='large' onClick={supply}>Deposit</PrimaryButton></Flex>
-      </Box>
-    </Flex>
-  )
-}
+import WithdrawModal from "../../components/WithdrawModal";
+import DepositModal from "../../components/DepositModal";
+import { ArrowBackIcon } from "@chakra-ui/icons";
+import Link from "next/link";
 
 const EditPosition = () => {
   const {contracts, chainId, supportedAssets, onError, successModal} = useAppContext()
   const {provider, account} = useWeb3React()
-  const signer = provider?.getSigner(account)
   const router = useRouter()
   const { id } = router.query
   if (typeof id != 'string') return <></>
@@ -159,6 +44,7 @@ const EditPosition = () => {
   const [reloadTrigger, setReloadTrigger] = useState(false)
   const [loading, setLoading] = useState(false)
   const wrongUser = position?.positionData.user&&position?.positionData.user!=account
+  
 
   useEffect(() => {
     if (wrongUser) {
@@ -262,7 +148,7 @@ const EditPosition = () => {
       } catch (error) {
         console.log(error)
         invalidConditions = true
-        setError(`Invalid data for liquidation condition ${index+1}`)
+        setError(`Invalid data for limit order ${index+1}`)
       }
     })
     if (invalidConditions) {
@@ -284,7 +170,7 @@ const EditPosition = () => {
         minOut: 0,
         contract_decimals: condition.convertTo.contract_decimals
       }]
-      const {expectedAssets} = await getAmountsOut(contracts, signer, assetToConvert, desiredAsset)
+      const {expectedAssets} = await getAmountsOut(contracts, assetToConvert, desiredAsset)
       const expectedUsdOut = expectedAssets[0].quote
       const slippage = 100*(+position.usdcValue-expectedUsdOut)/+position.usdcValue
       if (+slippage+0.2>+condition.slippage) {
@@ -299,7 +185,7 @@ const EditPosition = () => {
       setAdjusting(false)
       successModal("Update Successful", 
         <Text>
-          Liquidation conditions updated, 
+          Limit orders updated, 
           View <a href={getBlockExplorerUrlTransaction(chainId, hash)} target="_blank" rel="noopener noreferrer"><Text as='u' textColor={'blue.500'}>transaction</Text></a>
           &nbsp;on block explorer.
         </Text>
@@ -319,10 +205,12 @@ const EditPosition = () => {
       rounded={'lg'}
       p={{base:4, md: 8}}>
         <Flex mb={'3'}>
-          <PrimaryButton disabled={wrongUser} size={'large'} mr={'4'} onClick={onDepositOpen}>Deposit</PrimaryButton>
-          <SecondaryButton disabled={wrongUser} size={'large'} onClick={onWithdrawOpen}>Withdraw</SecondaryButton>
+          <PrimaryButton disabled={wrongUser || position?.closed} size={'large'} mr={'4'} onClick={onDepositOpen}>Deposit</PrimaryButton>
+          <DangerButton disabled={wrongUser || position?.closed} size={'large'} onClick={onWithdrawOpen}>Withdraw</DangerButton>
           <Box marginLeft={'auto'}>
-            <DangerButton disabled={wrongUser} size={'large'} onClick={onCloseOpen}>Close</DangerButton>
+            <Link href={`/Orders`}>
+            <Button alignSelf={'start'} marginBottom={3}><ArrowBackIcon/>Back</Button>
+            </Link>
           </Box>
         </Flex>
         <Grid
@@ -350,11 +238,11 @@ const EditPosition = () => {
           <Text>{nFormatter(position?.formattedAmount||0, 3)}</Text>
         </GridItem>
         <GridItem rowStart={2} colSpan={1}>
-          <Heading2>Value USD</Heading2>
+          <Heading2>USD Value</Heading2>
           <Text fontSize='l'>${nFormatter(position?.usdcValue, 3)}</Text>
         </GridItem>
       </Grid>
-      <Heading2>Liquidation Conditions</Heading2>
+      <Heading2>Limit Orders</Heading2>
       <Flex margin={'auto'} marginTop={{base:'0px', sm: '-40px'}}>
         <LiquidationConditions
         assetPrice={position?.usdcValue} initialLiquidationPoints={initialLiquidationPoints}
@@ -362,8 +250,8 @@ const EditPosition = () => {
         onReload={()=>setReloadTrigger(!reloadTrigger)} loading={loading}/>
       </Flex>
       <Flex mt={'4'} justifyContent={'center'}>
-        <PrimaryButton disabled={wrongUser} isLoading={isAdjusting} mr={'4'} onClick={updateConditions}>Update Conditions</PrimaryButton>
-        <SecondaryButton rounded={'full'} onClick={resetConditions}>Reset Conditions</SecondaryButton>
+        <PrimaryButton disabled={wrongUser || position?.closed} isLoading={isAdjusting} mr={'4'} onClick={updateConditions}>Update Conditions</PrimaryButton>
+        <SecondaryButton disabled={wrongUser || position?.closed} rounded={'full'} onClick={resetConditions}>Reset Conditions</SecondaryButton>
       </Flex>
     </Box>
     <Modal isCentered size={'md'} isOpen={isDepositOpen} onClose={onDepositClose}>

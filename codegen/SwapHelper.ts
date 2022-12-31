@@ -9,7 +9,6 @@ import type {
   CallOverrides,
   ContractTransaction,
   Overrides,
-  PayableOverrides,
   PopulatedTransaction,
   Signer,
   utils,
@@ -62,25 +61,6 @@ export type ProvidedStructOutput = [
   AssetStructOutput[]
 ] & { tokens: string[]; amounts: BigNumber[]; nfts: AssetStructOutput[] };
 
-export type DesiredStruct = {
-  outputERC20s: PromiseOrValue<string>[];
-  outputERC721s: AssetStruct[];
-  ratios: PromiseOrValue<BigNumberish>[];
-  minAmountsOut: PromiseOrValue<BigNumberish>[];
-};
-
-export type DesiredStructOutput = [
-  string[],
-  AssetStructOutput[],
-  BigNumber[],
-  BigNumber[]
-] & {
-  outputERC20s: string[];
-  outputERC721s: AssetStructOutput[];
-  ratios: BigNumber[];
-  minAmountsOut: BigNumber[];
-};
-
 export type SwapPointStruct = {
   amountIn: PromiseOrValue<BigNumberish>;
   valueIn: PromiseOrValue<BigNumberish>;
@@ -115,6 +95,25 @@ export type SwapPointStructOutput = [
   paths: string[][];
 };
 
+export type DesiredStruct = {
+  outputERC20s: PromiseOrValue<string>[];
+  outputERC721s: AssetStruct[];
+  ratios: PromiseOrValue<BigNumberish>[];
+  minAmountsOut: PromiseOrValue<BigNumberish>[];
+};
+
+export type DesiredStructOutput = [
+  string[],
+  AssetStructOutput[],
+  BigNumber[],
+  BigNumber[]
+] & {
+  outputERC20s: string[];
+  outputERC721s: AssetStructOutput[];
+  ratios: BigNumber[];
+  minAmountsOut: BigNumber[];
+};
+
 export type ConversionStruct = {
   desiredERC721: AssetStruct;
   desiredERC20: PromiseOrValue<string>;
@@ -137,126 +136,88 @@ export type ConversionStructOutput = [
   underlyingValues: BigNumber[];
 };
 
-export interface UniversalSwapInterface extends utils.Interface {
+export interface SwapHelperInterface extends utils.Interface {
   functions: {
-    "conversionHelper()": FunctionFragment;
     "estimateValue((address[],uint256[],(address,address,uint256,uint256,bytes)[]),address)": FunctionFragment;
-    "estimateValueERC20(address,uint256,address)": FunctionFragment;
-    "estimateValueERC721((address,address,uint256,uint256,bytes),address)": FunctionFragment;
-    "getAmountsOut((address[],uint256[],(address,address,uint256,uint256,bytes)[]),(address[],(address,address,uint256,uint256,bytes)[],uint256[],uint256[]))": FunctionFragment;
-    "getAmountsOut2((address[],uint256[],(address,address,uint256,uint256,bytes)[]),(address[],(address,address,uint256,uint256,bytes)[],uint256[],uint256[]))": FunctionFragment;
-    "getAmountsOutWithSwaps((address[],uint256[],(address,address,uint256,uint256,bytes)[]),(address[],(address,address,uint256,uint256,bytes)[],uint256[],uint256[]),(uint256,uint256,uint256,uint256,int256,address,address[],address,address[][])[],((address,address,uint256,uint256,bytes),address,uint256,address[],uint256[])[])": FunctionFragment;
-    "getNFTPoolInteractors()": FunctionFragment;
-    "getPoolInteractors()": FunctionFragment;
+    "findMultipleSwaps(address[],uint256[],uint256[],address[],uint256[])": FunctionFragment;
+    "getAmountsOut((address[],uint256[],(address,address,uint256,uint256,bytes)[]),(address[],(address,address,uint256,uint256,bytes)[],uint256[],uint256[]),(uint256,uint256,uint256,uint256,int256,address,address[],address,address[][])[],((address,address,uint256,uint256,bytes),address,uint256,address[],uint256[])[])": FunctionFragment;
     "getProtocol(address)": FunctionFragment;
     "getSwappers()": FunctionFragment;
     "getTokenValues(address[],uint256[])": FunctionFragment;
-    "getUnderlying((address[],uint256[],(address,address,uint256,uint256,bytes)[]))": FunctionFragment;
+    "getUnderlyingERC20(address)": FunctionFragment;
+    "getUnderlyingERC721((address,address,uint256,uint256,bytes))": FunctionFragment;
     "isSimpleToken(address)": FunctionFragment;
-    "isSupported(address)": FunctionFragment;
     "networkToken()": FunctionFragment;
     "nftPoolInteractors(uint256)": FunctionFragment;
     "oracle()": FunctionFragment;
     "owner()": FunctionFragment;
     "poolInteractors(uint256)": FunctionFragment;
-    "preSwapCalculateSwaps((address[],uint256[],(address,address,uint256,uint256,bytes)[]),(address[],(address,address,uint256,uint256,bytes)[],uint256[],uint256[]))": FunctionFragment;
-    "preSwapCalculateUnderlying((address[],uint256[],(address,address,uint256,uint256,bytes)[]),(address[],(address,address,uint256,uint256,bytes)[],uint256[],uint256[]))": FunctionFragment;
-    "providedHelper()": FunctionFragment;
+    "prepareConversions(address[],(address,address,uint256,uint256,bytes)[],uint256[],uint256)": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "setNFTPoolInteractors(address[])": FunctionFragment;
     "setOracle(address)": FunctionFragment;
     "setPoolInteractors(address[])": FunctionFragment;
     "setSwappers(address[])": FunctionFragment;
+    "simplifyWithoutWrite(address[],uint256[],(address,address,uint256,uint256,bytes)[])": FunctionFragment;
+    "simulateConversions(((address,address,uint256,uint256,bytes),address,uint256,address[],uint256[])[],address[],address[],uint256[])": FunctionFragment;
+    "simulateSwaps((uint256,uint256,uint256,uint256,int256,address,address[],address,address[][])[],address[],uint256[])": FunctionFragment;
     "stableToken()": FunctionFragment;
-    "swap((address[],uint256[],(address,address,uint256,uint256,bytes)[]),(uint256,uint256,uint256,uint256,int256,address,address[],address,address[][])[],((address,address,uint256,uint256,bytes),address,uint256,address[],uint256[])[],(address[],(address,address,uint256,uint256,bytes)[],uint256[],uint256[]),address)": FunctionFragment;
-    "swapAfterTransfer((address[],uint256[],(address,address,uint256,uint256,bytes)[]),(uint256,uint256,uint256,uint256,int256,address,address[],address,address[][])[],((address,address,uint256,uint256,bytes),address,uint256,address[],uint256[])[],(address[],(address,address,uint256,uint256,bytes)[],uint256[],uint256[]),address)": FunctionFragment;
-    "swapHelper()": FunctionFragment;
     "swappers(uint256)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
-      | "conversionHelper"
       | "estimateValue"
-      | "estimateValueERC20"
-      | "estimateValueERC721"
+      | "findMultipleSwaps"
       | "getAmountsOut"
-      | "getAmountsOut2"
-      | "getAmountsOutWithSwaps"
-      | "getNFTPoolInteractors"
-      | "getPoolInteractors"
       | "getProtocol"
       | "getSwappers"
       | "getTokenValues"
-      | "getUnderlying"
+      | "getUnderlyingERC20"
+      | "getUnderlyingERC721"
       | "isSimpleToken"
-      | "isSupported"
       | "networkToken"
       | "nftPoolInteractors"
       | "oracle"
       | "owner"
       | "poolInteractors"
-      | "preSwapCalculateSwaps"
-      | "preSwapCalculateUnderlying"
-      | "providedHelper"
+      | "prepareConversions"
       | "renounceOwnership"
       | "setNFTPoolInteractors"
       | "setOracle"
       | "setPoolInteractors"
       | "setSwappers"
+      | "simplifyWithoutWrite"
+      | "simulateConversions"
+      | "simulateSwaps"
       | "stableToken"
-      | "swap"
-      | "swapAfterTransfer"
-      | "swapHelper"
       | "swappers"
       | "transferOwnership"
   ): FunctionFragment;
 
   encodeFunctionData(
-    functionFragment: "conversionHelper",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
     functionFragment: "estimateValue",
     values: [ProvidedStruct, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "estimateValueERC20",
+    functionFragment: "findMultipleSwaps",
     values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>
+      PromiseOrValue<string>[],
+      PromiseOrValue<BigNumberish>[],
+      PromiseOrValue<BigNumberish>[],
+      PromiseOrValue<string>[],
+      PromiseOrValue<BigNumberish>[]
     ]
   ): string;
   encodeFunctionData(
-    functionFragment: "estimateValueERC721",
-    values: [AssetStruct, PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
     functionFragment: "getAmountsOut",
-    values: [ProvidedStruct, DesiredStruct]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getAmountsOut2",
-    values: [ProvidedStruct, DesiredStruct]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getAmountsOutWithSwaps",
     values: [
       ProvidedStruct,
       DesiredStruct,
       SwapPointStruct[],
       ConversionStruct[]
     ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getNFTPoolInteractors",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getPoolInteractors",
-    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "getProtocol",
@@ -271,15 +232,15 @@ export interface UniversalSwapInterface extends utils.Interface {
     values: [PromiseOrValue<string>[], PromiseOrValue<BigNumberish>[]]
   ): string;
   encodeFunctionData(
-    functionFragment: "getUnderlying",
-    values: [ProvidedStruct]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "isSimpleToken",
+    functionFragment: "getUnderlyingERC20",
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "isSupported",
+    functionFragment: "getUnderlyingERC721",
+    values: [AssetStruct]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "isSimpleToken",
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
@@ -297,16 +258,13 @@ export interface UniversalSwapInterface extends utils.Interface {
     values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
-    functionFragment: "preSwapCalculateSwaps",
-    values: [ProvidedStruct, DesiredStruct]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "preSwapCalculateUnderlying",
-    values: [ProvidedStruct, DesiredStruct]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "providedHelper",
-    values?: undefined
+    functionFragment: "prepareConversions",
+    values: [
+      PromiseOrValue<string>[],
+      AssetStruct[],
+      PromiseOrValue<BigNumberish>[],
+      PromiseOrValue<BigNumberish>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "renounceOwnership",
@@ -329,31 +287,32 @@ export interface UniversalSwapInterface extends utils.Interface {
     values: [PromiseOrValue<string>[]]
   ): string;
   encodeFunctionData(
+    functionFragment: "simplifyWithoutWrite",
+    values: [
+      PromiseOrValue<string>[],
+      PromiseOrValue<BigNumberish>[],
+      AssetStruct[]
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "simulateConversions",
+    values: [
+      ConversionStruct[],
+      PromiseOrValue<string>[],
+      PromiseOrValue<string>[],
+      PromiseOrValue<BigNumberish>[]
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "simulateSwaps",
+    values: [
+      SwapPointStruct[],
+      PromiseOrValue<string>[],
+      PromiseOrValue<BigNumberish>[]
+    ]
+  ): string;
+  encodeFunctionData(
     functionFragment: "stableToken",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "swap",
-    values: [
-      ProvidedStruct,
-      SwapPointStruct[],
-      ConversionStruct[],
-      DesiredStruct,
-      PromiseOrValue<string>
-    ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "swapAfterTransfer",
-    values: [
-      ProvidedStruct,
-      SwapPointStruct[],
-      ConversionStruct[],
-      DesiredStruct,
-      PromiseOrValue<string>
-    ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "swapHelper",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -366,39 +325,15 @@ export interface UniversalSwapInterface extends utils.Interface {
   ): string;
 
   decodeFunctionResult(
-    functionFragment: "conversionHelper",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "estimateValue",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "estimateValueERC20",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "estimateValueERC721",
+    functionFragment: "findMultipleSwaps",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "getAmountsOut",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getAmountsOut2",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getAmountsOutWithSwaps",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getNFTPoolInteractors",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getPoolInteractors",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -414,15 +349,15 @@ export interface UniversalSwapInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getUnderlying",
+    functionFragment: "getUnderlyingERC20",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getUnderlyingERC721",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "isSimpleToken",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "isSupported",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -440,15 +375,7 @@ export interface UniversalSwapInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "preSwapCalculateSwaps",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "preSwapCalculateUnderlying",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "providedHelper",
+    functionFragment: "prepareConversions",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -469,15 +396,21 @@ export interface UniversalSwapInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "simplifyWithoutWrite",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "simulateConversions",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "simulateSwaps",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "stableToken",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "swap", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "swapAfterTransfer",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "swapHelper", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "swappers", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "transferOwnership",
@@ -485,40 +418,11 @@ export interface UniversalSwapInterface extends utils.Interface {
   ): Result;
 
   events: {
-    "AssetsSent(address,address[],address[],uint256[])": EventFragment;
-    "NFTMinted(address,uint256,address)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
   };
 
-  getEvent(nameOrSignatureOrTopic: "AssetsSent"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "NFTMinted"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
 }
-
-export interface AssetsSentEventObject {
-  receiver: string;
-  tokens: string[];
-  managers: string[];
-  amountsAndIds: BigNumber[];
-}
-export type AssetsSentEvent = TypedEvent<
-  [string, string[], string[], BigNumber[]],
-  AssetsSentEventObject
->;
-
-export type AssetsSentEventFilter = TypedEventFilter<AssetsSentEvent>;
-
-export interface NFTMintedEventObject {
-  manager: string;
-  tokenId: BigNumber;
-  pool: string;
-}
-export type NFTMintedEvent = TypedEvent<
-  [string, BigNumber, string],
-  NFTMintedEventObject
->;
-
-export type NFTMintedEventFilter = TypedEventFilter<NFTMintedEvent>;
 
 export interface OwnershipTransferredEventObject {
   previousOwner: string;
@@ -532,12 +436,12 @@ export type OwnershipTransferredEvent = TypedEvent<
 export type OwnershipTransferredEventFilter =
   TypedEventFilter<OwnershipTransferredEvent>;
 
-export interface UniversalSwap extends BaseContract {
+export interface SwapHelper extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: UniversalSwapInterface;
+  interface: SwapHelperInterface;
 
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
@@ -559,52 +463,24 @@ export interface UniversalSwap extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
-    conversionHelper(overrides?: CallOverrides): Promise<[string]>;
-
     estimateValue(
       assets: ProvidedStruct,
       inTermsOf: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    estimateValueERC20(
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      inTermsOf: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    estimateValueERC721(
-      nft: AssetStruct,
-      inTermsOf: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    getAmountsOut(
-      provided: ProvidedStruct,
-      desired: DesiredStruct,
+    findMultipleSwaps(
+      inputTokens: PromiseOrValue<string>[],
+      inputAmounts: PromiseOrValue<BigNumberish>[],
+      inputValues: PromiseOrValue<BigNumberish>[],
+      outputTokens: PromiseOrValue<string>[],
+      outputValues: PromiseOrValue<BigNumberish>[],
       overrides?: CallOverrides
     ): Promise<
-      [
-        BigNumber[],
-        SwapPointStructOutput[],
-        ConversionStructOutput[],
-        BigNumber[]
-      ] & {
-        amounts: BigNumber[];
-        swaps: SwapPointStructOutput[];
-        conversions: ConversionStructOutput[];
-        expectedUSDValues: BigNumber[];
-      }
+      [SwapPointStructOutput[]] & { bestSwaps: SwapPointStructOutput[] }
     >;
 
-    getAmountsOut2(
-      provided: ProvidedStruct,
-      desired: DesiredStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    getAmountsOutWithSwaps(
+    getAmountsOut(
       provided: ProvidedStruct,
       desired: DesiredStruct,
       swaps: SwapPointStruct[],
@@ -616,10 +492,6 @@ export interface UniversalSwap extends BaseContract {
         expectedUSDValues: BigNumber[];
       }
     >;
-
-    getNFTPoolInteractors(overrides?: CallOverrides): Promise<[string[]]>;
-
-    getPoolInteractors(overrides?: CallOverrides): Promise<[string[]]>;
 
     getProtocol(
       token: PromiseOrValue<string>,
@@ -636,17 +508,24 @@ export interface UniversalSwap extends BaseContract {
       [BigNumber[], BigNumber] & { values: BigNumber[]; total: BigNumber }
     >;
 
-    getUnderlying(
-      provided: ProvidedStruct,
-      overrides?: CallOverrides
-    ): Promise<[string[], BigNumber[]]>;
-
-    isSimpleToken(
+    getUnderlyingERC20(
       token: PromiseOrValue<string>,
       overrides?: CallOverrides
-    ): Promise<[boolean]>;
+    ): Promise<
+      [string[], BigNumber[]] & {
+        underlyingTokens: string[];
+        ratios: BigNumber[];
+      }
+    >;
 
-    isSupported(
+    getUnderlyingERC721(
+      nft: AssetStruct,
+      overrides?: CallOverrides
+    ): Promise<
+      [string[], BigNumber[]] & { underlying: string[]; ratios: BigNumber[] }
+    >;
+
+    isSimpleToken(
       token: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
@@ -667,33 +546,15 @@ export interface UniversalSwap extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    preSwapCalculateSwaps(
-      provided: ProvidedStruct,
-      desired: DesiredStruct,
+    prepareConversions(
+      desiredERC20s: PromiseOrValue<string>[],
+      desiredERC721s: AssetStruct[],
+      ratios: PromiseOrValue<BigNumberish>[],
+      totalAvailable: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<
-      [SwapPointStructOutput[], ConversionStructOutput[]] & {
-        swaps: SwapPointStructOutput[];
-        conversions: ConversionStructOutput[];
-      }
+      [ConversionStructOutput[]] & { conversions: ConversionStructOutput[] }
     >;
-
-    preSwapCalculateUnderlying(
-      provided: ProvidedStruct,
-      desired: DesiredStruct,
-      overrides?: CallOverrides
-    ): Promise<
-      [
-        string[],
-        BigNumber[],
-        BigNumber[],
-        ConversionStructOutput[],
-        string[],
-        BigNumber[]
-      ]
-    >;
-
-    providedHelper(overrides?: CallOverrides): Promise<[string]>;
 
     renounceOwnership(
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -719,27 +580,36 @@ export interface UniversalSwap extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    simplifyWithoutWrite(
+      tokens: PromiseOrValue<string>[],
+      amounts: PromiseOrValue<BigNumberish>[],
+      nfts: AssetStruct[],
+      overrides?: CallOverrides
+    ): Promise<
+      [string[], BigNumber[]] & {
+        simplifiedTokens: string[];
+        simplifiedAmounts: BigNumber[];
+      }
+    >;
+
+    simulateConversions(
+      conversions: ConversionStruct[],
+      outputTokens: PromiseOrValue<string>[],
+      inputTokens: PromiseOrValue<string>[],
+      inputAmounts: PromiseOrValue<BigNumberish>[],
+      overrides?: CallOverrides
+    ): Promise<[BigNumber[]] & { amounts: BigNumber[] }>;
+
+    simulateSwaps(
+      swaps: SwapPointStruct[],
+      tokens: PromiseOrValue<string>[],
+      amounts: PromiseOrValue<BigNumberish>[],
+      overrides?: CallOverrides
+    ): Promise<
+      [string[], BigNumber[]] & { tokensOut: string[]; amountsOut: BigNumber[] }
+    >;
+
     stableToken(overrides?: CallOverrides): Promise<[string]>;
-
-    swap(
-      provided: ProvidedStruct,
-      swaps: SwapPointStruct[],
-      conversions: ConversionStruct[],
-      desired: DesiredStruct,
-      receiver: PromiseOrValue<string>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    swapAfterTransfer(
-      provided: ProvidedStruct,
-      swaps: SwapPointStruct[],
-      conversions: ConversionStruct[],
-      desired: DesiredStruct,
-      receiver: PromiseOrValue<string>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    swapHelper(overrides?: CallOverrides): Promise<[string]>;
 
     swappers(
       arg0: PromiseOrValue<BigNumberish>,
@@ -752,52 +622,22 @@ export interface UniversalSwap extends BaseContract {
     ): Promise<ContractTransaction>;
   };
 
-  conversionHelper(overrides?: CallOverrides): Promise<string>;
-
   estimateValue(
     assets: ProvidedStruct,
     inTermsOf: PromiseOrValue<string>,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  estimateValueERC20(
-    token: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    inTermsOf: PromiseOrValue<string>,
+  findMultipleSwaps(
+    inputTokens: PromiseOrValue<string>[],
+    inputAmounts: PromiseOrValue<BigNumberish>[],
+    inputValues: PromiseOrValue<BigNumberish>[],
+    outputTokens: PromiseOrValue<string>[],
+    outputValues: PromiseOrValue<BigNumberish>[],
     overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  estimateValueERC721(
-    nft: AssetStruct,
-    inTermsOf: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  ): Promise<SwapPointStructOutput[]>;
 
   getAmountsOut(
-    provided: ProvidedStruct,
-    desired: DesiredStruct,
-    overrides?: CallOverrides
-  ): Promise<
-    [
-      BigNumber[],
-      SwapPointStructOutput[],
-      ConversionStructOutput[],
-      BigNumber[]
-    ] & {
-      amounts: BigNumber[];
-      swaps: SwapPointStructOutput[];
-      conversions: ConversionStructOutput[];
-      expectedUSDValues: BigNumber[];
-    }
-  >;
-
-  getAmountsOut2(
-    provided: ProvidedStruct,
-    desired: DesiredStruct,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  getAmountsOutWithSwaps(
     provided: ProvidedStruct,
     desired: DesiredStruct,
     swaps: SwapPointStruct[],
@@ -809,10 +649,6 @@ export interface UniversalSwap extends BaseContract {
       expectedUSDValues: BigNumber[];
     }
   >;
-
-  getNFTPoolInteractors(overrides?: CallOverrides): Promise<string[]>;
-
-  getPoolInteractors(overrides?: CallOverrides): Promise<string[]>;
 
   getProtocol(
     token: PromiseOrValue<string>,
@@ -829,17 +665,24 @@ export interface UniversalSwap extends BaseContract {
     [BigNumber[], BigNumber] & { values: BigNumber[]; total: BigNumber }
   >;
 
-  getUnderlying(
-    provided: ProvidedStruct,
-    overrides?: CallOverrides
-  ): Promise<[string[], BigNumber[]]>;
-
-  isSimpleToken(
+  getUnderlyingERC20(
     token: PromiseOrValue<string>,
     overrides?: CallOverrides
-  ): Promise<boolean>;
+  ): Promise<
+    [string[], BigNumber[]] & {
+      underlyingTokens: string[];
+      ratios: BigNumber[];
+    }
+  >;
 
-  isSupported(
+  getUnderlyingERC721(
+    nft: AssetStruct,
+    overrides?: CallOverrides
+  ): Promise<
+    [string[], BigNumber[]] & { underlying: string[]; ratios: BigNumber[] }
+  >;
+
+  isSimpleToken(
     token: PromiseOrValue<string>,
     overrides?: CallOverrides
   ): Promise<boolean>;
@@ -860,33 +703,13 @@ export interface UniversalSwap extends BaseContract {
     overrides?: CallOverrides
   ): Promise<string>;
 
-  preSwapCalculateSwaps(
-    provided: ProvidedStruct,
-    desired: DesiredStruct,
+  prepareConversions(
+    desiredERC20s: PromiseOrValue<string>[],
+    desiredERC721s: AssetStruct[],
+    ratios: PromiseOrValue<BigNumberish>[],
+    totalAvailable: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
-  ): Promise<
-    [SwapPointStructOutput[], ConversionStructOutput[]] & {
-      swaps: SwapPointStructOutput[];
-      conversions: ConversionStructOutput[];
-    }
-  >;
-
-  preSwapCalculateUnderlying(
-    provided: ProvidedStruct,
-    desired: DesiredStruct,
-    overrides?: CallOverrides
-  ): Promise<
-    [
-      string[],
-      BigNumber[],
-      BigNumber[],
-      ConversionStructOutput[],
-      string[],
-      BigNumber[]
-    ]
-  >;
-
-  providedHelper(overrides?: CallOverrides): Promise<string>;
+  ): Promise<ConversionStructOutput[]>;
 
   renounceOwnership(
     overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -912,27 +735,36 @@ export interface UniversalSwap extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  simplifyWithoutWrite(
+    tokens: PromiseOrValue<string>[],
+    amounts: PromiseOrValue<BigNumberish>[],
+    nfts: AssetStruct[],
+    overrides?: CallOverrides
+  ): Promise<
+    [string[], BigNumber[]] & {
+      simplifiedTokens: string[];
+      simplifiedAmounts: BigNumber[];
+    }
+  >;
+
+  simulateConversions(
+    conversions: ConversionStruct[],
+    outputTokens: PromiseOrValue<string>[],
+    inputTokens: PromiseOrValue<string>[],
+    inputAmounts: PromiseOrValue<BigNumberish>[],
+    overrides?: CallOverrides
+  ): Promise<BigNumber[]>;
+
+  simulateSwaps(
+    swaps: SwapPointStruct[],
+    tokens: PromiseOrValue<string>[],
+    amounts: PromiseOrValue<BigNumberish>[],
+    overrides?: CallOverrides
+  ): Promise<
+    [string[], BigNumber[]] & { tokensOut: string[]; amountsOut: BigNumber[] }
+  >;
+
   stableToken(overrides?: CallOverrides): Promise<string>;
-
-  swap(
-    provided: ProvidedStruct,
-    swaps: SwapPointStruct[],
-    conversions: ConversionStruct[],
-    desired: DesiredStruct,
-    receiver: PromiseOrValue<string>,
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  swapAfterTransfer(
-    provided: ProvidedStruct,
-    swaps: SwapPointStruct[],
-    conversions: ConversionStruct[],
-    desired: DesiredStruct,
-    receiver: PromiseOrValue<string>,
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  swapHelper(overrides?: CallOverrides): Promise<string>;
 
   swappers(
     arg0: PromiseOrValue<BigNumberish>,
@@ -945,64 +777,22 @@ export interface UniversalSwap extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
-    conversionHelper(overrides?: CallOverrides): Promise<string>;
-
     estimateValue(
       assets: ProvidedStruct,
       inTermsOf: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    estimateValueERC20(
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      inTermsOf: PromiseOrValue<string>,
+    findMultipleSwaps(
+      inputTokens: PromiseOrValue<string>[],
+      inputAmounts: PromiseOrValue<BigNumberish>[],
+      inputValues: PromiseOrValue<BigNumberish>[],
+      outputTokens: PromiseOrValue<string>[],
+      outputValues: PromiseOrValue<BigNumberish>[],
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    estimateValueERC721(
-      nft: AssetStruct,
-      inTermsOf: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ): Promise<SwapPointStructOutput[]>;
 
     getAmountsOut(
-      provided: ProvidedStruct,
-      desired: DesiredStruct,
-      overrides?: CallOverrides
-    ): Promise<
-      [
-        BigNumber[],
-        SwapPointStructOutput[],
-        ConversionStructOutput[],
-        BigNumber[]
-      ] & {
-        amounts: BigNumber[];
-        swaps: SwapPointStructOutput[];
-        conversions: ConversionStructOutput[];
-        expectedUSDValues: BigNumber[];
-      }
-    >;
-
-    getAmountsOut2(
-      provided: ProvidedStruct,
-      desired: DesiredStruct,
-      overrides?: CallOverrides
-    ): Promise<
-      [
-        BigNumber[],
-        SwapPointStructOutput[],
-        ConversionStructOutput[],
-        BigNumber[]
-      ] & {
-        amounts: BigNumber[];
-        swaps: SwapPointStructOutput[];
-        conversions: ConversionStructOutput[];
-        expectedUSDValues: BigNumber[];
-      }
-    >;
-
-    getAmountsOutWithSwaps(
       provided: ProvidedStruct,
       desired: DesiredStruct,
       swaps: SwapPointStruct[],
@@ -1014,10 +804,6 @@ export interface UniversalSwap extends BaseContract {
         expectedUSDValues: BigNumber[];
       }
     >;
-
-    getNFTPoolInteractors(overrides?: CallOverrides): Promise<string[]>;
-
-    getPoolInteractors(overrides?: CallOverrides): Promise<string[]>;
 
     getProtocol(
       token: PromiseOrValue<string>,
@@ -1034,17 +820,24 @@ export interface UniversalSwap extends BaseContract {
       [BigNumber[], BigNumber] & { values: BigNumber[]; total: BigNumber }
     >;
 
-    getUnderlying(
-      provided: ProvidedStruct,
-      overrides?: CallOverrides
-    ): Promise<[string[], BigNumber[]]>;
-
-    isSimpleToken(
+    getUnderlyingERC20(
       token: PromiseOrValue<string>,
       overrides?: CallOverrides
-    ): Promise<boolean>;
+    ): Promise<
+      [string[], BigNumber[]] & {
+        underlyingTokens: string[];
+        ratios: BigNumber[];
+      }
+    >;
 
-    isSupported(
+    getUnderlyingERC721(
+      nft: AssetStruct,
+      overrides?: CallOverrides
+    ): Promise<
+      [string[], BigNumber[]] & { underlying: string[]; ratios: BigNumber[] }
+    >;
+
+    isSimpleToken(
       token: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<boolean>;
@@ -1065,33 +858,13 @@ export interface UniversalSwap extends BaseContract {
       overrides?: CallOverrides
     ): Promise<string>;
 
-    preSwapCalculateSwaps(
-      provided: ProvidedStruct,
-      desired: DesiredStruct,
+    prepareConversions(
+      desiredERC20s: PromiseOrValue<string>[],
+      desiredERC721s: AssetStruct[],
+      ratios: PromiseOrValue<BigNumberish>[],
+      totalAvailable: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<
-      [SwapPointStructOutput[], ConversionStructOutput[]] & {
-        swaps: SwapPointStructOutput[];
-        conversions: ConversionStructOutput[];
-      }
-    >;
-
-    preSwapCalculateUnderlying(
-      provided: ProvidedStruct,
-      desired: DesiredStruct,
-      overrides?: CallOverrides
-    ): Promise<
-      [
-        string[],
-        BigNumber[],
-        BigNumber[],
-        ConversionStructOutput[],
-        string[],
-        BigNumber[]
-      ]
-    >;
-
-    providedHelper(overrides?: CallOverrides): Promise<string>;
+    ): Promise<ConversionStructOutput[]>;
 
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
 
@@ -1115,27 +888,36 @@ export interface UniversalSwap extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    simplifyWithoutWrite(
+      tokens: PromiseOrValue<string>[],
+      amounts: PromiseOrValue<BigNumberish>[],
+      nfts: AssetStruct[],
+      overrides?: CallOverrides
+    ): Promise<
+      [string[], BigNumber[]] & {
+        simplifiedTokens: string[];
+        simplifiedAmounts: BigNumber[];
+      }
+    >;
+
+    simulateConversions(
+      conversions: ConversionStruct[],
+      outputTokens: PromiseOrValue<string>[],
+      inputTokens: PromiseOrValue<string>[],
+      inputAmounts: PromiseOrValue<BigNumberish>[],
+      overrides?: CallOverrides
+    ): Promise<BigNumber[]>;
+
+    simulateSwaps(
+      swaps: SwapPointStruct[],
+      tokens: PromiseOrValue<string>[],
+      amounts: PromiseOrValue<BigNumberish>[],
+      overrides?: CallOverrides
+    ): Promise<
+      [string[], BigNumber[]] & { tokensOut: string[]; amountsOut: BigNumber[] }
+    >;
+
     stableToken(overrides?: CallOverrides): Promise<string>;
-
-    swap(
-      provided: ProvidedStruct,
-      swaps: SwapPointStruct[],
-      conversions: ConversionStruct[],
-      desired: DesiredStruct,
-      receiver: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
-
-    swapAfterTransfer(
-      provided: ProvidedStruct,
-      swaps: SwapPointStruct[],
-      conversions: ConversionStruct[],
-      desired: DesiredStruct,
-      receiver: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
-
-    swapHelper(overrides?: CallOverrides): Promise<string>;
 
     swappers(
       arg0: PromiseOrValue<BigNumberish>,
@@ -1149,30 +931,6 @@ export interface UniversalSwap extends BaseContract {
   };
 
   filters: {
-    "AssetsSent(address,address[],address[],uint256[])"(
-      receiver?: null,
-      tokens?: null,
-      managers?: null,
-      amountsAndIds?: null
-    ): AssetsSentEventFilter;
-    AssetsSent(
-      receiver?: null,
-      tokens?: null,
-      managers?: null,
-      amountsAndIds?: null
-    ): AssetsSentEventFilter;
-
-    "NFTMinted(address,uint256,address)"(
-      manager?: null,
-      tokenId?: null,
-      pool?: null
-    ): NFTMintedEventFilter;
-    NFTMinted(
-      manager?: null,
-      tokenId?: null,
-      pool?: null
-    ): NFTMintedEventFilter;
-
     "OwnershipTransferred(address,address)"(
       previousOwner?: PromiseOrValue<string> | null,
       newOwner?: PromiseOrValue<string> | null
@@ -1184,50 +942,28 @@ export interface UniversalSwap extends BaseContract {
   };
 
   estimateGas: {
-    conversionHelper(overrides?: CallOverrides): Promise<BigNumber>;
-
     estimateValue(
       assets: ProvidedStruct,
       inTermsOf: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    estimateValueERC20(
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      inTermsOf: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    estimateValueERC721(
-      nft: AssetStruct,
-      inTermsOf: PromiseOrValue<string>,
+    findMultipleSwaps(
+      inputTokens: PromiseOrValue<string>[],
+      inputAmounts: PromiseOrValue<BigNumberish>[],
+      inputValues: PromiseOrValue<BigNumberish>[],
+      outputTokens: PromiseOrValue<string>[],
+      outputValues: PromiseOrValue<BigNumberish>[],
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getAmountsOut(
       provided: ProvidedStruct,
       desired: DesiredStruct,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getAmountsOut2(
-      provided: ProvidedStruct,
-      desired: DesiredStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    getAmountsOutWithSwaps(
-      provided: ProvidedStruct,
-      desired: DesiredStruct,
       swaps: SwapPointStruct[],
       conversions: ConversionStruct[],
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    getNFTPoolInteractors(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getPoolInteractors(overrides?: CallOverrides): Promise<BigNumber>;
 
     getProtocol(
       token: PromiseOrValue<string>,
@@ -1242,17 +978,17 @@ export interface UniversalSwap extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getUnderlying(
-      provided: ProvidedStruct,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    isSimpleToken(
+    getUnderlyingERC20(
       token: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    isSupported(
+    getUnderlyingERC721(
+      nft: AssetStruct,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    isSimpleToken(
       token: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -1273,19 +1009,13 @@ export interface UniversalSwap extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    preSwapCalculateSwaps(
-      provided: ProvidedStruct,
-      desired: DesiredStruct,
+    prepareConversions(
+      desiredERC20s: PromiseOrValue<string>[],
+      desiredERC721s: AssetStruct[],
+      ratios: PromiseOrValue<BigNumberish>[],
+      totalAvailable: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    preSwapCalculateUnderlying(
-      provided: ProvidedStruct,
-      desired: DesiredStruct,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    providedHelper(overrides?: CallOverrides): Promise<BigNumber>;
 
     renounceOwnership(
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -1311,27 +1041,29 @@ export interface UniversalSwap extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    simplifyWithoutWrite(
+      tokens: PromiseOrValue<string>[],
+      amounts: PromiseOrValue<BigNumberish>[],
+      nfts: AssetStruct[],
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    simulateConversions(
+      conversions: ConversionStruct[],
+      outputTokens: PromiseOrValue<string>[],
+      inputTokens: PromiseOrValue<string>[],
+      inputAmounts: PromiseOrValue<BigNumberish>[],
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    simulateSwaps(
+      swaps: SwapPointStruct[],
+      tokens: PromiseOrValue<string>[],
+      amounts: PromiseOrValue<BigNumberish>[],
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     stableToken(overrides?: CallOverrides): Promise<BigNumber>;
-
-    swap(
-      provided: ProvidedStruct,
-      swaps: SwapPointStruct[],
-      conversions: ConversionStruct[],
-      desired: DesiredStruct,
-      receiver: PromiseOrValue<string>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    swapAfterTransfer(
-      provided: ProvidedStruct,
-      swaps: SwapPointStruct[],
-      conversions: ConversionStruct[],
-      desired: DesiredStruct,
-      receiver: PromiseOrValue<string>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    swapHelper(overrides?: CallOverrides): Promise<BigNumber>;
 
     swappers(
       arg0: PromiseOrValue<BigNumberish>,
@@ -1345,52 +1077,26 @@ export interface UniversalSwap extends BaseContract {
   };
 
   populateTransaction: {
-    conversionHelper(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     estimateValue(
       assets: ProvidedStruct,
       inTermsOf: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    estimateValueERC20(
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      inTermsOf: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    estimateValueERC721(
-      nft: AssetStruct,
-      inTermsOf: PromiseOrValue<string>,
+    findMultipleSwaps(
+      inputTokens: PromiseOrValue<string>[],
+      inputAmounts: PromiseOrValue<BigNumberish>[],
+      inputValues: PromiseOrValue<BigNumberish>[],
+      outputTokens: PromiseOrValue<string>[],
+      outputValues: PromiseOrValue<BigNumberish>[],
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getAmountsOut(
       provided: ProvidedStruct,
       desired: DesiredStruct,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getAmountsOut2(
-      provided: ProvidedStruct,
-      desired: DesiredStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    getAmountsOutWithSwaps(
-      provided: ProvidedStruct,
-      desired: DesiredStruct,
       swaps: SwapPointStruct[],
       conversions: ConversionStruct[],
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getNFTPoolInteractors(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getPoolInteractors(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1407,17 +1113,17 @@ export interface UniversalSwap extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getUnderlying(
-      provided: ProvidedStruct,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    isSimpleToken(
+    getUnderlyingERC20(
       token: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    isSupported(
+    getUnderlyingERC721(
+      nft: AssetStruct,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    isSimpleToken(
       token: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -1438,19 +1144,13 @@ export interface UniversalSwap extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    preSwapCalculateSwaps(
-      provided: ProvidedStruct,
-      desired: DesiredStruct,
+    prepareConversions(
+      desiredERC20s: PromiseOrValue<string>[],
+      desiredERC721s: AssetStruct[],
+      ratios: PromiseOrValue<BigNumberish>[],
+      totalAvailable: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
-
-    preSwapCalculateUnderlying(
-      provided: ProvidedStruct,
-      desired: DesiredStruct,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    providedHelper(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     renounceOwnership(
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -1476,27 +1176,29 @@ export interface UniversalSwap extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
+    simplifyWithoutWrite(
+      tokens: PromiseOrValue<string>[],
+      amounts: PromiseOrValue<BigNumberish>[],
+      nfts: AssetStruct[],
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    simulateConversions(
+      conversions: ConversionStruct[],
+      outputTokens: PromiseOrValue<string>[],
+      inputTokens: PromiseOrValue<string>[],
+      inputAmounts: PromiseOrValue<BigNumberish>[],
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    simulateSwaps(
+      swaps: SwapPointStruct[],
+      tokens: PromiseOrValue<string>[],
+      amounts: PromiseOrValue<BigNumberish>[],
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     stableToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    swap(
-      provided: ProvidedStruct,
-      swaps: SwapPointStruct[],
-      conversions: ConversionStruct[],
-      desired: DesiredStruct,
-      receiver: PromiseOrValue<string>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    swapAfterTransfer(
-      provided: ProvidedStruct,
-      swaps: SwapPointStruct[],
-      conversions: ConversionStruct[],
-      desired: DesiredStruct,
-      receiver: PromiseOrValue<string>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    swapHelper(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     swappers(
       arg0: PromiseOrValue<BigNumberish>,

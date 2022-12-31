@@ -130,7 +130,7 @@ const SelectableAsset = ({i, asset, assets, setAsset, setSupply, removeAsset}:
           Balance: {!loading?(+ethers.utils.formatUnits(asset?.balance||0, asset?.contract_decimals||1)).toFixed(3):<Skeleton ml={'2'}>Temporary</Skeleton>}
           <Text paddingInline={'1'} backgroundColor='blue.500' color={'white'} ml={'2'} _hover={{cursor: 'pointer', backgroundColor:'blue.300'}} onClick={setMax}>Max</Text>
         </Flex>
-        <NumberInput value={supplied} size='lg' maxW={32} borderStyle='hidden'
+        <NumberInput py='2' value={supplied} size='lg' maxW={32} borderStyle='hidden'
         min={0} max={+ethers.utils.formatUnits(asset?.balance||0, asset?.contract_decimals||1)}
         defaultValue={0} onChange={(valueAsString)=>setSupplied(valueAsString)}>
           <NumberInputField fontSize={'2xl'} textAlign={'end'} pr={'0'}
@@ -205,15 +205,15 @@ export const SupplyAssets = ({assetsToConvert, setAssetsToConvert}: {assetsToCon
   }
 
   return (
-      <Flex padding={'5'} direction={'column'} width={'100%'} maxWidth='450px'
+      <Box padding={'5'} width={'100%'} maxWidth='450px'
       bg='hidden'
       alignItems={'center'} borderRadius={'2xl'} border='1px' borderColor={useColorModeValue(...level2)}>
         <Flex width={'100%'} justifyContent='space-between' alignItems={'center'}>
           <IconButton color='white' bgColor={useColorModeValue('blue.500', 'blue.600')}
           _hover={{bgColor: useColorModeValue('blue.600', 'blue.700')}}
           _focus={{bgColor: useColorModeValue('blue.700', 'blue.800')}} aria-label='Add Asset' onClick={addAsset} icon={<AddIcon />} />
-        <Text>USD Supplied: ${assetsToConvert.reduce((a, b)=>a+(b.usdcValue||0), 0)?.toFixed(3)||0}</Text>
-        <Reload onReload={hardRefreshAssets} loading={loading} />
+          <Text>USD Supplied: ${assetsToConvert.reduce((a, b)=>a+(b.usdcValue||0), 0)?.toFixed(3)||0}</Text>
+          <Reload onReload={hardRefreshAssets} loading={loading} />
         </Flex>
         {
           assetsToConvert.map((asset, index) => asset?(
@@ -222,6 +222,6 @@ export const SupplyAssets = ({assetsToConvert, setAssetsToConvert}: {assetsToCon
               asset={asset} i={index} assets={filteredAssets} removeAsset={removeAsset} setSupply={setSupply} setAsset={setAsset}></SelectableAsset>
           ):<></>)
         }
-      </Flex>
+      </Box>
   )
 }

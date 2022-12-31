@@ -51,8 +51,8 @@ const Links = [
     href: "/Assets"
   },
   {
-    label: "Positions",
-    href: "/Positions"
+    label: "Orders",
+    href: "/Orders"
   }
 ];
 

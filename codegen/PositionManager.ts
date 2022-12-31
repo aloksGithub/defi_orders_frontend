@@ -57,9 +57,9 @@ export type SwapPointStruct = {
   valueOut: PromiseOrValue<BigNumberish>;
   slippage: PromiseOrValue<BigNumberish>;
   tokenIn: PromiseOrValue<string>;
-  swapper: PromiseOrValue<string>;
+  swappers: PromiseOrValue<string>[];
   tokenOut: PromiseOrValue<string>;
-  path: PromiseOrValue<string>[];
+  paths: PromiseOrValue<string>[][];
 };
 
 export type SwapPointStructOutput = [
@@ -69,9 +69,9 @@ export type SwapPointStructOutput = [
   BigNumber,
   BigNumber,
   string,
+  string[],
   string,
-  string,
-  string[]
+  string[][]
 ] & {
   amountIn: BigNumber;
   valueIn: BigNumber;
@@ -79,9 +79,9 @@ export type SwapPointStructOutput = [
   valueOut: BigNumber;
   slippage: BigNumber;
   tokenIn: string;
-  swapper: string;
+  swappers: string[];
   tokenOut: string;
-  path: string[];
+  paths: string[][];
 };
 
 export type AssetStruct = {
@@ -238,11 +238,11 @@ export interface PositionManagerInterface extends utils.Interface {
     "addBank(address)": FunctionFragment;
     "adjustLiquidationPoints(uint256,(address,address,bool,uint256,uint256)[])": FunctionFragment;
     "banks(uint256)": FunctionFragment;
-    "botLiquidate(uint256,uint256,(uint256,uint256,uint256,uint256,int256,address,address,address,address[])[],((address,address,uint256,uint256,bytes),address,uint256,address[],uint256[])[])": FunctionFragment;
+    "botLiquidate(uint256,uint256,(uint256,uint256,uint256,uint256,int256,address,address[],address,address[][])[],((address,address,uint256,uint256,bytes),address,uint256,address[],uint256[])[])": FunctionFragment;
     "checkLiquidate(uint256)": FunctionFragment;
     "close(uint256)": FunctionFragment;
     "deposit((address,address,uint256,uint256,(address,address,bool,uint256,uint256)[]),address[],uint256[])": FunctionFragment;
-    "depositInExisting(uint256,(address[],uint256[],(address,address,uint256,uint256,bytes)[]),(uint256,uint256,uint256,uint256,int256,address,address,address,address[])[],((address,address,uint256,uint256,bytes),address,uint256,address[],uint256[])[],uint256[])": FunctionFragment;
+    "depositInExisting(uint256,(address[],uint256[],(address,address,uint256,uint256,bytes)[]),(uint256,uint256,uint256,uint256,int256,address,address[],address,address[][])[],((address,address,uint256,uint256,bytes),address,uint256,address[],uint256[])[],uint256[])": FunctionFragment;
     "estimateValue(uint256,address)": FunctionFragment;
     "getBanks()": FunctionFragment;
     "getPosition(uint256)": FunctionFragment;
@@ -250,7 +250,7 @@ export interface PositionManagerInterface extends utils.Interface {
     "getPositionRewards(uint256)": FunctionFragment;
     "getPositionTokens(uint256)": FunctionFragment;
     "getPositions(address)": FunctionFragment;
-    "harvestAndRecompound(uint256,(uint256,uint256,uint256,uint256,int256,address,address,address,address[])[],((address,address,uint256,uint256,bytes),address,uint256,address[],uint256[])[],uint256[])": FunctionFragment;
+    "harvestAndRecompound(uint256,(uint256,uint256,uint256,uint256,int256,address,address[],address,address[][])[],((address,address,uint256,uint256,bytes),address,uint256,address[],uint256[])[],uint256[])": FunctionFragment;
     "harvestRewards(uint256)": FunctionFragment;
     "helper()": FunctionFragment;
     "keepers(address)": FunctionFragment;
