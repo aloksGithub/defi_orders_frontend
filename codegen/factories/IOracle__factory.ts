@@ -38,10 +38,7 @@ export class IOracle__factory {
   static createInterface(): IOracleInterface {
     return new utils.Interface(_abi) as IOracleInterface;
   }
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): IOracle {
+  static connect(address: string, signerOrProvider: Signer | Provider): IOracle {
     return new Contract(address, _abi, signerOrProvider) as IOracle;
   }
 }

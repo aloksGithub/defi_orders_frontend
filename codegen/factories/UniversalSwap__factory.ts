@@ -2274,10 +2274,7 @@ export class UniversalSwap__factory {
   static createInterface(): UniversalSwapInterface {
     return new utils.Interface(_abi) as UniversalSwapInterface;
   }
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): UniversalSwap {
+  static connect(address: string, signerOrProvider: Signer | Provider): UniversalSwap {
     return new Contract(address, _abi, signerOrProvider) as UniversalSwap;
   }
 }

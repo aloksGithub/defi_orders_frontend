@@ -14,19 +14,9 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type {
-  FunctionFragment,
-  Result,
-  EventFragment,
-} from "@ethersproject/abi";
+import type { FunctionFragment, Result, EventFragment } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
-import type {
-  TypedEventFilter,
-  TypedEvent,
-  TypedListener,
-  OnEvent,
-  PromiseOrValue,
-} from "./common";
+import type { TypedEventFilter, TypedEvent, TypedListener, OnEvent, PromiseOrValue } from "./common";
 
 export declare namespace INonfungiblePositionManager {
   export type CollectParamsStruct = {
@@ -36,12 +26,7 @@ export declare namespace INonfungiblePositionManager {
     amount1Max: PromiseOrValue<BigNumberish>;
   };
 
-  export type CollectParamsStructOutput = [
-    BigNumber,
-    string,
-    BigNumber,
-    BigNumber
-  ] & {
+  export type CollectParamsStructOutput = [BigNumber, string, BigNumber, BigNumber] & {
     tokenId: BigNumber;
     recipient: string;
     amount0Max: BigNumber;
@@ -56,13 +41,7 @@ export declare namespace INonfungiblePositionManager {
     deadline: PromiseOrValue<BigNumberish>;
   };
 
-  export type DecreaseLiquidityParamsStructOutput = [
-    BigNumber,
-    BigNumber,
-    BigNumber,
-    BigNumber,
-    BigNumber
-  ] & {
+  export type DecreaseLiquidityParamsStructOutput = [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
     tokenId: BigNumber;
     liquidity: BigNumber;
     amount0Min: BigNumber;
@@ -206,49 +185,26 @@ export interface INonFungiblePositionsManagerInterface extends utils.Interface {
       | "unwrapWETH9"
   ): FunctionFragment;
 
-  encodeFunctionData(
-    functionFragment: "DOMAIN_SEPARATOR",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "PERMIT_TYPEHASH",
-    values?: undefined
-  ): string;
+  encodeFunctionData(functionFragment: "DOMAIN_SEPARATOR", values?: undefined): string;
+  encodeFunctionData(functionFragment: "PERMIT_TYPEHASH", values?: undefined): string;
   encodeFunctionData(functionFragment: "WETH9", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "approve",
     values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
-  encodeFunctionData(
-    functionFragment: "balanceOf",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "burn",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "collect",
-    values: [INonfungiblePositionManager.CollectParamsStruct]
-  ): string;
+  encodeFunctionData(functionFragment: "balanceOf", values: [PromiseOrValue<string>]): string;
+  encodeFunctionData(functionFragment: "burn", values: [PromiseOrValue<BigNumberish>]): string;
+  encodeFunctionData(functionFragment: "collect", values: [INonfungiblePositionManager.CollectParamsStruct]): string;
   encodeFunctionData(
     functionFragment: "createAndInitializePoolIfNecessary",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "decreaseLiquidity",
     values: [INonfungiblePositionManager.DecreaseLiquidityParamsStruct]
   ): string;
   encodeFunctionData(functionFragment: "factory", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "getApproved",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
+  encodeFunctionData(functionFragment: "getApproved", values: [PromiseOrValue<BigNumberish>]): string;
   encodeFunctionData(
     functionFragment: "increaseLiquidity",
     values: [INonfungiblePositionManager.IncreaseLiquidityParamsStruct]
@@ -257,15 +213,9 @@ export interface INonFungiblePositionsManagerInterface extends utils.Interface {
     functionFragment: "isApprovedForAll",
     values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
-  encodeFunctionData(
-    functionFragment: "mint",
-    values: [INonfungiblePositionManager.MintParamsStruct]
-  ): string;
+  encodeFunctionData(functionFragment: "mint", values: [INonfungiblePositionManager.MintParamsStruct]): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "ownerOf",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
+  encodeFunctionData(functionFragment: "ownerOf", values: [PromiseOrValue<BigNumberish>]): string;
   encodeFunctionData(
     functionFragment: "permit",
     values: [
@@ -277,153 +227,73 @@ export interface INonFungiblePositionsManagerInterface extends utils.Interface {
       PromiseOrValue<BytesLike>
     ]
   ): string;
-  encodeFunctionData(
-    functionFragment: "positions",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
+  encodeFunctionData(functionFragment: "positions", values: [PromiseOrValue<BigNumberish>]): string;
   encodeFunctionData(functionFragment: "refundETH", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "safeTransferFrom(address,address,uint256)",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "safeTransferFrom(address,address,uint256,bytes)",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BytesLike>
-    ]
+    values: [PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<BigNumberish>, PromiseOrValue<BytesLike>]
   ): string;
   encodeFunctionData(
     functionFragment: "setApprovalForAll",
     values: [PromiseOrValue<string>, PromiseOrValue<boolean>]
   ): string;
-  encodeFunctionData(
-    functionFragment: "supportsInterface",
-    values: [PromiseOrValue<BytesLike>]
-  ): string;
+  encodeFunctionData(functionFragment: "supportsInterface", values: [PromiseOrValue<BytesLike>]): string;
   encodeFunctionData(
     functionFragment: "sweepToken",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>
-    ]
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "tokenByIndex",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
+  encodeFunctionData(functionFragment: "tokenByIndex", values: [PromiseOrValue<BigNumberish>]): string;
   encodeFunctionData(
     functionFragment: "tokenOfOwnerByIndex",
     values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
-  encodeFunctionData(
-    functionFragment: "tokenURI",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "totalSupply",
-    values?: undefined
-  ): string;
+  encodeFunctionData(functionFragment: "tokenURI", values: [PromiseOrValue<BigNumberish>]): string;
+  encodeFunctionData(functionFragment: "totalSupply", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "transferFrom",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "unwrapWETH9",
     values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
   ): string;
 
-  decodeFunctionResult(
-    functionFragment: "DOMAIN_SEPARATOR",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "PERMIT_TYPEHASH",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "DOMAIN_SEPARATOR", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "PERMIT_TYPEHASH", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "WETH9", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "burn", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "collect", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "createAndInitializePoolIfNecessary",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "decreaseLiquidity",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "createAndInitializePoolIfNecessary", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "decreaseLiquidity", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "factory", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "getApproved",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "increaseLiquidity",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "isApprovedForAll",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "getApproved", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "increaseLiquidity", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "isApprovedForAll", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "mint", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "ownerOf", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "permit", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "positions", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "refundETH", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "safeTransferFrom(address,address,uint256)",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "safeTransferFrom(address,address,uint256,bytes)",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setApprovalForAll",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "supportsInterface",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "safeTransferFrom(address,address,uint256)", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "safeTransferFrom(address,address,uint256,bytes)", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "setApprovalForAll", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "supportsInterface", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "sweepToken", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "tokenByIndex",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "tokenOfOwnerByIndex",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "tokenByIndex", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "tokenOfOwnerByIndex", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "tokenURI", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "totalSupply",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "transferFrom",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "unwrapWETH9",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "totalSupply", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "transferFrom", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "unwrapWETH9", data: BytesLike): Result;
 
   events: {
     "Approval(address,address,uint256)": EventFragment;
@@ -447,10 +317,7 @@ export interface ApprovalEventObject {
   approved: string;
   tokenId: BigNumber;
 }
-export type ApprovalEvent = TypedEvent<
-  [string, string, BigNumber],
-  ApprovalEventObject
->;
+export type ApprovalEvent = TypedEvent<[string, string, BigNumber], ApprovalEventObject>;
 
 export type ApprovalEventFilter = TypedEventFilter<ApprovalEvent>;
 
@@ -459,10 +326,7 @@ export interface ApprovalForAllEventObject {
   operator: string;
   approved: boolean;
 }
-export type ApprovalForAllEvent = TypedEvent<
-  [string, string, boolean],
-  ApprovalForAllEventObject
->;
+export type ApprovalForAllEvent = TypedEvent<[string, string, boolean], ApprovalForAllEventObject>;
 
 export type ApprovalForAllEventFilter = TypedEventFilter<ApprovalForAllEvent>;
 
@@ -472,10 +336,7 @@ export interface CollectEventObject {
   amount0: BigNumber;
   amount1: BigNumber;
 }
-export type CollectEvent = TypedEvent<
-  [BigNumber, string, BigNumber, BigNumber],
-  CollectEventObject
->;
+export type CollectEvent = TypedEvent<[BigNumber, string, BigNumber, BigNumber], CollectEventObject>;
 
 export type CollectEventFilter = TypedEventFilter<CollectEvent>;
 
@@ -490,8 +351,7 @@ export type DecreaseLiquidityEvent = TypedEvent<
   DecreaseLiquidityEventObject
 >;
 
-export type DecreaseLiquidityEventFilter =
-  TypedEventFilter<DecreaseLiquidityEvent>;
+export type DecreaseLiquidityEventFilter = TypedEventFilter<DecreaseLiquidityEvent>;
 
 export interface IncreaseLiquidityEventObject {
   tokenId: BigNumber;
@@ -504,18 +364,14 @@ export type IncreaseLiquidityEvent = TypedEvent<
   IncreaseLiquidityEventObject
 >;
 
-export type IncreaseLiquidityEventFilter =
-  TypedEventFilter<IncreaseLiquidityEvent>;
+export type IncreaseLiquidityEventFilter = TypedEventFilter<IncreaseLiquidityEvent>;
 
 export interface TransferEventObject {
   from: string;
   to: string;
   tokenId: BigNumber;
 }
-export type TransferEvent = TypedEvent<
-  [string, string, BigNumber],
-  TransferEventObject
->;
+export type TransferEvent = TypedEvent<[string, string, BigNumber], TransferEventObject>;
 
 export type TransferEventFilter = TypedEventFilter<TransferEvent>;
 
@@ -532,13 +388,9 @@ export interface INonFungiblePositionsManager extends BaseContract {
     toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
+  listeners<TEvent extends TypedEvent>(eventFilter?: TypedEventFilter<TEvent>): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
+  removeAllListeners<TEvent extends TypedEvent>(eventFilter: TypedEventFilter<TEvent>): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
   on: OnEvent<this>;
@@ -558,10 +410,7 @@ export interface INonFungiblePositionsManager extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    balanceOf(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { balance: BigNumber }>;
+    balanceOf(owner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[BigNumber] & { balance: BigNumber }>;
 
     burn(
       tokenId: PromiseOrValue<BigNumberish>,
@@ -611,10 +460,7 @@ export interface INonFungiblePositionsManager extends BaseContract {
 
     name(overrides?: CallOverrides): Promise<[string]>;
 
-    ownerOf(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string] & { owner: string }>;
+    ownerOf(tokenId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<[string] & { owner: string }>;
 
     permit(
       spender: PromiseOrValue<string>,
@@ -659,9 +505,7 @@ export interface INonFungiblePositionsManager extends BaseContract {
       }
     >;
 
-    refundETH(
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+    refundETH(overrides?: PayableOverrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
     "safeTransferFrom(address,address,uint256)"(
       from: PromiseOrValue<string>,
@@ -684,10 +528,7 @@ export interface INonFungiblePositionsManager extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    supportsInterface(
-      interfaceId: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
+    supportsInterface(interfaceId: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<[boolean]>;
 
     sweepToken(
       token: PromiseOrValue<string>,
@@ -698,10 +539,7 @@ export interface INonFungiblePositionsManager extends BaseContract {
 
     symbol(overrides?: CallOverrides): Promise<[string]>;
 
-    tokenByIndex(
-      index: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    tokenByIndex(index: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<[BigNumber]>;
 
     tokenOfOwnerByIndex(
       owner: PromiseOrValue<string>,
@@ -709,10 +547,7 @@ export interface INonFungiblePositionsManager extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    tokenURI(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
+    tokenURI(tokenId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<[string]>;
 
     totalSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -742,10 +577,7 @@ export interface INonFungiblePositionsManager extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  balanceOf(
-    owner: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  balanceOf(owner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
   burn(
     tokenId: PromiseOrValue<BigNumberish>,
@@ -772,10 +604,7 @@ export interface INonFungiblePositionsManager extends BaseContract {
 
   factory(overrides?: CallOverrides): Promise<string>;
 
-  getApproved(
-    tokenId: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  getApproved(tokenId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<string>;
 
   increaseLiquidity(
     params: INonfungiblePositionManager.IncreaseLiquidityParamsStruct,
@@ -795,10 +624,7 @@ export interface INonFungiblePositionsManager extends BaseContract {
 
   name(overrides?: CallOverrides): Promise<string>;
 
-  ownerOf(
-    tokenId: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  ownerOf(tokenId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<string>;
 
   permit(
     spender: PromiseOrValue<string>,
@@ -843,9 +669,7 @@ export interface INonFungiblePositionsManager extends BaseContract {
     }
   >;
 
-  refundETH(
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  refundETH(overrides?: PayableOverrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
   "safeTransferFrom(address,address,uint256)"(
     from: PromiseOrValue<string>,
@@ -868,10 +692,7 @@ export interface INonFungiblePositionsManager extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  supportsInterface(
-    interfaceId: PromiseOrValue<BytesLike>,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
+  supportsInterface(interfaceId: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<boolean>;
 
   sweepToken(
     token: PromiseOrValue<string>,
@@ -882,10 +703,7 @@ export interface INonFungiblePositionsManager extends BaseContract {
 
   symbol(overrides?: CallOverrides): Promise<string>;
 
-  tokenByIndex(
-    index: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  tokenByIndex(index: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
 
   tokenOfOwnerByIndex(
     owner: PromiseOrValue<string>,
@@ -893,10 +711,7 @@ export interface INonFungiblePositionsManager extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  tokenURI(
-    tokenId: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  tokenURI(tokenId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<string>;
 
   totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -926,22 +741,14 @@ export interface INonFungiblePositionsManager extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    balanceOf(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    balanceOf(owner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
-    burn(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    burn(tokenId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<void>;
 
     collect(
       params: INonfungiblePositionManager.CollectParamsStruct,
       overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & { amount0: BigNumber; amount1: BigNumber }
-    >;
+    ): Promise<[BigNumber, BigNumber] & { amount0: BigNumber; amount1: BigNumber }>;
 
     createAndInitializePoolIfNecessary(
       token0: PromiseOrValue<string>,
@@ -954,16 +761,11 @@ export interface INonFungiblePositionsManager extends BaseContract {
     decreaseLiquidity(
       params: INonfungiblePositionManager.DecreaseLiquidityParamsStruct,
       overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & { amount0: BigNumber; amount1: BigNumber }
-    >;
+    ): Promise<[BigNumber, BigNumber] & { amount0: BigNumber; amount1: BigNumber }>;
 
     factory(overrides?: CallOverrides): Promise<string>;
 
-    getApproved(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string>;
+    getApproved(tokenId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<string>;
 
     increaseLiquidity(
       params: INonfungiblePositionManager.IncreaseLiquidityParamsStruct,
@@ -996,10 +798,7 @@ export interface INonFungiblePositionsManager extends BaseContract {
 
     name(overrides?: CallOverrides): Promise<string>;
 
-    ownerOf(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string>;
+    ownerOf(tokenId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<string>;
 
     permit(
       spender: PromiseOrValue<string>,
@@ -1067,10 +866,7 @@ export interface INonFungiblePositionsManager extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    supportsInterface(
-      interfaceId: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
+    supportsInterface(interfaceId: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<boolean>;
 
     sweepToken(
       token: PromiseOrValue<string>,
@@ -1081,10 +877,7 @@ export interface INonFungiblePositionsManager extends BaseContract {
 
     symbol(overrides?: CallOverrides): Promise<string>;
 
-    tokenByIndex(
-      index: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    tokenByIndex(index: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
 
     tokenOfOwnerByIndex(
       owner: PromiseOrValue<string>,
@@ -1092,10 +885,7 @@ export interface INonFungiblePositionsManager extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    tokenURI(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string>;
+    tokenURI(tokenId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<string>;
 
     totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1200,10 +990,7 @@ export interface INonFungiblePositionsManager extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    balanceOf(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    balanceOf(owner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
     burn(
       tokenId: PromiseOrValue<BigNumberish>,
@@ -1230,10 +1017,7 @@ export interface INonFungiblePositionsManager extends BaseContract {
 
     factory(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getApproved(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    getApproved(tokenId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
 
     increaseLiquidity(
       params: INonfungiblePositionManager.IncreaseLiquidityParamsStruct,
@@ -1253,10 +1037,7 @@ export interface INonFungiblePositionsManager extends BaseContract {
 
     name(overrides?: CallOverrides): Promise<BigNumber>;
 
-    ownerOf(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ownerOf(tokenId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
 
     permit(
       spender: PromiseOrValue<string>,
@@ -1268,14 +1049,9 @@ export interface INonFungiblePositionsManager extends BaseContract {
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    positions(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    positions(tokenId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
 
-    refundETH(
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+    refundETH(overrides?: PayableOverrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
 
     "safeTransferFrom(address,address,uint256)"(
       from: PromiseOrValue<string>,
@@ -1298,10 +1074,7 @@ export interface INonFungiblePositionsManager extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    supportsInterface(
-      interfaceId: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    supportsInterface(interfaceId: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<BigNumber>;
 
     sweepToken(
       token: PromiseOrValue<string>,
@@ -1312,10 +1085,7 @@ export interface INonFungiblePositionsManager extends BaseContract {
 
     symbol(overrides?: CallOverrides): Promise<BigNumber>;
 
-    tokenByIndex(
-      index: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    tokenByIndex(index: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
 
     tokenOfOwnerByIndex(
       owner: PromiseOrValue<string>,
@@ -1323,10 +1093,7 @@ export interface INonFungiblePositionsManager extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    tokenURI(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    tokenURI(tokenId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
 
     totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1357,10 +1124,7 @@ export interface INonFungiblePositionsManager extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    balanceOf(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    balanceOf(owner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     burn(
       tokenId: PromiseOrValue<BigNumberish>,
@@ -1387,10 +1151,7 @@ export interface INonFungiblePositionsManager extends BaseContract {
 
     factory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    getApproved(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    getApproved(tokenId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     increaseLiquidity(
       params: INonfungiblePositionManager.IncreaseLiquidityParamsStruct,
@@ -1410,10 +1171,7 @@ export interface INonFungiblePositionsManager extends BaseContract {
 
     name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    ownerOf(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    ownerOf(tokenId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     permit(
       spender: PromiseOrValue<string>,
@@ -1425,14 +1183,9 @@ export interface INonFungiblePositionsManager extends BaseContract {
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    positions(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    positions(tokenId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    refundETH(
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
+    refundETH(overrides?: PayableOverrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
 
     "safeTransferFrom(address,address,uint256)"(
       from: PromiseOrValue<string>,
@@ -1455,10 +1208,7 @@ export interface INonFungiblePositionsManager extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    supportsInterface(
-      interfaceId: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    supportsInterface(interfaceId: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     sweepToken(
       token: PromiseOrValue<string>,
@@ -1469,10 +1219,7 @@ export interface INonFungiblePositionsManager extends BaseContract {
 
     symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    tokenByIndex(
-      index: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    tokenByIndex(index: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     tokenOfOwnerByIndex(
       owner: PromiseOrValue<string>,
@@ -1480,10 +1227,7 @@ export interface INonFungiblePositionsManager extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    tokenURI(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    tokenURI(tokenId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     totalSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

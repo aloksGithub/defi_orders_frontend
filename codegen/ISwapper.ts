@@ -13,19 +13,9 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type {
-  FunctionFragment,
-  Result,
-  EventFragment,
-} from "@ethersproject/abi";
+import type { FunctionFragment, Result, EventFragment } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
-import type {
-  TypedEventFilter,
-  TypedEvent,
-  TypedListener,
-  OnEvent,
-  PromiseOrValue,
-} from "./common";
+import type { TypedEventFilter, TypedEvent, TypedListener, OnEvent, PromiseOrValue } from "./common";
 
 export type SwapPointStruct = {
   amountIn: PromiseOrValue<BigNumberish>;
@@ -71,18 +61,10 @@ export interface ISwapperInterface extends utils.Interface {
   };
 
   getFunction(
-    nameOrSignatureOrTopic:
-      | "checkSwappable"
-      | "getAmountOut"
-      | "getAmountsOutWithPath"
-      | "getCommonPoolTokens"
-      | "swap"
+    nameOrSignatureOrTopic: "checkSwappable" | "getAmountOut" | "getAmountsOutWithPath" | "getCommonPoolTokens" | "swap"
   ): FunctionFragment;
 
-  encodeFunctionData(
-    functionFragment: "checkSwappable",
-    values: [PromiseOrValue<string>]
-  ): string;
+  encodeFunctionData(functionFragment: "checkSwappable", values: [PromiseOrValue<string>]): string;
   encodeFunctionData(
     functionFragment: "getAmountOut",
     values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>[]]
@@ -96,35 +78,16 @@ export interface ISwapperInterface extends utils.Interface {
       SwapPointStruct[]
     ]
   ): string;
-  encodeFunctionData(
-    functionFragment: "getCommonPoolTokens",
-    values?: undefined
-  ): string;
+  encodeFunctionData(functionFragment: "getCommonPoolTokens", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "swap",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>[],
-      PromiseOrValue<string>
-    ]
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>[], PromiseOrValue<string>]
   ): string;
 
-  decodeFunctionResult(
-    functionFragment: "checkSwappable",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getAmountOut",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getAmountsOutWithPath",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getCommonPoolTokens",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "checkSwappable", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "getAmountOut", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "getAmountsOutWithPath", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "getCommonPoolTokens", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "swap", data: BytesLike): Result;
 
   events: {
@@ -155,13 +118,9 @@ export interface ISwapper extends BaseContract {
     toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
+  listeners<TEvent extends TypedEvent>(eventFilter?: TypedEventFilter<TEvent>): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
+  removeAllListeners<TEvent extends TypedEvent>(eventFilter: TypedEventFilter<TEvent>): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
   on: OnEvent<this>;
@@ -169,10 +128,7 @@ export interface ISwapper extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
-    checkSwappable(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
+    checkSwappable(token: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[boolean]>;
 
     getAmountOut(
       amount: PromiseOrValue<BigNumberish>,
@@ -198,10 +154,7 @@ export interface ISwapper extends BaseContract {
     ): Promise<ContractTransaction>;
   };
 
-  checkSwappable(
-    token: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
+  checkSwappable(token: PromiseOrValue<string>, overrides?: CallOverrides): Promise<boolean>;
 
   getAmountOut(
     amount: PromiseOrValue<BigNumberish>,
@@ -227,10 +180,7 @@ export interface ISwapper extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
-    checkSwappable(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
+    checkSwappable(token: PromiseOrValue<string>, overrides?: CallOverrides): Promise<boolean>;
 
     getAmountOut(
       amount: PromiseOrValue<BigNumberish>,
@@ -257,18 +207,12 @@ export interface ISwapper extends BaseContract {
   };
 
   filters: {
-    "Burn(address,uint256)"(
-      holderAddress?: null,
-      amount?: null
-    ): BurnEventFilter;
+    "Burn(address,uint256)"(holderAddress?: null, amount?: null): BurnEventFilter;
     Burn(holderAddress?: null, amount?: null): BurnEventFilter;
   };
 
   estimateGas: {
-    checkSwappable(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    checkSwappable(token: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
     getAmountOut(
       amount: PromiseOrValue<BigNumberish>,
@@ -295,10 +239,7 @@ export interface ISwapper extends BaseContract {
   };
 
   populateTransaction: {
-    checkSwappable(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    checkSwappable(token: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getAmountOut(
       amount: PromiseOrValue<BigNumberish>,
@@ -314,9 +255,7 @@ export interface ISwapper extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getCommonPoolTokens(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    getCommonPoolTokens(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     swap(
       amount: PromiseOrValue<BigNumberish>,

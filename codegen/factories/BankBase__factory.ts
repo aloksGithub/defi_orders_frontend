@@ -515,10 +515,7 @@ export class BankBase__factory {
   static createInterface(): BankBaseInterface {
     return new utils.Interface(_abi) as BankBaseInterface;
   }
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): BankBase {
+  static connect(address: string, signerOrProvider: Signer | Provider): BankBase {
     return new Contract(address, _abi, signerOrProvider) as BankBase;
   }
 }

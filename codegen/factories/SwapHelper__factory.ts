@@ -1137,10 +1137,7 @@ export class SwapHelper__factory {
   static createInterface(): SwapHelperInterface {
     return new utils.Interface(_abi) as SwapHelperInterface;
   }
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): SwapHelper {
+  static connect(address: string, signerOrProvider: Signer | Provider): SwapHelper {
     return new Contract(address, _abi, signerOrProvider) as SwapHelper;
   }
 }

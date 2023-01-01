@@ -1,9 +1,17 @@
-import { Connector } from '@web3-react/types'
-import { BigNumber } from 'ethers';
-import { ReactElement } from 'react'
-import { PositionManager, UniversalSwap, BankBase, ERC20, UniswapV3PoolInteractor, SwapHelper, ISwapper, IOracle } from './codegen';
+import { Connector } from "@web3-react/types";
+import { BigNumber } from "ethers";
+import { ReactElement } from "react";
+import {
+  PositionManager,
+  UniversalSwap,
+  BankBase,
+  ERC20,
+  UniswapV3PoolInteractor,
+  ISwapper,
+  IOracle,
+} from "./codegen";
 
-export type SupportedChains = 56|1|97
+export type SupportedChains = 56 | 1 | 97;
 
 interface AssetUnderlying {
   contract_name: string;
@@ -14,18 +22,18 @@ interface AssetUnderlying {
 }
 
 export interface Asset {
-  contract_name: string|undefined;
-  contract_ticker_symbol: string|undefined;
-  contract_address: string|undefined;
-  contract_decimals: number|undefined;
-  underlying: AssetUnderlying[]
-  logo_url: string|undefined;
-  protocol_name: string|undefined;
-  chain_id: number|undefined;
-  manager?: string|undefined;
+  contract_name: string | undefined;
+  contract_ticker_symbol: string | undefined;
+  contract_address: string | undefined;
+  contract_decimals: number | undefined;
+  underlying: AssetUnderlying[];
+  logo_url: string | undefined;
+  protocol_name: string | undefined;
+  chain_id: number | undefined;
+  manager?: string | undefined;
 }
 
-export const defaultAsset:Asset = {
+export const defaultAsset: Asset = {
   contract_name: undefined,
   contract_ticker_symbol: undefined,
   contract_address: undefined,
@@ -34,19 +42,19 @@ export const defaultAsset:Asset = {
   logo_url: undefined,
   protocol_name: undefined,
   chain_id: undefined,
-  manager: undefined
-}
+  manager: undefined,
+};
 
 export interface UserAsset extends Asset {
-  quote: number|undefined
-  quote_rate: number|undefined
-  balance: string|undefined
-  formattedBalance: string|undefined
+  quote: number | undefined;
+  quote_rate: number | undefined;
+  balance: string | undefined;
+  formattedBalance: string | undefined;
 }
 
 export interface UserAssetSupplied extends Asset, UserAsset {
-  usdcValue?: number|undefined
-  tokensSupplied?: string|undefined
+  usdcValue?: number | undefined;
+  tokensSupplied?: string | undefined;
 }
 
 export const defaultUserAssetSupplied: UserAssetSupplied = {
@@ -60,18 +68,18 @@ export const defaultUserAssetSupplied: UserAssetSupplied = {
   chain_id: undefined,
   quote: 0,
   quote_rate: 0,
-  balance: '0',
-  formattedBalance: '0',
+  balance: "0",
+  formattedBalance: "0",
   usdcValue: 0,
-  tokensSupplied: '0',
-}
+  tokensSupplied: "0",
+};
 
 export interface WantedAsset extends Asset {
-  percentage: number
-  expected: number
-  minOut: number
-  price: number
-  quote?: number
+  percentage: number;
+  expected: number;
+  minOut: number;
+  price: number;
+  quote?: number;
 }
 
 export const defaultWantedAsset: WantedAsset = {
@@ -87,15 +95,15 @@ export const defaultWantedAsset: WantedAsset = {
   expected: 0,
   minOut: 0,
   price: 0,
-  quote: 0
-}
+  quote: 0,
+};
 
 export interface LiquidationCondition {
-  convertTo: Asset
-  lessThan: boolean
-  liquidationPoint: number
-  slippage: number
-  watchedAsset: Asset
+  convertTo: Asset;
+  lessThan: boolean;
+  liquidationPoint: number;
+  slippage: number;
+  watchedAsset: Asset;
 }
 
 export const defaultLiquidationCondition: LiquidationCondition = {
@@ -103,46 +111,45 @@ export const defaultLiquidationCondition: LiquidationCondition = {
   lessThan: false,
   liquidationPoint: 0,
   slippage: 0,
-  watchedAsset: defaultAsset
-
-}
+  watchedAsset: defaultAsset,
+};
 
 export interface SwapContracts {
-  positionManager: PositionManager,
-  universalSwap: UniversalSwap,
-  swappers: ISwapper[],
-  oracle: IOracle,
-  banks: BankBase[],
-  networkToken: ERC20,
-  stableToken: ERC20
+  positionManager: PositionManager;
+  universalSwap: UniversalSwap;
+  swappers: ISwapper[];
+  oracle: IOracle;
+  banks: BankBase[];
+  networkToken: ERC20;
+  stableToken: ERC20;
 }
 
 export interface ContextType {
-  userAssets: {data: UserAsset[], loading: boolean, error: boolean}
-  hardRefreshAssets: Function
-  softRefreshAssets: Function
-  account: undefined|string
-  chainId: undefined|number
-  connector: undefined|Connector
-  supportedAssets: Asset[]
-  contracts: SwapContracts | undefined
-  slippageControl: {slippage: number, setSlippage: (slippage:number)=>void}
-  counter: number
-  onError: (error:Error|string)=>void
-  successModal: (title:string, body:ReactElement)=>void
+  userAssets: { data: UserAsset[]; loading: boolean; error: boolean };
+  hardRefreshAssets: Function;
+  softRefreshAssets: Function;
+  account: undefined | string;
+  chainId: undefined | number;
+  connector: undefined | Connector;
+  supportedAssets: Asset[];
+  contracts: SwapContracts | undefined;
+  slippageControl: { slippage: number; setSlippage: (slippage: number) => void };
+  counter: number;
+  onError: (error: Error | string) => void;
+  successModal: (title: string, body: ReactElement) => void;
 }
 
 export const defaultContext: ContextType = {
-  userAssets: {data: [], loading: true, error: false},
-  hardRefreshAssets: ()=>{},
-  softRefreshAssets: ()=>{},
+  userAssets: { data: [], loading: true, error: false },
+  hardRefreshAssets: () => {},
+  softRefreshAssets: () => {},
   account: undefined,
   chainId: undefined,
   connector: undefined,
   supportedAssets: [],
   contracts: undefined,
-  slippageControl: {slippage: 0.5, setSlippage: function (slippage:number){}},
+  slippageControl: { slippage: 0.5, setSlippage: function (slippage: number) {} },
   counter: 0,
-  onError: (error:Error)=>{},
-  successModal: (title:string, body:ReactElement)=>{}
-}
+  onError: (error: Error) => {},
+  successModal: (title: string, body: ReactElement) => {},
+};

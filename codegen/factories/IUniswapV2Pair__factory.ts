@@ -4,10 +4,7 @@
 
 import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
-import type {
-  IUniswapV2Pair,
-  IUniswapV2PairInterface,
-} from "../IUniswapV2Pair";
+import type { IUniswapV2Pair, IUniswapV2PairInterface } from "../IUniswapV2Pair";
 
 const _abi = [
   {
@@ -668,10 +665,7 @@ export class IUniswapV2Pair__factory {
   static createInterface(): IUniswapV2PairInterface {
     return new utils.Interface(_abi) as IUniswapV2PairInterface;
   }
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): IUniswapV2Pair {
+  static connect(address: string, signerOrProvider: Signer | Provider): IUniswapV2Pair {
     return new Contract(address, _abi, signerOrProvider) as IUniswapV2Pair;
   }
 }

@@ -14,19 +14,9 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type {
-  FunctionFragment,
-  Result,
-  EventFragment,
-} from "@ethersproject/abi";
+import type { FunctionFragment, Result, EventFragment } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
-import type {
-  TypedEventFilter,
-  TypedEvent,
-  TypedListener,
-  OnEvent,
-  PromiseOrValue,
-} from "./common";
+import type { TypedEventFilter, TypedEvent, TypedListener, OnEvent, PromiseOrValue } from "./common";
 
 export type AssetStruct = {
   pool: PromiseOrValue<string>;
@@ -36,13 +26,7 @@ export type AssetStruct = {
   data: PromiseOrValue<BytesLike>;
 };
 
-export type AssetStructOutput = [
-  string,
-  string,
-  BigNumber,
-  BigNumber,
-  string
-] & {
+export type AssetStructOutput = [string, string, BigNumber, BigNumber, string] & {
   pool: string;
   manager: string;
   tokenId: BigNumber;
@@ -87,103 +71,39 @@ export interface UniswapV3PoolInteractorInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "burn", values: [AssetStruct]): string;
   encodeFunctionData(
     functionFragment: "getRatio",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
   ): string;
-  encodeFunctionData(
-    functionFragment: "getTickAtRatio",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getUnderlyingAmount",
-    values: [AssetStruct]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getUnderlyingTokens",
-    values: [PromiseOrValue<string>]
-  ): string;
+  encodeFunctionData(functionFragment: "getTickAtRatio", values: [PromiseOrValue<BigNumberish>]): string;
+  encodeFunctionData(functionFragment: "getUnderlyingAmount", values: [AssetStruct]): string;
+  encodeFunctionData(functionFragment: "getUnderlyingTokens", values: [PromiseOrValue<string>]): string;
   encodeFunctionData(
     functionFragment: "mint",
-    values: [
-      AssetStruct,
-      PromiseOrValue<string>[],
-      PromiseOrValue<BigNumberish>[],
-      PromiseOrValue<string>
-    ]
+    values: [AssetStruct, PromiseOrValue<string>[], PromiseOrValue<BigNumberish>[], PromiseOrValue<string>]
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "renounceOwnership",
-    values?: undefined
-  ): string;
+  encodeFunctionData(functionFragment: "renounceOwnership", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "simulateMint",
-    values: [
-      AssetStruct,
-      PromiseOrValue<string>[],
-      PromiseOrValue<BigNumberish>[]
-    ]
+    values: [AssetStruct, PromiseOrValue<string>[], PromiseOrValue<BigNumberish>[]]
   ): string;
-  encodeFunctionData(
-    functionFragment: "supportedManager",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "testSupported",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "testSupportedPool",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "transferOwnership",
-    values: [PromiseOrValue<string>]
-  ): string;
+  encodeFunctionData(functionFragment: "supportedManager", values?: undefined): string;
+  encodeFunctionData(functionFragment: "testSupported", values: [PromiseOrValue<string>]): string;
+  encodeFunctionData(functionFragment: "testSupportedPool", values: [PromiseOrValue<string>]): string;
+  encodeFunctionData(functionFragment: "transferOwnership", values: [PromiseOrValue<string>]): string;
 
   decodeFunctionResult(functionFragment: "burn", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getRatio", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "getTickAtRatio",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getUnderlyingAmount",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getUnderlyingTokens",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "getTickAtRatio", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "getUnderlyingAmount", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "getUnderlyingTokens", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "mint", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "renounceOwnership",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "simulateMint",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "supportedManager",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "testSupported",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "testSupportedPool",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "transferOwnership",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "renounceOwnership", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "simulateMint", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "supportedManager", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "testSupported", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "testSupportedPool", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "transferOwnership", data: BytesLike): Result;
 
   events: {
     "OwnershipTransferred(address,address)": EventFragment;
@@ -196,13 +116,9 @@ export interface OwnershipTransferredEventObject {
   previousOwner: string;
   newOwner: string;
 }
-export type OwnershipTransferredEvent = TypedEvent<
-  [string, string],
-  OwnershipTransferredEventObject
->;
+export type OwnershipTransferredEvent = TypedEvent<[string, string], OwnershipTransferredEventObject>;
 
-export type OwnershipTransferredEventFilter =
-  TypedEventFilter<OwnershipTransferredEvent>;
+export type OwnershipTransferredEventFilter = TypedEventFilter<OwnershipTransferredEvent>;
 
 export interface UniswapV3PoolInteractor extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -217,13 +133,9 @@ export interface UniswapV3PoolInteractor extends BaseContract {
     toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
+  listeners<TEvent extends TypedEvent>(eventFilter?: TypedEventFilter<TEvent>): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
+  removeAllListeners<TEvent extends TypedEvent>(eventFilter: TypedEventFilter<TEvent>): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
   on: OnEvent<this>;
@@ -243,22 +155,14 @@ export interface UniswapV3PoolInteractor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber, BigNumber]>;
 
-    getTickAtRatio(
-      ratio: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[number]>;
+    getTickAtRatio(ratio: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<[number]>;
 
     getUnderlyingAmount(
       nft: AssetStruct,
       overrides?: CallOverrides
-    ): Promise<
-      [string[], BigNumber[]] & { underlying: string[]; amounts: BigNumber[] }
-    >;
+    ): Promise<[string[], BigNumber[]] & { underlying: string[]; amounts: BigNumber[] }>;
 
-    getUnderlyingTokens(
-      lpTokenAddress: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[string[]]>;
+    getUnderlyingTokens(lpTokenAddress: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[string[]]>;
 
     mint(
       toMint: AssetStruct,
@@ -270,9 +174,7 @@ export interface UniswapV3PoolInteractor extends BaseContract {
 
     owner(overrides?: CallOverrides): Promise<[string]>;
 
-    renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+    renounceOwnership(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
     simulateMint(
       toMint: AssetStruct,
@@ -283,15 +185,9 @@ export interface UniswapV3PoolInteractor extends BaseContract {
 
     supportedManager(overrides?: CallOverrides): Promise<[string]>;
 
-    testSupported(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
+    testSupported(token: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[boolean]>;
 
-    testSupportedPool(
-      poolAddress: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
+    testSupportedPool(poolAddress: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[boolean]>;
 
     transferOwnership(
       newOwner: PromiseOrValue<string>,
@@ -311,22 +207,14 @@ export interface UniswapV3PoolInteractor extends BaseContract {
     overrides?: CallOverrides
   ): Promise<[BigNumber, BigNumber]>;
 
-  getTickAtRatio(
-    ratio: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<number>;
+  getTickAtRatio(ratio: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<number>;
 
   getUnderlyingAmount(
     nft: AssetStruct,
     overrides?: CallOverrides
-  ): Promise<
-    [string[], BigNumber[]] & { underlying: string[]; amounts: BigNumber[] }
-  >;
+  ): Promise<[string[], BigNumber[]] & { underlying: string[]; amounts: BigNumber[] }>;
 
-  getUnderlyingTokens(
-    lpTokenAddress: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<string[]>;
+  getUnderlyingTokens(lpTokenAddress: PromiseOrValue<string>, overrides?: CallOverrides): Promise<string[]>;
 
   mint(
     toMint: AssetStruct,
@@ -338,9 +226,7 @@ export interface UniswapV3PoolInteractor extends BaseContract {
 
   owner(overrides?: CallOverrides): Promise<string>;
 
-  renounceOwnership(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  renounceOwnership(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
   simulateMint(
     toMint: AssetStruct,
@@ -351,15 +237,9 @@ export interface UniswapV3PoolInteractor extends BaseContract {
 
   supportedManager(overrides?: CallOverrides): Promise<string>;
 
-  testSupported(
-    token: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
+  testSupported(token: PromiseOrValue<string>, overrides?: CallOverrides): Promise<boolean>;
 
-  testSupportedPool(
-    poolAddress: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
+  testSupportedPool(poolAddress: PromiseOrValue<string>, overrides?: CallOverrides): Promise<boolean>;
 
   transferOwnership(
     newOwner: PromiseOrValue<string>,
@@ -384,22 +264,14 @@ export interface UniswapV3PoolInteractor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber, BigNumber]>;
 
-    getTickAtRatio(
-      ratio: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<number>;
+    getTickAtRatio(ratio: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<number>;
 
     getUnderlyingAmount(
       nft: AssetStruct,
       overrides?: CallOverrides
-    ): Promise<
-      [string[], BigNumber[]] & { underlying: string[]; amounts: BigNumber[] }
-    >;
+    ): Promise<[string[], BigNumber[]] & { underlying: string[]; amounts: BigNumber[] }>;
 
-    getUnderlyingTokens(
-      lpTokenAddress: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<string[]>;
+    getUnderlyingTokens(lpTokenAddress: PromiseOrValue<string>, overrides?: CallOverrides): Promise<string[]>;
 
     mint(
       toMint: AssetStruct,
@@ -422,20 +294,11 @@ export interface UniswapV3PoolInteractor extends BaseContract {
 
     supportedManager(overrides?: CallOverrides): Promise<string>;
 
-    testSupported(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
+    testSupported(token: PromiseOrValue<string>, overrides?: CallOverrides): Promise<boolean>;
 
-    testSupportedPool(
-      poolAddress: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
+    testSupportedPool(poolAddress: PromiseOrValue<string>, overrides?: CallOverrides): Promise<boolean>;
 
-    transferOwnership(
-      newOwner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    transferOwnership(newOwner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
   };
 
   filters: {
@@ -450,10 +313,7 @@ export interface UniswapV3PoolInteractor extends BaseContract {
   };
 
   estimateGas: {
-    burn(
-      asset: AssetStruct,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+    burn(asset: AssetStruct, overrides?: PayableOverrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
 
     getRatio(
       poolAddress: PromiseOrValue<string>,
@@ -462,20 +322,11 @@ export interface UniswapV3PoolInteractor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getTickAtRatio(
-      ratio: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    getTickAtRatio(ratio: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
 
-    getUnderlyingAmount(
-      nft: AssetStruct,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    getUnderlyingAmount(nft: AssetStruct, overrides?: CallOverrides): Promise<BigNumber>;
 
-    getUnderlyingTokens(
-      lpTokenAddress: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    getUnderlyingTokens(lpTokenAddress: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
     mint(
       toMint: AssetStruct,
@@ -487,9 +338,7 @@ export interface UniswapV3PoolInteractor extends BaseContract {
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
-    renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+    renounceOwnership(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
 
     simulateMint(
       toMint: AssetStruct,
@@ -500,15 +349,9 @@ export interface UniswapV3PoolInteractor extends BaseContract {
 
     supportedManager(overrides?: CallOverrides): Promise<BigNumber>;
 
-    testSupported(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    testSupported(token: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
-    testSupportedPool(
-      poolAddress: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    testSupportedPool(poolAddress: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
     transferOwnership(
       newOwner: PromiseOrValue<string>,
@@ -529,15 +372,9 @@ export interface UniswapV3PoolInteractor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getTickAtRatio(
-      ratio: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    getTickAtRatio(ratio: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    getUnderlyingAmount(
-      nft: AssetStruct,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    getUnderlyingAmount(nft: AssetStruct, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getUnderlyingTokens(
       lpTokenAddress: PromiseOrValue<string>,
@@ -554,9 +391,7 @@ export interface UniswapV3PoolInteractor extends BaseContract {
 
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
+    renounceOwnership(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
 
     simulateMint(
       toMint: AssetStruct,
@@ -567,15 +402,9 @@ export interface UniswapV3PoolInteractor extends BaseContract {
 
     supportedManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    testSupported(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    testSupported(token: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    testSupportedPool(
-      poolAddress: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    testSupportedPool(poolAddress: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     transferOwnership(
       newOwner: PromiseOrValue<string>,

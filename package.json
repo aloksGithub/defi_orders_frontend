@@ -10,7 +10,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "codegen": "typechain --target=ethers-v5 --out-dir codegen 'constants/abis/*.json'"
+    "codegen": "typechain --target=ethers-v5 --out-dir codegen 'constants/abis/*.json'",
+    "pretty": "yarn prettier --write ."
   },
   "dependencies": {
     "@chakra-ui/icons": "^2.0.9",
@@ -56,6 +57,7 @@
     "@typechain/ethers-v5": "^10.2.0",
     "@types/react": "18.0.19",
     "@types/react-transition-group": "^4.4.5",
+    "prettier": "^2.8.1",
     "typechain": "^8.1.1",
     "typescript": "4.8.3"
   }

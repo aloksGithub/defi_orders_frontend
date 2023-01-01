@@ -34,7 +34,9 @@ export const findMultipleSwaps = async (
   const prices = outputTokens.map(
     async (token) => await contracts.oracle.getPrice(token, contracts.networkToken.address)
   );
-  const decimals = outputTokens.map(async (token) => await (ERC20__factory.connect(token, contracts.universalSwap.provider)).decimals());
+  const decimals = outputTokens.map(
+    async (token) => await ERC20__factory.connect(token, contracts.universalSwap.provider).decimals()
+  );
   const tokenData = await Promise.all([...prices, ...decimals]);
   const tokenPrices: { [token: string]: BigNumber } = tokenData.slice(0, prices.length).reduce((acc, curr, index) => {
     return { ...acc, [outputTokens[index]]: curr };
@@ -53,10 +55,8 @@ export const findMultipleSwaps = async (
         outputValues[j],
         inputAmounts[i],
         inputValues[i]
-      )
-      routes.push(
-        route
       );
+      routes.push(route);
     }
   }
   const sortedSwaps = routes.sort((a, b) => (BigNumber.from(a.slippage).gt(BigNumber.from(b.slippage)) ? 1 : -1));
@@ -163,7 +163,7 @@ const evaluateRoute = async (contracts: SwapContracts, swappers: string[], paths
   let currentAmount = amount;
   for (const [index, swapper] of swappers.entries()) {
     const path = paths[index];
-    const swapperContract = ISwapper__factory.connect(swapper, contracts.universalSwap.provider)
+    const swapperContract = ISwapper__factory.connect(swapper, contracts.universalSwap.provider);
     currentAmount = await swapperContract.getAmountOut(currentAmount, path);
   }
   return currentAmount;
@@ -240,7 +240,11 @@ const findBestRoute = async (
   return swapPoint;
 };
 
-export const getSwapsAndConversionsFromProvidedAndDesired = async (contracts: SwapContracts, provided: ProvidedStruct, desired: DesiredStruct) => {
+export const getSwapsAndConversionsFromProvidedAndDesired = async (
+  contracts: SwapContracts,
+  provided: ProvidedStruct,
+  desired: DesiredStruct
+) => {
   const [tokens, amounts, inputTokenValues, conversions, conversionUnderlying, conversionUnderlyingValues] =
     await contracts.universalSwap.preSwapCalculateUnderlying(provided, desired);
   const swaps = await findMultipleSwaps(
@@ -252,33 +256,31 @@ export const getSwapsAndConversionsFromProvidedAndDesired = async (contracts: Sw
     conversionUnderlyingValues
   );
   return { swaps, conversions };
-}
+};
 
-export const getSwapsAndConversions = async (contracts: SwapContracts, assetsToConvert: UserAssetSupplied[], wantedAssets: WantedAsset[]) => {
+export const getSwapsAndConversions = async (
+  contracts: SwapContracts,
+  assetsToConvert: UserAssetSupplied[],
+  wantedAssets: WantedAsset[]
+) => {
   const provided = {
-    tokens: assetsToConvert.map(asset=>asset.contract_address),
-    amounts: assetsToConvert.map(asset=>parseUnits(asset.tokensSupplied, asset.contract_decimals)),
-    nfts: []
-  }
-  const desired: {outputERC20s: string[], outputERC721s: any[], ratios: number[], minAmountsOut: BigNumber[]} = {
+    tokens: assetsToConvert.map((asset) => asset.contract_address),
+    amounts: assetsToConvert.map((asset) => parseUnits(asset.tokensSupplied, asset.contract_decimals)),
+    nfts: [],
+  };
+  const desired: { outputERC20s: string[]; outputERC721s: any[]; ratios: number[]; minAmountsOut: BigNumber[] } = {
     outputERC20s: [],
     outputERC721s: [],
     ratios: [],
-    minAmountsOut: []
-  }
+    minAmountsOut: [],
+  };
   for (const asset of wantedAssets) {
-    desired.outputERC20s.push(asset.contract_address)
-    desired.ratios.push(Math.floor(asset.percentage*10000))
-    desired.minAmountsOut.push(parseUnits(asset.minOut.toFixed(asset.contract_decimals), asset.contract_decimals))
+    desired.outputERC20s.push(asset.contract_address);
+    desired.ratios.push(Math.floor(asset.percentage * 10000));
+    desired.minAmountsOut.push(parseUnits(asset.minOut.toFixed(asset.contract_decimals), asset.contract_decimals));
   }
-  const [
-    tokens,
-    amounts,
-    inputTokenValues,
-    conversions,
-    conversionUnderlying,
-    conversionUnderlyingValues,
-  ] = await contracts.universalSwap.preSwapCalculateUnderlying(provided, desired);
+  const [tokens, amounts, inputTokenValues, conversions, conversionUnderlying, conversionUnderlyingValues] =
+    await contracts.universalSwap.preSwapCalculateUnderlying(provided, desired);
   const swaps = await findMultipleSwaps(
     contracts,
     tokens,
@@ -286,20 +288,33 @@ export const getSwapsAndConversions = async (contracts: SwapContracts, assetsToC
     inputTokenValues,
     conversionUnderlying,
     conversionUnderlyingValues
-  )
-  return {provided, desired, swaps, conversions}
-}
+  );
+  return { provided, desired, swaps, conversions };
+};
 
-export const getAmountsOut = async (contracts: SwapContracts, assetsToConvert: UserAssetSupplied[], wantedAssets: WantedAsset[]) => {
-  const {swaps, conversions, provided, desired} = await getSwapsAndConversions(contracts, assetsToConvert, wantedAssets)
-  const {amounts: amountsOut, expectedUSDValues} = await contracts.universalSwap.getAmountsOutWithSwaps(provided, desired, swaps, conversions)
-  const stableDecimals = await contracts.stableToken.decimals()
-  const expectedAssets:WantedAsset[] = wantedAssets.map((asset, index)=> {
+export const getAmountsOut = async (
+  contracts: SwapContracts,
+  assetsToConvert: UserAssetSupplied[],
+  wantedAssets: WantedAsset[]
+) => {
+  const { swaps, conversions, provided, desired } = await getSwapsAndConversions(
+    contracts,
+    assetsToConvert,
+    wantedAssets
+  );
+  const { amounts: amountsOut, expectedUSDValues } = await contracts.universalSwap.getAmountsOutWithSwaps(
+    provided,
+    desired,
+    swaps,
+    conversions
+  );
+  const stableDecimals = await contracts.stableToken.decimals();
+  const expectedAssets: WantedAsset[] = wantedAssets.map((asset, index) => {
     return {
       ...asset,
       expected: +formatUnits(amountsOut[index], asset.contract_decimals),
-      quote: +formatUnits(expectedUSDValues[index], stableDecimals)
-    }
-  })
-  return {swaps, conversions, provided, desired, wantedAssets, expectedAssets}
-}
+      quote: +formatUnits(expectedUSDValues[index], stableDecimals),
+    };
+  });
+  return { swaps, conversions, provided, desired, wantedAssets, expectedAssets };
+};

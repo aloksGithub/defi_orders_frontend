@@ -13,19 +13,9 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type {
-  FunctionFragment,
-  Result,
-  EventFragment,
-} from "@ethersproject/abi";
+import type { FunctionFragment, Result, EventFragment } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
-import type {
-  TypedEventFilter,
-  TypedEvent,
-  TypedListener,
-  OnEvent,
-  PromiseOrValue,
-} from "./common";
+import type { TypedEventFilter, TypedEvent, TypedListener, OnEvent, PromiseOrValue } from "./common";
 
 export interface IUniswapV2PairInterface extends utils.Interface {
   functions: {
@@ -89,54 +79,24 @@ export interface IUniswapV2PairInterface extends utils.Interface {
       | "transferFrom"
   ): FunctionFragment;
 
-  encodeFunctionData(
-    functionFragment: "DOMAIN_SEPARATOR",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "MINIMUM_LIQUIDITY",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "PERMIT_TYPEHASH",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "allowance",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>]
-  ): string;
+  encodeFunctionData(functionFragment: "DOMAIN_SEPARATOR", values?: undefined): string;
+  encodeFunctionData(functionFragment: "MINIMUM_LIQUIDITY", values?: undefined): string;
+  encodeFunctionData(functionFragment: "PERMIT_TYPEHASH", values?: undefined): string;
+  encodeFunctionData(functionFragment: "allowance", values: [PromiseOrValue<string>, PromiseOrValue<string>]): string;
   encodeFunctionData(
     functionFragment: "approve",
     values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
-  encodeFunctionData(
-    functionFragment: "balanceOf",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "burn",
-    values: [PromiseOrValue<string>]
-  ): string;
+  encodeFunctionData(functionFragment: "balanceOf", values: [PromiseOrValue<string>]): string;
+  encodeFunctionData(functionFragment: "burn", values: [PromiseOrValue<string>]): string;
   encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
   encodeFunctionData(functionFragment: "factory", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "getReserves",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "initialize",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>]
-  ): string;
+  encodeFunctionData(functionFragment: "getReserves", values?: undefined): string;
+  encodeFunctionData(functionFragment: "initialize", values: [PromiseOrValue<string>, PromiseOrValue<string>]): string;
   encodeFunctionData(functionFragment: "kLast", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "mint",
-    values: [PromiseOrValue<string>]
-  ): string;
+  encodeFunctionData(functionFragment: "mint", values: [PromiseOrValue<string>]): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "nonces",
-    values: [PromiseOrValue<string>]
-  ): string;
+  encodeFunctionData(functionFragment: "nonces", values: [PromiseOrValue<string>]): string;
   encodeFunctionData(
     functionFragment: "permit",
     values: [
@@ -149,18 +109,9 @@ export interface IUniswapV2PairInterface extends utils.Interface {
       PromiseOrValue<BytesLike>
     ]
   ): string;
-  encodeFunctionData(
-    functionFragment: "price0CumulativeLast",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "price1CumulativeLast",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "skim",
-    values: [PromiseOrValue<string>]
-  ): string;
+  encodeFunctionData(functionFragment: "price0CumulativeLast", values?: undefined): string;
+  encodeFunctionData(functionFragment: "price1CumulativeLast", values?: undefined): string;
+  encodeFunctionData(functionFragment: "skim", values: [PromiseOrValue<string>]): string;
   encodeFunctionData(
     functionFragment: "swap",
     values: [
@@ -174,74 +125,43 @@ export interface IUniswapV2PairInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "sync", values?: undefined): string;
   encodeFunctionData(functionFragment: "token0", values?: undefined): string;
   encodeFunctionData(functionFragment: "token1", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "totalSupply",
-    values?: undefined
-  ): string;
+  encodeFunctionData(functionFragment: "totalSupply", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "transfer",
     values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "transferFrom",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
 
-  decodeFunctionResult(
-    functionFragment: "DOMAIN_SEPARATOR",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "MINIMUM_LIQUIDITY",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "PERMIT_TYPEHASH",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "DOMAIN_SEPARATOR", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "MINIMUM_LIQUIDITY", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "PERMIT_TYPEHASH", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "burn", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "factory", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "getReserves",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "getReserves", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "kLast", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "mint", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "nonces", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "permit", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "price0CumulativeLast",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "price1CumulativeLast",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "price0CumulativeLast", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "price1CumulativeLast", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "skim", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "swap", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "sync", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "token0", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "token1", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "totalSupply",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "totalSupply", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "transfer", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "transferFrom",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "transferFrom", data: BytesLike): Result;
 
   events: {
     "Approval(address,address,uint256)": EventFragment;
@@ -265,10 +185,7 @@ export interface ApprovalEventObject {
   spender: string;
   value: BigNumber;
 }
-export type ApprovalEvent = TypedEvent<
-  [string, string, BigNumber],
-  ApprovalEventObject
->;
+export type ApprovalEvent = TypedEvent<[string, string, BigNumber], ApprovalEventObject>;
 
 export type ApprovalEventFilter = TypedEventFilter<ApprovalEvent>;
 
@@ -278,10 +195,7 @@ export interface BurnEventObject {
   amount1: BigNumber;
   to: string;
 }
-export type BurnEvent = TypedEvent<
-  [string, BigNumber, BigNumber, string],
-  BurnEventObject
->;
+export type BurnEvent = TypedEvent<[string, BigNumber, BigNumber, string], BurnEventObject>;
 
 export type BurnEventFilter = TypedEventFilter<BurnEvent>;
 
@@ -290,10 +204,7 @@ export interface MintEventObject {
   amount0: BigNumber;
   amount1: BigNumber;
 }
-export type MintEvent = TypedEvent<
-  [string, BigNumber, BigNumber],
-  MintEventObject
->;
+export type MintEvent = TypedEvent<[string, BigNumber, BigNumber], MintEventObject>;
 
 export type MintEventFilter = TypedEventFilter<MintEvent>;
 
@@ -305,10 +216,7 @@ export interface SwapEventObject {
   amount1Out: BigNumber;
   to: string;
 }
-export type SwapEvent = TypedEvent<
-  [string, BigNumber, BigNumber, BigNumber, BigNumber, string],
-  SwapEventObject
->;
+export type SwapEvent = TypedEvent<[string, BigNumber, BigNumber, BigNumber, BigNumber, string], SwapEventObject>;
 
 export type SwapEventFilter = TypedEventFilter<SwapEvent>;
 
@@ -325,10 +233,7 @@ export interface TransferEventObject {
   to: string;
   value: BigNumber;
 }
-export type TransferEvent = TypedEvent<
-  [string, string, BigNumber],
-  TransferEventObject
->;
+export type TransferEvent = TypedEvent<[string, string, BigNumber], TransferEventObject>;
 
 export type TransferEventFilter = TypedEventFilter<TransferEvent>;
 
@@ -345,13 +250,9 @@ export interface IUniswapV2Pair extends BaseContract {
     toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
+  listeners<TEvent extends TypedEvent>(eventFilter?: TypedEventFilter<TEvent>): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
+  removeAllListeners<TEvent extends TypedEvent>(eventFilter: TypedEventFilter<TEvent>): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
   on: OnEvent<this>;
@@ -377,10 +278,7 @@ export interface IUniswapV2Pair extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    balanceOf(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    balanceOf(owner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[BigNumber]>;
 
     burn(
       to: PromiseOrValue<string>,
@@ -391,9 +289,7 @@ export interface IUniswapV2Pair extends BaseContract {
 
     factory(overrides?: CallOverrides): Promise<[string]>;
 
-    getReserves(
-      overrides?: CallOverrides
-    ): Promise<
+    getReserves(overrides?: CallOverrides): Promise<
       [BigNumber, BigNumber, number] & {
         reserve0: BigNumber;
         reserve1: BigNumber;
@@ -416,10 +312,7 @@ export interface IUniswapV2Pair extends BaseContract {
 
     name(overrides?: CallOverrides): Promise<[string]>;
 
-    nonces(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    nonces(owner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[BigNumber]>;
 
     permit(
       owner: PromiseOrValue<string>,
@@ -451,9 +344,7 @@ export interface IUniswapV2Pair extends BaseContract {
 
     symbol(overrides?: CallOverrides): Promise<[string]>;
 
-    sync(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+    sync(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
     token0(overrides?: CallOverrides): Promise<[string]>;
 
@@ -493,10 +384,7 @@ export interface IUniswapV2Pair extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  balanceOf(
-    owner: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  balanceOf(owner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
   burn(
     to: PromiseOrValue<string>,
@@ -507,9 +395,7 @@ export interface IUniswapV2Pair extends BaseContract {
 
   factory(overrides?: CallOverrides): Promise<string>;
 
-  getReserves(
-    overrides?: CallOverrides
-  ): Promise<
+  getReserves(overrides?: CallOverrides): Promise<
     [BigNumber, BigNumber, number] & {
       reserve0: BigNumber;
       reserve1: BigNumber;
@@ -532,10 +418,7 @@ export interface IUniswapV2Pair extends BaseContract {
 
   name(overrides?: CallOverrides): Promise<string>;
 
-  nonces(
-    owner: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  nonces(owner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
   permit(
     owner: PromiseOrValue<string>,
@@ -567,9 +450,7 @@ export interface IUniswapV2Pair extends BaseContract {
 
   symbol(overrides?: CallOverrides): Promise<string>;
 
-  sync(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  sync(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
   token0(overrides?: CallOverrides): Promise<string>;
 
@@ -609,25 +490,18 @@ export interface IUniswapV2Pair extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    balanceOf(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    balanceOf(owner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
     burn(
       to: PromiseOrValue<string>,
       overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & { amount0: BigNumber; amount1: BigNumber }
-    >;
+    ): Promise<[BigNumber, BigNumber] & { amount0: BigNumber; amount1: BigNumber }>;
 
     decimals(overrides?: CallOverrides): Promise<number>;
 
     factory(overrides?: CallOverrides): Promise<string>;
 
-    getReserves(
-      overrides?: CallOverrides
-    ): Promise<
+    getReserves(overrides?: CallOverrides): Promise<
       [BigNumber, BigNumber, number] & {
         reserve0: BigNumber;
         reserve1: BigNumber;
@@ -635,25 +509,15 @@ export interface IUniswapV2Pair extends BaseContract {
       }
     >;
 
-    initialize(
-      arg0: PromiseOrValue<string>,
-      arg1: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    initialize(arg0: PromiseOrValue<string>, arg1: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
 
     kLast(overrides?: CallOverrides): Promise<BigNumber>;
 
-    mint(
-      to: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    mint(to: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
     name(overrides?: CallOverrides): Promise<string>;
 
-    nonces(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    nonces(owner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
     permit(
       owner: PromiseOrValue<string>,
@@ -734,11 +598,7 @@ export interface IUniswapV2Pair extends BaseContract {
       amount0?: null,
       amount1?: null
     ): MintEventFilter;
-    Mint(
-      sender?: PromiseOrValue<string> | null,
-      amount0?: null,
-      amount1?: null
-    ): MintEventFilter;
+    Mint(sender?: PromiseOrValue<string> | null, amount0?: null, amount1?: null): MintEventFilter;
 
     "Swap(address,uint256,uint256,uint256,uint256,address)"(
       sender?: PromiseOrValue<string> | null,
@@ -791,15 +651,9 @@ export interface IUniswapV2Pair extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    balanceOf(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    balanceOf(owner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
-    burn(
-      to: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+    burn(to: PromiseOrValue<string>, overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
 
     decimals(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -815,17 +669,11 @@ export interface IUniswapV2Pair extends BaseContract {
 
     kLast(overrides?: CallOverrides): Promise<BigNumber>;
 
-    mint(
-      to: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+    mint(to: PromiseOrValue<string>, overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
 
     name(overrides?: CallOverrides): Promise<BigNumber>;
 
-    nonces(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    nonces(owner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
     permit(
       owner: PromiseOrValue<string>,
@@ -842,10 +690,7 @@ export interface IUniswapV2Pair extends BaseContract {
 
     price1CumulativeLast(overrides?: CallOverrides): Promise<BigNumber>;
 
-    skim(
-      to: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+    skim(to: PromiseOrValue<string>, overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
 
     swap(
       amount0Out: PromiseOrValue<BigNumberish>,
@@ -857,9 +702,7 @@ export interface IUniswapV2Pair extends BaseContract {
 
     symbol(overrides?: CallOverrides): Promise<BigNumber>;
 
-    sync(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+    sync(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
 
     token0(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -900,10 +743,7 @@ export interface IUniswapV2Pair extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    balanceOf(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    balanceOf(owner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     burn(
       to: PromiseOrValue<string>,
@@ -931,10 +771,7 @@ export interface IUniswapV2Pair extends BaseContract {
 
     name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    nonces(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    nonces(owner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     permit(
       owner: PromiseOrValue<string>,
@@ -947,13 +784,9 @@ export interface IUniswapV2Pair extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    price0CumulativeLast(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    price0CumulativeLast(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    price1CumulativeLast(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    price1CumulativeLast(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     skim(
       to: PromiseOrValue<string>,
@@ -970,9 +803,7 @@ export interface IUniswapV2Pair extends BaseContract {
 
     symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    sync(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
+    sync(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
 
     token0(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

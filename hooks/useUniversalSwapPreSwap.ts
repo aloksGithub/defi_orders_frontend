@@ -8,109 +8,118 @@ import { UserAssetSupplied, WantedAsset } from "../Types";
 import { findMultipleSwaps } from "../contractCalls/routeCalculation";
 import { DesiredStruct } from "../codegen/SwapHelper";
 
-const useUniversalSwapPreSwap = (
-  {assetsToConvert, wantedAssets, parentLoading, triggerError}:
-  {assetsToConvert: UserAssetSupplied[], wantedAssets: WantedAsset[], parentLoading: boolean, triggerError: (error:string)=>void}) => {
-  const {contracts} = useAppContext()
-  const [loadingText, setLoadingText] = useState<string>()
-  const [loading, setLoading] = useState(false)
-  const [swaps, setSwaps] = useState<SwapPointStruct[]>()
-  const [provided, setProvided] = useState<ProvidedStruct>()
-  const [desired, setDesired] = useState<DesiredStruct>()
+const useUniversalSwapPreSwap = ({
+  assetsToConvert,
+  wantedAssets,
+  parentLoading,
+  triggerError,
+}: {
+  assetsToConvert: UserAssetSupplied[];
+  wantedAssets: WantedAsset[];
+  parentLoading: boolean;
+  triggerError: (error: string) => void;
+}) => {
+  const { contracts } = useAppContext();
+  const [loadingText, setLoadingText] = useState<string>();
+  const [loading, setLoading] = useState(false);
+  const [swaps, setSwaps] = useState<SwapPointStruct[]>();
+  const [provided, setProvided] = useState<ProvidedStruct>();
+  const [desired, setDesired] = useState<DesiredStruct>();
   const [findSwapsData, setFindSwapsData] = useState<{
-    tokens: string[],
-    amounts: BigNumber[],
-    inputTokenValues: BigNumber[],
-    conversions: ConversionStruct[],
-    conversionUnderlying: string[],
-    conversionUnderlyingValues: BigNumber[]
-  }>()
+    tokens: string[];
+    amounts: BigNumber[];
+    inputTokenValues: BigNumber[];
+    conversions: ConversionStruct[];
+    conversionUnderlying: string[];
+    conversionUnderlyingValues: BigNumber[];
+  }>();
 
   const onError = (message: string) => {
-    setLoading(false)
-    setLoadingText(undefined)
-    triggerError(message)
-  }
+    setLoading(false);
+    setLoadingText(undefined);
+    triggerError(message);
+  };
 
   const sanityCheck = () => {
     if (!contracts) {
-      onError('Looks like Delimit contracts have not yet been deployed on this chain, please switch to BSC')
-      return false
+      onError("Looks like Delimit contracts have not yet been deployed on this chain, please switch to BSC");
+      return false;
     }
-    const usdSupplied = assetsToConvert.reduce((a, b)=>a+(b.usdcValue||0), 0)
-    if (usdSupplied<=0) {
-      onError("No USD supplied")
-      return false
+    const usdSupplied = assetsToConvert.reduce((a, b) => a + (b.usdcValue || 0), 0);
+    if (usdSupplied <= 0) {
+      onError("No USD supplied");
+      return false;
     }
-    let percentageTotal = 0
-    for (let i = 0; i<wantedAssets.length; i++) {
-      const asset = wantedAssets[i]
-      percentageTotal+=+asset.percentage
-      if (!('contract_address' in asset)) {
-        onError(`Please select asset for wanted asset ${i+1}`)
-        return false
+    let percentageTotal = 0;
+    for (let i = 0; i < wantedAssets.length; i++) {
+      const asset = wantedAssets[i];
+      percentageTotal += +asset.percentage;
+      if (!("contract_address" in asset)) {
+        onError(`Please select asset for wanted asset ${i + 1}`);
+        return false;
       }
       if (!asset.percentage) {
-        onError(`Please specify percentage for wanted asset ${i+1}`)
-        return false
+        onError(`Please specify percentage for wanted asset ${i + 1}`);
+        return false;
       }
-      if (asset.percentage===0) {
-        onError(`Percentage for wanted asset ${i+1} is 0`)
-        return false
+      if (asset.percentage === 0) {
+        onError(`Percentage for wanted asset ${i + 1} is 0`);
+        return false;
       }
     }
-    if (percentageTotal!=100) {
-      onError('Total percentage is not 100%')
-      return false
+    if (percentageTotal != 100) {
+      onError("Total percentage is not 100%");
+      return false;
     }
-    return true
-  }
+    return true;
+  };
 
   useEffect(() => {
-    if (!parentLoading) return
-    if (!sanityCheck()) return
-    setLoadingText('Calculating Underlying')
-    setLoading(true)
+    if (!parentLoading) return;
+    if (!sanityCheck()) return;
+    setLoadingText("Calculating Underlying");
+    setLoading(true);
     const provided = {
-      tokens: assetsToConvert.map(asset=>asset.contract_address),
-      amounts: assetsToConvert.map(asset=>parseUnits(asset.tokensSupplied, asset.contract_decimals)),
-      nfts: []
-    }
-    setProvided(provided)
-    const desired: {outputERC20s: string[], outputERC721s: any[], ratios: number[], minAmountsOut: BigNumber[]} = {
+      tokens: assetsToConvert.map((asset) => asset.contract_address),
+      amounts: assetsToConvert.map((asset) => parseUnits(asset.tokensSupplied, asset.contract_decimals)),
+      nfts: [],
+    };
+    setProvided(provided);
+    const desired: { outputERC20s: string[]; outputERC721s: any[]; ratios: number[]; minAmountsOut: BigNumber[] } = {
       outputERC20s: [],
       outputERC721s: [],
       ratios: [],
-      minAmountsOut: []
-    }
+      minAmountsOut: [],
+    };
     for (const asset of wantedAssets) {
-      desired.outputERC20s.push(asset.contract_address)
-      desired.ratios.push(Math.floor(asset.percentage*10000))
-      desired.minAmountsOut.push(parseUnits(asset.minOut.toFixed(asset.contract_decimals), asset.contract_decimals))
+      desired.outputERC20s.push(asset.contract_address);
+      desired.ratios.push(Math.floor(asset.percentage * 10000));
+      desired.minAmountsOut.push(parseUnits(asset.minOut.toFixed(asset.contract_decimals), asset.contract_decimals));
     }
-    setDesired(desired)
+    setDesired(desired);
     const simplify = async () => {
-      const [
+      const [tokens, amounts, inputTokenValues, conversions, conversionUnderlying, conversionUnderlyingValues] =
+        await contracts.universalSwap.preSwapCalculateUnderlying(provided, desired);
+      setFindSwapsData({
         tokens,
         amounts,
         inputTokenValues,
         conversions,
         conversionUnderlying,
         conversionUnderlyingValues,
-      ] = await contracts.universalSwap.preSwapCalculateUnderlying(provided, desired);
-      setFindSwapsData({tokens, amounts, inputTokenValues, conversions, conversionUnderlying, conversionUnderlyingValues})
-    }
-    simplify().catch(error=>{
-      console.log(error)
-      onError("Unable to get underlying for assets")
-    })
-  }, [parentLoading])
+      });
+    };
+    simplify().catch((error) => {
+      console.log(error);
+      onError("Unable to get underlying for assets");
+    });
+  }, [parentLoading]);
 
   useEffect(() => {
-    if (!parentLoading) return
-    if (!sanityCheck()) return
-    if (!findSwapsData) return
-    setLoadingText('Calculating Routes')
+    if (!parentLoading) return;
+    if (!sanityCheck()) return;
+    if (!findSwapsData) return;
+    setLoadingText("Calculating Routes");
     findMultipleSwaps(
       contracts,
       findSwapsData.tokens,
@@ -118,13 +127,18 @@ const useUniversalSwapPreSwap = (
       findSwapsData.inputTokenValues,
       findSwapsData.conversionUnderlying,
       findSwapsData.conversionUnderlyingValues
-    ).then(swaps=>{setSwaps(swaps);setLoading(false)}).catch(error=> {
-      console.log(error)
-      setLoading(false)
-      onError("Unable to calculate routes")
-    })
-  }, [findSwapsData])
-  return {data: {swaps, conversions: findSwapsData?.conversions, provided, desired}, loading, loadingText}
-}
+    )
+      .then((swaps) => {
+        setSwaps(swaps);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.log(error);
+        setLoading(false);
+        onError("Unable to calculate routes");
+      });
+  }, [findSwapsData]);
+  return { data: { swaps, conversions: findSwapsData?.conversions, provided, desired }, loading, loadingText };
+};
 
-export default useUniversalSwapPreSwap
+export default useUniversalSwapPreSwap;

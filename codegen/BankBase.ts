@@ -13,19 +13,9 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type {
-  FunctionFragment,
-  Result,
-  EventFragment,
-} from "@ethersproject/abi";
+import type { FunctionFragment, Result, EventFragment } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
-import type {
-  TypedEventFilter,
-  TypedEvent,
-  TypedListener,
-  OnEvent,
-  PromiseOrValue,
-} from "./common";
+import type { TypedEventFilter, TypedEvent, TypedListener, OnEvent, PromiseOrValue } from "./common";
 
 export interface BankBaseInterface extends utils.Interface {
   functions: {
@@ -71,25 +61,11 @@ export interface BankBaseInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "burn",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>
-    ]
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>, PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
   ): string;
-  encodeFunctionData(
-    functionFragment: "decodeId",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getIdFromLpToken",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getLPToken",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
+  encodeFunctionData(functionFragment: "decodeId", values: [PromiseOrValue<BigNumberish>]): string;
+  encodeFunctionData(functionFragment: "getIdFromLpToken", values: [PromiseOrValue<string>]): string;
+  encodeFunctionData(functionFragment: "getLPToken", values: [PromiseOrValue<BigNumberish>]): string;
   encodeFunctionData(
     functionFragment: "getPendingRewardsForUser",
     values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
@@ -98,30 +74,17 @@ export interface BankBaseInterface extends utils.Interface {
     functionFragment: "getPositionTokens",
     values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
   ): string;
-  encodeFunctionData(
-    functionFragment: "getRewards",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getUnderlyingForFirstDeposit",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
+  encodeFunctionData(functionFragment: "getRewards", values: [PromiseOrValue<BigNumberish>]): string;
+  encodeFunctionData(functionFragment: "getUnderlyingForFirstDeposit", values: [PromiseOrValue<BigNumberish>]): string;
   encodeFunctionData(
     functionFragment: "getUnderlyingForRecurringDeposit",
     values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "harvest",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<string>
-    ]
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
-  encodeFunctionData(
-    functionFragment: "isUnderlyingERC721",
-    values?: undefined
-  ): string;
+  encodeFunctionData(functionFragment: "isUnderlyingERC721", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "mint",
     values: [
@@ -142,59 +105,26 @@ export interface BankBaseInterface extends utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "renounceOwnership",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "transferOwnership",
-    values: [PromiseOrValue<string>]
-  ): string;
+  encodeFunctionData(functionFragment: "renounceOwnership", values?: undefined): string;
+  encodeFunctionData(functionFragment: "transferOwnership", values: [PromiseOrValue<string>]): string;
 
   decodeFunctionResult(functionFragment: "burn", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "decodeId", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "getIdFromLpToken",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "getIdFromLpToken", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getLPToken", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "getPendingRewardsForUser",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getPositionTokens",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "getPendingRewardsForUser", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "getPositionTokens", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getRewards", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "getUnderlyingForFirstDeposit",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getUnderlyingForRecurringDeposit",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "getUnderlyingForFirstDeposit", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "getUnderlyingForRecurringDeposit", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "harvest", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "isUnderlyingERC721",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "isUnderlyingERC721", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "mint", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "mintRecurring",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "mintRecurring", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "renounceOwnership",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "transferOwnership",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "renounceOwnership", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "transferOwnership", data: BytesLike): Result;
 
   events: {
     "Burn(uint256,address,uint256,address)": EventFragment;
@@ -215,10 +145,7 @@ export interface BurnEventObject {
   amount: BigNumber;
   receiver: string;
 }
-export type BurnEvent = TypedEvent<
-  [BigNumber, string, BigNumber, string],
-  BurnEventObject
->;
+export type BurnEvent = TypedEvent<[BigNumber, string, BigNumber, string], BurnEventObject>;
 
 export type BurnEventFilter = TypedEventFilter<BurnEvent>;
 
@@ -227,10 +154,7 @@ export interface HarvestEventObject {
   userAddress: string;
   receiver: string;
 }
-export type HarvestEvent = TypedEvent<
-  [BigNumber, string, string],
-  HarvestEventObject
->;
+export type HarvestEvent = TypedEvent<[BigNumber, string, string], HarvestEventObject>;
 
 export type HarvestEventFilter = TypedEventFilter<HarvestEvent>;
 
@@ -239,10 +163,7 @@ export interface MintEventObject {
   userAddress: string;
   amount: BigNumber;
 }
-export type MintEvent = TypedEvent<
-  [BigNumber, string, BigNumber],
-  MintEventObject
->;
+export type MintEvent = TypedEvent<[BigNumber, string, BigNumber], MintEventObject>;
 
 export type MintEventFilter = TypedEventFilter<MintEvent>;
 
@@ -250,13 +171,9 @@ export interface OwnershipTransferredEventObject {
   previousOwner: string;
   newOwner: string;
 }
-export type OwnershipTransferredEvent = TypedEvent<
-  [string, string],
-  OwnershipTransferredEventObject
->;
+export type OwnershipTransferredEvent = TypedEvent<[string, string], OwnershipTransferredEventObject>;
 
-export type OwnershipTransferredEventFilter =
-  TypedEventFilter<OwnershipTransferredEvent>;
+export type OwnershipTransferredEventFilter = TypedEventFilter<OwnershipTransferredEvent>;
 
 export interface BankBase extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -271,13 +188,9 @@ export interface BankBase extends BaseContract {
     toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
+  listeners<TEvent extends TypedEvent>(eventFilter?: TypedEventFilter<TEvent>): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
+  removeAllListeners<TEvent extends TypedEvent>(eventFilter: TypedEventFilter<TEvent>): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
   on: OnEvent<this>;
@@ -293,36 +206,23 @@ export interface BankBase extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    decodeId(
-      id: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string, string, BigNumber]>;
+    decodeId(id: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<[string, string, BigNumber]>;
 
-    getIdFromLpToken(
-      lpToken: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[boolean, BigNumber]>;
+    getIdFromLpToken(lpToken: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[boolean, BigNumber]>;
 
-    getLPToken(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
+    getLPToken(tokenId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<[string]>;
 
     getPendingRewardsForUser(
       tokenId: PromiseOrValue<BigNumberish>,
       user: PromiseOrValue<string>,
       overrides?: CallOverrides
-    ): Promise<
-      [string[], BigNumber[]] & { rewards: string[]; amounts: BigNumber[] }
-    >;
+    ): Promise<[string[], BigNumber[]] & { rewards: string[]; amounts: BigNumber[] }>;
 
     getPositionTokens(
       tokenId: PromiseOrValue<BigNumberish>,
       user: PromiseOrValue<string>,
       overrides?: CallOverrides
-    ): Promise<
-      [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
-    >;
+    ): Promise<[string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }>;
 
     getRewards(
       tokenId: PromiseOrValue<BigNumberish>,
@@ -332,9 +232,7 @@ export interface BankBase extends BaseContract {
     getUnderlyingForFirstDeposit(
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<
-      [string[], BigNumber[]] & { underlying: string[]; ratios: BigNumber[] }
-    >;
+    ): Promise<[string[], BigNumber[]] & { underlying: string[]; ratios: BigNumber[] }>;
 
     getUnderlyingForRecurringDeposit(
       tokenId: PromiseOrValue<BigNumberish>,
@@ -370,9 +268,7 @@ export interface BankBase extends BaseContract {
 
     owner(overrides?: CallOverrides): Promise<[string]>;
 
-    renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+    renounceOwnership(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
     transferOwnership(
       newOwner: PromiseOrValue<string>,
@@ -388,48 +284,30 @@ export interface BankBase extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  decodeId(
-    id: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<[string, string, BigNumber]>;
+  decodeId(id: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<[string, string, BigNumber]>;
 
-  getIdFromLpToken(
-    lpToken: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<[boolean, BigNumber]>;
+  getIdFromLpToken(lpToken: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[boolean, BigNumber]>;
 
-  getLPToken(
-    tokenId: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  getLPToken(tokenId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<string>;
 
   getPendingRewardsForUser(
     tokenId: PromiseOrValue<BigNumberish>,
     user: PromiseOrValue<string>,
     overrides?: CallOverrides
-  ): Promise<
-    [string[], BigNumber[]] & { rewards: string[]; amounts: BigNumber[] }
-  >;
+  ): Promise<[string[], BigNumber[]] & { rewards: string[]; amounts: BigNumber[] }>;
 
   getPositionTokens(
     tokenId: PromiseOrValue<BigNumberish>,
     user: PromiseOrValue<string>,
     overrides?: CallOverrides
-  ): Promise<
-    [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
-  >;
+  ): Promise<[string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }>;
 
-  getRewards(
-    tokenId: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string[]>;
+  getRewards(tokenId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<string[]>;
 
   getUnderlyingForFirstDeposit(
     tokenId: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
-  ): Promise<
-    [string[], BigNumber[]] & { underlying: string[]; ratios: BigNumber[] }
-  >;
+  ): Promise<[string[], BigNumber[]] & { underlying: string[]; ratios: BigNumber[] }>;
 
   getUnderlyingForRecurringDeposit(
     tokenId: PromiseOrValue<BigNumberish>,
@@ -465,9 +343,7 @@ export interface BankBase extends BaseContract {
 
   owner(overrides?: CallOverrides): Promise<string>;
 
-  renounceOwnership(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  renounceOwnership(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
   transferOwnership(
     newOwner: PromiseOrValue<string>,
@@ -483,48 +359,30 @@ export interface BankBase extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string[], BigNumber[]]>;
 
-    decodeId(
-      id: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string, string, BigNumber]>;
+    decodeId(id: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<[string, string, BigNumber]>;
 
-    getIdFromLpToken(
-      lpToken: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[boolean, BigNumber]>;
+    getIdFromLpToken(lpToken: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[boolean, BigNumber]>;
 
-    getLPToken(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string>;
+    getLPToken(tokenId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<string>;
 
     getPendingRewardsForUser(
       tokenId: PromiseOrValue<BigNumberish>,
       user: PromiseOrValue<string>,
       overrides?: CallOverrides
-    ): Promise<
-      [string[], BigNumber[]] & { rewards: string[]; amounts: BigNumber[] }
-    >;
+    ): Promise<[string[], BigNumber[]] & { rewards: string[]; amounts: BigNumber[] }>;
 
     getPositionTokens(
       tokenId: PromiseOrValue<BigNumberish>,
       user: PromiseOrValue<string>,
       overrides?: CallOverrides
-    ): Promise<
-      [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
-    >;
+    ): Promise<[string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }>;
 
-    getRewards(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string[]>;
+    getRewards(tokenId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<string[]>;
 
     getUnderlyingForFirstDeposit(
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<
-      [string[], BigNumber[]] & { underlying: string[]; ratios: BigNumber[] }
-    >;
+    ): Promise<[string[], BigNumber[]] & { underlying: string[]; ratios: BigNumber[] }>;
 
     getUnderlyingForRecurringDeposit(
       tokenId: PromiseOrValue<BigNumberish>,
@@ -567,10 +425,7 @@ export interface BankBase extends BaseContract {
 
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
 
-    transferOwnership(
-      newOwner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    transferOwnership(newOwner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
   };
 
   filters: {
@@ -580,29 +435,12 @@ export interface BankBase extends BaseContract {
       amount?: null,
       receiver?: null
     ): BurnEventFilter;
-    Burn(
-      tokenId?: null,
-      userAddress?: null,
-      amount?: null,
-      receiver?: null
-    ): BurnEventFilter;
+    Burn(tokenId?: null, userAddress?: null, amount?: null, receiver?: null): BurnEventFilter;
 
-    "Harvest(uint256,address,address)"(
-      tokenId?: null,
-      userAddress?: null,
-      receiver?: null
-    ): HarvestEventFilter;
-    Harvest(
-      tokenId?: null,
-      userAddress?: null,
-      receiver?: null
-    ): HarvestEventFilter;
+    "Harvest(uint256,address,address)"(tokenId?: null, userAddress?: null, receiver?: null): HarvestEventFilter;
+    Harvest(tokenId?: null, userAddress?: null, receiver?: null): HarvestEventFilter;
 
-    "Mint(uint256,address,uint256)"(
-      tokenId?: null,
-      userAddress?: null,
-      amount?: null
-    ): MintEventFilter;
+    "Mint(uint256,address,uint256)"(tokenId?: null, userAddress?: null, amount?: null): MintEventFilter;
     Mint(tokenId?: null, userAddress?: null, amount?: null): MintEventFilter;
 
     "OwnershipTransferred(address,address)"(
@@ -624,20 +462,11 @@ export interface BankBase extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    decodeId(
-      id: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    decodeId(id: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
 
-    getIdFromLpToken(
-      lpToken: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    getIdFromLpToken(lpToken: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
-    getLPToken(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    getLPToken(tokenId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
 
     getPendingRewardsForUser(
       tokenId: PromiseOrValue<BigNumberish>,
@@ -651,15 +480,9 @@ export interface BankBase extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getRewards(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    getRewards(tokenId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
 
-    getUnderlyingForFirstDeposit(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    getUnderlyingForFirstDeposit(tokenId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
 
     getUnderlyingForRecurringDeposit(
       tokenId: PromiseOrValue<BigNumberish>,
@@ -695,9 +518,7 @@ export interface BankBase extends BaseContract {
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
-    renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+    renounceOwnership(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
 
     transferOwnership(
       newOwner: PromiseOrValue<string>,
@@ -714,20 +535,11 @@ export interface BankBase extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    decodeId(
-      id: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    decodeId(id: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    getIdFromLpToken(
-      lpToken: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    getIdFromLpToken(lpToken: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    getLPToken(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    getLPToken(tokenId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getPendingRewardsForUser(
       tokenId: PromiseOrValue<BigNumberish>,
@@ -741,10 +553,7 @@ export interface BankBase extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getRewards(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    getRewards(tokenId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getUnderlyingForFirstDeposit(
       tokenId: PromiseOrValue<BigNumberish>,
@@ -763,9 +572,7 @@ export interface BankBase extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    isUnderlyingERC721(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    isUnderlyingERC721(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     mint(
       tokenId: PromiseOrValue<BigNumberish>,
@@ -787,9 +594,7 @@ export interface BankBase extends BaseContract {
 
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
+    renounceOwnership(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
 
     transferOwnership(
       newOwner: PromiseOrValue<string>,

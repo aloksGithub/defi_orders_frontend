@@ -4,10 +4,7 @@
 
 import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
-import type {
-  PositionManager,
-  PositionManagerInterface,
-} from "../PositionManager";
+import type { PositionManager, PositionManagerInterface } from "../PositionManager";
 
 const _abi = [
   {
@@ -1609,10 +1606,7 @@ export class PositionManager__factory {
   static createInterface(): PositionManagerInterface {
     return new utils.Interface(_abi) as PositionManagerInterface;
   }
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): PositionManager {
+  static connect(address: string, signerOrProvider: Signer | Provider): PositionManager {
     return new Contract(address, _abi, signerOrProvider) as PositionManager;
   }
 }

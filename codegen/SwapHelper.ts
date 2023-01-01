@@ -13,19 +13,9 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type {
-  FunctionFragment,
-  Result,
-  EventFragment,
-} from "@ethersproject/abi";
+import type { FunctionFragment, Result, EventFragment } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
-import type {
-  TypedEventFilter,
-  TypedEvent,
-  TypedListener,
-  OnEvent,
-  PromiseOrValue,
-} from "./common";
+import type { TypedEventFilter, TypedEvent, TypedListener, OnEvent, PromiseOrValue } from "./common";
 
 export type AssetStruct = {
   pool: PromiseOrValue<string>;
@@ -35,13 +25,7 @@ export type AssetStruct = {
   data: PromiseOrValue<BytesLike>;
 };
 
-export type AssetStructOutput = [
-  string,
-  string,
-  BigNumber,
-  BigNumber,
-  string
-] & {
+export type AssetStructOutput = [string, string, BigNumber, BigNumber, string] & {
   pool: string;
   manager: string;
   tokenId: BigNumber;
@@ -55,11 +39,11 @@ export type ProvidedStruct = {
   nfts: AssetStruct[];
 };
 
-export type ProvidedStructOutput = [
-  string[],
-  BigNumber[],
-  AssetStructOutput[]
-] & { tokens: string[]; amounts: BigNumber[]; nfts: AssetStructOutput[] };
+export type ProvidedStructOutput = [string[], BigNumber[], AssetStructOutput[]] & {
+  tokens: string[];
+  amounts: BigNumber[];
+  nfts: AssetStructOutput[];
+};
 
 export type SwapPointStruct = {
   amountIn: PromiseOrValue<BigNumberish>;
@@ -102,12 +86,7 @@ export type DesiredStruct = {
   minAmountsOut: PromiseOrValue<BigNumberish>[];
 };
 
-export type DesiredStructOutput = [
-  string[],
-  AssetStructOutput[],
-  BigNumber[],
-  BigNumber[]
-] & {
+export type DesiredStructOutput = [string[], AssetStructOutput[], BigNumber[], BigNumber[]] & {
   outputERC20s: string[];
   outputERC721s: AssetStructOutput[];
   ratios: BigNumber[];
@@ -122,13 +101,7 @@ export type ConversionStruct = {
   underlyingValues: PromiseOrValue<BigNumberish>[];
 };
 
-export type ConversionStructOutput = [
-  AssetStructOutput,
-  string,
-  BigNumber,
-  string[],
-  BigNumber[]
-] & {
+export type ConversionStructOutput = [AssetStructOutput, string, BigNumber, string[], BigNumber[]] & {
   desiredERC721: AssetStructOutput;
   desiredERC20: string;
   value: BigNumber;
@@ -196,10 +169,7 @@ export interface SwapHelperInterface extends utils.Interface {
       | "transferOwnership"
   ): FunctionFragment;
 
-  encodeFunctionData(
-    functionFragment: "estimateValue",
-    values: [ProvidedStruct, PromiseOrValue<string>]
-  ): string;
+  encodeFunctionData(functionFragment: "estimateValue", values: [ProvidedStruct, PromiseOrValue<string>]): string;
   encodeFunctionData(
     functionFragment: "findMultipleSwaps",
     values: [
@@ -212,210 +182,73 @@ export interface SwapHelperInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getAmountsOut",
-    values: [
-      ProvidedStruct,
-      DesiredStruct,
-      SwapPointStruct[],
-      ConversionStruct[]
-    ]
+    values: [ProvidedStruct, DesiredStruct, SwapPointStruct[], ConversionStruct[]]
   ): string;
-  encodeFunctionData(
-    functionFragment: "getProtocol",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getSwappers",
-    values?: undefined
-  ): string;
+  encodeFunctionData(functionFragment: "getProtocol", values: [PromiseOrValue<string>]): string;
+  encodeFunctionData(functionFragment: "getSwappers", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "getTokenValues",
     values: [PromiseOrValue<string>[], PromiseOrValue<BigNumberish>[]]
   ): string;
-  encodeFunctionData(
-    functionFragment: "getUnderlyingERC20",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getUnderlyingERC721",
-    values: [AssetStruct]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "isSimpleToken",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "networkToken",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "nftPoolInteractors",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
+  encodeFunctionData(functionFragment: "getUnderlyingERC20", values: [PromiseOrValue<string>]): string;
+  encodeFunctionData(functionFragment: "getUnderlyingERC721", values: [AssetStruct]): string;
+  encodeFunctionData(functionFragment: "isSimpleToken", values: [PromiseOrValue<string>]): string;
+  encodeFunctionData(functionFragment: "networkToken", values?: undefined): string;
+  encodeFunctionData(functionFragment: "nftPoolInteractors", values: [PromiseOrValue<BigNumberish>]): string;
   encodeFunctionData(functionFragment: "oracle", values?: undefined): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "poolInteractors",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
+  encodeFunctionData(functionFragment: "poolInteractors", values: [PromiseOrValue<BigNumberish>]): string;
   encodeFunctionData(
     functionFragment: "prepareConversions",
-    values: [
-      PromiseOrValue<string>[],
-      AssetStruct[],
-      PromiseOrValue<BigNumberish>[],
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [PromiseOrValue<string>[], AssetStruct[], PromiseOrValue<BigNumberish>[], PromiseOrValue<BigNumberish>]
   ): string;
-  encodeFunctionData(
-    functionFragment: "renounceOwnership",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setNFTPoolInteractors",
-    values: [PromiseOrValue<string>[]]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setOracle",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setPoolInteractors",
-    values: [PromiseOrValue<string>[]]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setSwappers",
-    values: [PromiseOrValue<string>[]]
-  ): string;
+  encodeFunctionData(functionFragment: "renounceOwnership", values?: undefined): string;
+  encodeFunctionData(functionFragment: "setNFTPoolInteractors", values: [PromiseOrValue<string>[]]): string;
+  encodeFunctionData(functionFragment: "setOracle", values: [PromiseOrValue<string>]): string;
+  encodeFunctionData(functionFragment: "setPoolInteractors", values: [PromiseOrValue<string>[]]): string;
+  encodeFunctionData(functionFragment: "setSwappers", values: [PromiseOrValue<string>[]]): string;
   encodeFunctionData(
     functionFragment: "simplifyWithoutWrite",
-    values: [
-      PromiseOrValue<string>[],
-      PromiseOrValue<BigNumberish>[],
-      AssetStruct[]
-    ]
+    values: [PromiseOrValue<string>[], PromiseOrValue<BigNumberish>[], AssetStruct[]]
   ): string;
   encodeFunctionData(
     functionFragment: "simulateConversions",
-    values: [
-      ConversionStruct[],
-      PromiseOrValue<string>[],
-      PromiseOrValue<string>[],
-      PromiseOrValue<BigNumberish>[]
-    ]
+    values: [ConversionStruct[], PromiseOrValue<string>[], PromiseOrValue<string>[], PromiseOrValue<BigNumberish>[]]
   ): string;
   encodeFunctionData(
     functionFragment: "simulateSwaps",
-    values: [
-      SwapPointStruct[],
-      PromiseOrValue<string>[],
-      PromiseOrValue<BigNumberish>[]
-    ]
+    values: [SwapPointStruct[], PromiseOrValue<string>[], PromiseOrValue<BigNumberish>[]]
   ): string;
-  encodeFunctionData(
-    functionFragment: "stableToken",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "swappers",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "transferOwnership",
-    values: [PromiseOrValue<string>]
-  ): string;
+  encodeFunctionData(functionFragment: "stableToken", values?: undefined): string;
+  encodeFunctionData(functionFragment: "swappers", values: [PromiseOrValue<BigNumberish>]): string;
+  encodeFunctionData(functionFragment: "transferOwnership", values: [PromiseOrValue<string>]): string;
 
-  decodeFunctionResult(
-    functionFragment: "estimateValue",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "findMultipleSwaps",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getAmountsOut",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getProtocol",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getSwappers",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getTokenValues",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getUnderlyingERC20",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getUnderlyingERC721",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "isSimpleToken",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "networkToken",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "nftPoolInteractors",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "estimateValue", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "findMultipleSwaps", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "getAmountsOut", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "getProtocol", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "getSwappers", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "getTokenValues", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "getUnderlyingERC20", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "getUnderlyingERC721", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "isSimpleToken", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "networkToken", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "nftPoolInteractors", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "oracle", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "poolInteractors",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "prepareConversions",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "renounceOwnership",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setNFTPoolInteractors",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "poolInteractors", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "prepareConversions", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "renounceOwnership", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "setNFTPoolInteractors", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setOracle", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "setPoolInteractors",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setSwappers",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "simplifyWithoutWrite",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "simulateConversions",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "simulateSwaps",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "stableToken",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "setPoolInteractors", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "setSwappers", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "simplifyWithoutWrite", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "simulateConversions", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "simulateSwaps", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "stableToken", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "swappers", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "transferOwnership",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "transferOwnership", data: BytesLike): Result;
 
   events: {
     "OwnershipTransferred(address,address)": EventFragment;
@@ -428,13 +261,9 @@ export interface OwnershipTransferredEventObject {
   previousOwner: string;
   newOwner: string;
 }
-export type OwnershipTransferredEvent = TypedEvent<
-  [string, string],
-  OwnershipTransferredEventObject
->;
+export type OwnershipTransferredEvent = TypedEvent<[string, string], OwnershipTransferredEventObject>;
 
-export type OwnershipTransferredEventFilter =
-  TypedEventFilter<OwnershipTransferredEvent>;
+export type OwnershipTransferredEventFilter = TypedEventFilter<OwnershipTransferredEvent>;
 
 export interface SwapHelper extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -449,13 +278,9 @@ export interface SwapHelper extends BaseContract {
     toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
+  listeners<TEvent extends TypedEvent>(eventFilter?: TypedEventFilter<TEvent>): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
+  removeAllListeners<TEvent extends TypedEvent>(eventFilter: TypedEventFilter<TEvent>): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
   on: OnEvent<this>;
@@ -476,9 +301,7 @@ export interface SwapHelper extends BaseContract {
       outputTokens: PromiseOrValue<string>[],
       outputValues: PromiseOrValue<BigNumberish>[],
       overrides?: CallOverrides
-    ): Promise<
-      [SwapPointStructOutput[]] & { bestSwaps: SwapPointStructOutput[] }
-    >;
+    ): Promise<[SwapPointStructOutput[]] & { bestSwaps: SwapPointStructOutput[] }>;
 
     getAmountsOut(
       provided: ProvidedStruct,
@@ -493,10 +316,7 @@ export interface SwapHelper extends BaseContract {
       }
     >;
 
-    getProtocol(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
+    getProtocol(token: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[string]>;
 
     getSwappers(overrides?: CallOverrides): Promise<[string[]]>;
 
@@ -504,9 +324,7 @@ export interface SwapHelper extends BaseContract {
       tokens: PromiseOrValue<string>[],
       tokenAmounts: PromiseOrValue<BigNumberish>[],
       overrides?: CallOverrides
-    ): Promise<
-      [BigNumber[], BigNumber] & { values: BigNumber[]; total: BigNumber }
-    >;
+    ): Promise<[BigNumber[], BigNumber] & { values: BigNumber[]; total: BigNumber }>;
 
     getUnderlyingERC20(
       token: PromiseOrValue<string>,
@@ -521,30 +339,19 @@ export interface SwapHelper extends BaseContract {
     getUnderlyingERC721(
       nft: AssetStruct,
       overrides?: CallOverrides
-    ): Promise<
-      [string[], BigNumber[]] & { underlying: string[]; ratios: BigNumber[] }
-    >;
+    ): Promise<[string[], BigNumber[]] & { underlying: string[]; ratios: BigNumber[] }>;
 
-    isSimpleToken(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
+    isSimpleToken(token: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[boolean]>;
 
     networkToken(overrides?: CallOverrides): Promise<[string]>;
 
-    nftPoolInteractors(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
+    nftPoolInteractors(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<[string]>;
 
     oracle(overrides?: CallOverrides): Promise<[string]>;
 
     owner(overrides?: CallOverrides): Promise<[string]>;
 
-    poolInteractors(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
+    poolInteractors(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<[string]>;
 
     prepareConversions(
       desiredERC20s: PromiseOrValue<string>[],
@@ -552,13 +359,9 @@ export interface SwapHelper extends BaseContract {
       ratios: PromiseOrValue<BigNumberish>[],
       totalAvailable: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<
-      [ConversionStructOutput[]] & { conversions: ConversionStructOutput[] }
-    >;
+    ): Promise<[ConversionStructOutput[]] & { conversions: ConversionStructOutput[] }>;
 
-    renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+    renounceOwnership(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
     setNFTPoolInteractors(
       _nftPoolInteractors: PromiseOrValue<string>[],
@@ -605,16 +408,11 @@ export interface SwapHelper extends BaseContract {
       tokens: PromiseOrValue<string>[],
       amounts: PromiseOrValue<BigNumberish>[],
       overrides?: CallOverrides
-    ): Promise<
-      [string[], BigNumber[]] & { tokensOut: string[]; amountsOut: BigNumber[] }
-    >;
+    ): Promise<[string[], BigNumber[]] & { tokensOut: string[]; amountsOut: BigNumber[] }>;
 
     stableToken(overrides?: CallOverrides): Promise<[string]>;
 
-    swappers(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
+    swappers(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<[string]>;
 
     transferOwnership(
       newOwner: PromiseOrValue<string>,
@@ -650,10 +448,7 @@ export interface SwapHelper extends BaseContract {
     }
   >;
 
-  getProtocol(
-    token: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  getProtocol(token: PromiseOrValue<string>, overrides?: CallOverrides): Promise<string>;
 
   getSwappers(overrides?: CallOverrides): Promise<string[]>;
 
@@ -661,9 +456,7 @@ export interface SwapHelper extends BaseContract {
     tokens: PromiseOrValue<string>[],
     tokenAmounts: PromiseOrValue<BigNumberish>[],
     overrides?: CallOverrides
-  ): Promise<
-    [BigNumber[], BigNumber] & { values: BigNumber[]; total: BigNumber }
-  >;
+  ): Promise<[BigNumber[], BigNumber] & { values: BigNumber[]; total: BigNumber }>;
 
   getUnderlyingERC20(
     token: PromiseOrValue<string>,
@@ -678,30 +471,19 @@ export interface SwapHelper extends BaseContract {
   getUnderlyingERC721(
     nft: AssetStruct,
     overrides?: CallOverrides
-  ): Promise<
-    [string[], BigNumber[]] & { underlying: string[]; ratios: BigNumber[] }
-  >;
+  ): Promise<[string[], BigNumber[]] & { underlying: string[]; ratios: BigNumber[] }>;
 
-  isSimpleToken(
-    token: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
+  isSimpleToken(token: PromiseOrValue<string>, overrides?: CallOverrides): Promise<boolean>;
 
   networkToken(overrides?: CallOverrides): Promise<string>;
 
-  nftPoolInteractors(
-    arg0: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  nftPoolInteractors(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<string>;
 
   oracle(overrides?: CallOverrides): Promise<string>;
 
   owner(overrides?: CallOverrides): Promise<string>;
 
-  poolInteractors(
-    arg0: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  poolInteractors(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<string>;
 
   prepareConversions(
     desiredERC20s: PromiseOrValue<string>[],
@@ -711,9 +493,7 @@ export interface SwapHelper extends BaseContract {
     overrides?: CallOverrides
   ): Promise<ConversionStructOutput[]>;
 
-  renounceOwnership(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  renounceOwnership(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
   setNFTPoolInteractors(
     _nftPoolInteractors: PromiseOrValue<string>[],
@@ -760,16 +540,11 @@ export interface SwapHelper extends BaseContract {
     tokens: PromiseOrValue<string>[],
     amounts: PromiseOrValue<BigNumberish>[],
     overrides?: CallOverrides
-  ): Promise<
-    [string[], BigNumber[]] & { tokensOut: string[]; amountsOut: BigNumber[] }
-  >;
+  ): Promise<[string[], BigNumber[]] & { tokensOut: string[]; amountsOut: BigNumber[] }>;
 
   stableToken(overrides?: CallOverrides): Promise<string>;
 
-  swappers(
-    arg0: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  swappers(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<string>;
 
   transferOwnership(
     newOwner: PromiseOrValue<string>,
@@ -805,10 +580,7 @@ export interface SwapHelper extends BaseContract {
       }
     >;
 
-    getProtocol(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<string>;
+    getProtocol(token: PromiseOrValue<string>, overrides?: CallOverrides): Promise<string>;
 
     getSwappers(overrides?: CallOverrides): Promise<string[]>;
 
@@ -816,9 +588,7 @@ export interface SwapHelper extends BaseContract {
       tokens: PromiseOrValue<string>[],
       tokenAmounts: PromiseOrValue<BigNumberish>[],
       overrides?: CallOverrides
-    ): Promise<
-      [BigNumber[], BigNumber] & { values: BigNumber[]; total: BigNumber }
-    >;
+    ): Promise<[BigNumber[], BigNumber] & { values: BigNumber[]; total: BigNumber }>;
 
     getUnderlyingERC20(
       token: PromiseOrValue<string>,
@@ -833,30 +603,19 @@ export interface SwapHelper extends BaseContract {
     getUnderlyingERC721(
       nft: AssetStruct,
       overrides?: CallOverrides
-    ): Promise<
-      [string[], BigNumber[]] & { underlying: string[]; ratios: BigNumber[] }
-    >;
+    ): Promise<[string[], BigNumber[]] & { underlying: string[]; ratios: BigNumber[] }>;
 
-    isSimpleToken(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
+    isSimpleToken(token: PromiseOrValue<string>, overrides?: CallOverrides): Promise<boolean>;
 
     networkToken(overrides?: CallOverrides): Promise<string>;
 
-    nftPoolInteractors(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string>;
+    nftPoolInteractors(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<string>;
 
     oracle(overrides?: CallOverrides): Promise<string>;
 
     owner(overrides?: CallOverrides): Promise<string>;
 
-    poolInteractors(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string>;
+    poolInteractors(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<string>;
 
     prepareConversions(
       desiredERC20s: PromiseOrValue<string>[],
@@ -868,25 +627,13 @@ export interface SwapHelper extends BaseContract {
 
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
 
-    setNFTPoolInteractors(
-      _nftPoolInteractors: PromiseOrValue<string>[],
-      overrides?: CallOverrides
-    ): Promise<void>;
+    setNFTPoolInteractors(_nftPoolInteractors: PromiseOrValue<string>[], overrides?: CallOverrides): Promise<void>;
 
-    setOracle(
-      _oracle: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    setOracle(_oracle: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
 
-    setPoolInteractors(
-      _poolInteractors: PromiseOrValue<string>[],
-      overrides?: CallOverrides
-    ): Promise<void>;
+    setPoolInteractors(_poolInteractors: PromiseOrValue<string>[], overrides?: CallOverrides): Promise<void>;
 
-    setSwappers(
-      _swappers: PromiseOrValue<string>[],
-      overrides?: CallOverrides
-    ): Promise<void>;
+    setSwappers(_swappers: PromiseOrValue<string>[], overrides?: CallOverrides): Promise<void>;
 
     simplifyWithoutWrite(
       tokens: PromiseOrValue<string>[],
@@ -913,21 +660,13 @@ export interface SwapHelper extends BaseContract {
       tokens: PromiseOrValue<string>[],
       amounts: PromiseOrValue<BigNumberish>[],
       overrides?: CallOverrides
-    ): Promise<
-      [string[], BigNumber[]] & { tokensOut: string[]; amountsOut: BigNumber[] }
-    >;
+    ): Promise<[string[], BigNumber[]] & { tokensOut: string[]; amountsOut: BigNumber[] }>;
 
     stableToken(overrides?: CallOverrides): Promise<string>;
 
-    swappers(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string>;
+    swappers(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<string>;
 
-    transferOwnership(
-      newOwner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    transferOwnership(newOwner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
   };
 
   filters: {
@@ -965,10 +704,7 @@ export interface SwapHelper extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getProtocol(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    getProtocol(token: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
     getSwappers(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -978,36 +714,21 @@ export interface SwapHelper extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getUnderlyingERC20(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    getUnderlyingERC20(token: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
-    getUnderlyingERC721(
-      nft: AssetStruct,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    getUnderlyingERC721(nft: AssetStruct, overrides?: CallOverrides): Promise<BigNumber>;
 
-    isSimpleToken(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    isSimpleToken(token: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
     networkToken(overrides?: CallOverrides): Promise<BigNumber>;
 
-    nftPoolInteractors(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    nftPoolInteractors(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
 
     oracle(overrides?: CallOverrides): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
-    poolInteractors(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    poolInteractors(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
 
     prepareConversions(
       desiredERC20s: PromiseOrValue<string>[],
@@ -1017,9 +738,7 @@ export interface SwapHelper extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+    renounceOwnership(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
 
     setNFTPoolInteractors(
       _nftPoolInteractors: PromiseOrValue<string>[],
@@ -1065,10 +784,7 @@ export interface SwapHelper extends BaseContract {
 
     stableToken(overrides?: CallOverrides): Promise<BigNumber>;
 
-    swappers(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    swappers(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
 
     transferOwnership(
       newOwner: PromiseOrValue<string>,
@@ -1100,10 +816,7 @@ export interface SwapHelper extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getProtocol(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    getProtocol(token: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getSwappers(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -1113,36 +826,21 @@ export interface SwapHelper extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getUnderlyingERC20(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    getUnderlyingERC20(token: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    getUnderlyingERC721(
-      nft: AssetStruct,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    getUnderlyingERC721(nft: AssetStruct, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    isSimpleToken(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    isSimpleToken(token: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     networkToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    nftPoolInteractors(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    nftPoolInteractors(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     oracle(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    poolInteractors(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    poolInteractors(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     prepareConversions(
       desiredERC20s: PromiseOrValue<string>[],
@@ -1152,9 +850,7 @@ export interface SwapHelper extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
+    renounceOwnership(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
 
     setNFTPoolInteractors(
       _nftPoolInteractors: PromiseOrValue<string>[],
@@ -1200,10 +896,7 @@ export interface SwapHelper extends BaseContract {
 
     stableToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    swappers(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    swappers(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     transferOwnership(
       newOwner: PromiseOrValue<string>,

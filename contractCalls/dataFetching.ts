@@ -1,217 +1,251 @@
 import { BigNumber, ethers } from "ethers";
-import erc20Abi from "../constants/abis/ERC20.json"
+import erc20Abi from "../constants/abis/ERC20.json";
 import { nativeTokens } from "../utils";
 import { blockExplorerAPIs } from "../utils";
-import EthDater from 'ethereum-block-by-date'
+import EthDater from "ethereum-block-by-date";
 import { SwapContracts, UserAssetSupplied, WantedAsset } from "../Types";
 import { JsonRpcSigner, JsonRpcProvider } from "@ethersproject/providers";
 import { PositionStructOutput } from "../codegen/PositionManager";
 import { ERC20__factory } from "../codegen";
 
-export const getAmountsOut = async (contracts: SwapContracts, signer: JsonRpcSigner, assetsToConvert: UserAssetSupplied[], wantedAssets: WantedAsset[]) => {
+export const getAmountsOut = async (
+  contracts: SwapContracts,
+  signer: JsonRpcSigner,
+  assetsToConvert: UserAssetSupplied[],
+  wantedAssets: WantedAsset[]
+) => {
   const provided = {
-    tokens: assetsToConvert.map(asset=>asset.contract_address),
-    amounts: assetsToConvert.map(asset=>ethers.utils.parseUnits(asset.tokensSupplied, asset.contract_decimals)),
-    nfts: []
-  }
-  const desired: {outputERC20s: string[], outputERC721s: any[], ratios: number[], minAmountsOut: BigNumber[]} = {
+    tokens: assetsToConvert.map((asset) => asset.contract_address),
+    amounts: assetsToConvert.map((asset) => ethers.utils.parseUnits(asset.tokensSupplied, asset.contract_decimals)),
+    nfts: [],
+  };
+  const desired: { outputERC20s: string[]; outputERC721s: any[]; ratios: number[]; minAmountsOut: BigNumber[] } = {
     outputERC20s: [],
     outputERC721s: [],
     ratios: [],
-    minAmountsOut: []
-  }
+    minAmountsOut: [],
+  };
   for (const asset of wantedAssets) {
-    desired.outputERC20s.push(asset.contract_address)
-    desired.ratios.push(Math.floor(asset.percentage*10000))
-    desired.minAmountsOut.push(ethers.utils.parseUnits(asset.minOut.toFixed(asset.contract_decimals), asset.contract_decimals))
+    desired.outputERC20s.push(asset.contract_address);
+    desired.ratios.push(Math.floor(asset.percentage * 10000));
+    desired.minAmountsOut.push(
+      ethers.utils.parseUnits(asset.minOut.toFixed(asset.contract_decimals), asset.contract_decimals)
+    );
   }
-  const {amounts, swaps, conversions, expectedUSDValues} = await contracts.universalSwap.getAmountsOut(provided, desired)
-  const stableTokenAddress = await contracts.universalSwap.stableToken()
-  const stableToken = new ethers.Contract(stableTokenAddress, erc20Abi, signer)
-  const expectedAssets:WantedAsset[] = wantedAssets.map((asset, index)=> {
+  const { amounts, swaps, conversions, expectedUSDValues } = await contracts.universalSwap.getAmountsOut(
+    provided,
+    desired
+  );
+  const stableTokenAddress = await contracts.universalSwap.stableToken();
+  const stableToken = new ethers.Contract(stableTokenAddress, erc20Abi, signer);
+  const expectedAssets: WantedAsset[] = wantedAssets.map((asset, index) => {
     return {
       ...asset,
       expected: +ethers.utils.formatUnits(amounts[index], asset.contract_decimals),
-      quote: +ethers.utils.formatUnits(amounts[index], asset.contract_decimals)
-    }
-  })
-  return {swaps, conversions, provided, desired, wantedAssets, expectedAssets}
-}
+      quote: +ethers.utils.formatUnits(amounts[index], asset.contract_decimals),
+    };
+  });
+  return { swaps, conversions, provided, desired, wantedAssets, expectedAssets };
+};
 
 interface PositionToken {
-  name: string
-  amount: number
-  value: number
-  address: string
+  name: string;
+  amount: number;
+  value: number;
+  address: string;
 }
 
 export interface FetchPositionData {
-  positionId: number
-  positionData: PositionStructOutput
-  formattedAmount: string
-  decimals: number
-  tokenContract: string
-  name: string
-  usdcValue: number
-  rewards: PositionToken[]
-  underlying: PositionToken[]
-  closed: boolean
+  positionId: number;
+  positionData: PositionStructOutput;
+  formattedAmount: string;
+  decimals: number;
+  tokenContract: string;
+  name: string;
+  usdcValue: number;
+  rewards: PositionToken[];
+  underlying: PositionToken[];
+  closed: boolean;
 }
 
-export const fetchPosition = async (id:number, contracts: SwapContracts, signer: JsonRpcSigner, chainId: number) => {
-  if (!contracts.positionManager) return
-  let positionData = await contracts.positionManager.getPosition(id)
-  const {position, bankTokenInfo, underlyingTokens, underlyingAmounts, underlyingValues, rewardTokens, rewardAmounts, rewardValues, usdValue} = positionData
-  const stableDecimals = await contracts.stableToken.decimals()
-  const usdcValue = +ethers.utils.formatUnits(usdValue, stableDecimals)
-  const depositToken = bankTokenInfo.lpToken
-  const depositTokenContract = ERC20__factory.connect(depositToken, signer)
-  let decimals: number
-  let name: string
-  if (depositToken!=ethers.constants.AddressZero) {
-    decimals = await depositTokenContract.decimals()
-    name = await depositTokenContract.name()
+export const fetchPosition = async (id: number, contracts: SwapContracts, signer: JsonRpcSigner, chainId: number) => {
+  if (!contracts.positionManager) return;
+  let positionData = await contracts.positionManager.getPosition(id);
+  const {
+    position,
+    bankTokenInfo,
+    underlyingTokens,
+    underlyingAmounts,
+    underlyingValues,
+    rewardTokens,
+    rewardAmounts,
+    rewardValues,
+    usdValue,
+  } = positionData;
+  const stableDecimals = await contracts.stableToken.decimals();
+  const usdcValue = +ethers.utils.formatUnits(usdValue, stableDecimals);
+  const depositToken = bankTokenInfo.lpToken;
+  const depositTokenContract = ERC20__factory.connect(depositToken, signer);
+  let decimals: number;
+  let name: string;
+  if (depositToken != ethers.constants.AddressZero) {
+    decimals = await depositTokenContract.decimals();
+    name = await depositTokenContract.name();
   } else {
-    decimals = 18
-    name = nativeTokens[chainId].contract_name
+    decimals = 18;
+    name = nativeTokens[chainId].contract_name;
   }
-  const underlying = await Promise.all(underlyingTokens.map(async (token, index) => {
-    const contract = ERC20__factory.connect(token, signer)
-    const name = await contract.name()
-    const decimals = await contract.decimals()
-    const amount = +ethers.utils.formatUnits(underlyingAmounts[index], decimals)
-    const value = +ethers.utils.formatUnits(underlyingValues[index], stableDecimals)
-    return {name, amount, value, address:token}
-  }))
-  const rewards = await Promise.all(rewardTokens.map(async (token, index) => {
-    const contract = ERC20__factory.connect(token, signer)
-    const name = await contract.name()
-    const decimals = await contract.decimals()
-    const amount = +ethers.utils.formatUnits(rewardAmounts[index], decimals)
-    const value = +ethers.utils.formatUnits(rewardValues[index], stableDecimals)
-    return {name, amount, value, address:token}
-  }))
+  const underlying = await Promise.all(
+    underlyingTokens.map(async (token, index) => {
+      const contract = ERC20__factory.connect(token, signer);
+      const name = await contract.name();
+      const decimals = await contract.decimals();
+      const amount = +ethers.utils.formatUnits(underlyingAmounts[index], decimals);
+      const value = +ethers.utils.formatUnits(underlyingValues[index], stableDecimals);
+      return { name, amount, value, address: token };
+    })
+  );
+  const rewards = await Promise.all(
+    rewardTokens.map(async (token, index) => {
+      const contract = ERC20__factory.connect(token, signer);
+      const name = await contract.name();
+      const decimals = await contract.decimals();
+      const amount = +ethers.utils.formatUnits(rewardAmounts[index], decimals);
+      const value = +ethers.utils.formatUnits(rewardValues[index], stableDecimals);
+      return { name, amount, value, address: token };
+    })
+  );
 
-  const closed = await contracts.positionManager.positionClosed(id)
+  const closed = await contracts.positionManager.positionClosed(id);
 
   return {
-    positionId: id, positionData:position,
+    positionId: id,
+    positionData: position,
     formattedAmount: ethers.utils.formatUnits(position.amount, decimals),
     decimals,
-    tokenContract:bankTokenInfo.lpToken,
+    tokenContract: bankTokenInfo.lpToken,
     name,
     usdcValue,
     rewards,
     underlying,
-    closed
-  }
-}
+    closed,
+  };
+};
 
-const getBlockFromExplorer = async (chainId:number, daysAgo:number) => {
-  const timeNow = Math.floor(new Date().getTime()/1000)
-  const url = `${blockExplorerAPIs[chainId]}/api?module=block&action=getblocknobytime&timestamp=${timeNow-daysAgo*24*60*60}&closest=before&apikey=YourApiKeyToken`
-  const response = await fetch(url)
-  const block = +(await response.json()).result
-  return block
-}
+const getBlockFromExplorer = async (chainId: number, daysAgo: number) => {
+  const timeNow = Math.floor(new Date().getTime() / 1000);
+  const url = `${blockExplorerAPIs[chainId]}/api?module=block&action=getblocknobytime&timestamp=${
+    timeNow - daysAgo * 24 * 60 * 60
+  }&closest=before&apikey=YourApiKeyToken`;
+  const response = await fetch(url);
+  const block = +(await response.json()).result;
+  return block;
+};
 
 const getBlockFromProvider = async (provider: JsonRpcProvider, daysAgo: number) => {
-  const dater = new EthDater(provider)
-  const seconds = daysAgo*24*60*60
-  const timeNow = new Date()
+  const dater = new EthDater(provider);
+  const seconds = daysAgo * 24 * 60 * 60;
+  const timeNow = new Date();
   timeNow.setSeconds(timeNow.getSeconds() - seconds);
-  const block = await dater.getDate(timeNow)
-  return block.block
-}
+  const block = await dater.getDate(timeNow);
+  return block.block;
+};
 
 export const getGraphData = async (contracts: SwapContracts, id, provider: JsonRpcProvider, duration: number) => {
-  const usdcDecimals = await contracts.stableToken.decimals()
-  const blocks = []
-  const timestamps = []
-  const numPoints = 30
-  const latestBlock = await provider.getBlock("latest")
-  const currentTime = latestBlock.timestamp
-  const previousTimestamp = (await provider.getBlock(latestBlock.number-1)).timestamp
-  const blockTime = currentTime-previousTimestamp
-  let startBlock
-  const positionInteractions = await contracts.positionManager.getPositionInteractions(id)
-    if (duration===-1) {
-    startBlock = positionInteractions[0].blockNumber.toNumber()
-    startBlock += (latestBlock.number-startBlock)%numPoints
+  const usdcDecimals = await contracts.stableToken.decimals();
+  const blocks = [];
+  const timestamps = [];
+  const numPoints = 30;
+  const latestBlock = await provider.getBlock("latest");
+  const currentTime = latestBlock.timestamp;
+  const previousTimestamp = (await provider.getBlock(latestBlock.number - 1)).timestamp;
+  const blockTime = currentTime - previousTimestamp;
+  let startBlock;
+  const positionInteractions = await contracts.positionManager.getPositionInteractions(id);
+  if (duration === -1) {
+    startBlock = positionInteractions[0].blockNumber.toNumber();
+    startBlock += (latestBlock.number - startBlock) % numPoints;
   } else {
-    startBlock = await getBlockFromProvider(provider, duration)
+    startBlock = await getBlockFromProvider(provider, duration);
     // startBlock = await getBlockFromExplorer(chainId, duration)
     // startBlock = latestBlock.number-blockTime*numPoints*duration
-    startBlock = startBlock>=+positionInteractions[0].blockNumber?startBlock:+positionInteractions[0].blockNumber
-    startBlock += (latestBlock.number-startBlock)%numPoints
+    startBlock = startBlock >= +positionInteractions[0].blockNumber ? startBlock : +positionInteractions[0].blockNumber;
+    startBlock += (latestBlock.number - startBlock) % numPoints;
   }
-  blocks.push(startBlock)
+  blocks.push(startBlock);
   while (true) {
-    const block = blocks[blocks.length-1]+(latestBlock.number-startBlock)/numPoints
-    const timestamp = (await provider.getBlock(block)).timestamp
-    timestamps.push(timestamp*1000)
-    if (block>=latestBlock.number || blocks.length===30) {
-      break
+    const block = blocks[blocks.length - 1] + (latestBlock.number - startBlock) / numPoints;
+    const timestamp = (await provider.getBlock(block)).timestamp;
+    timestamps.push(timestamp * 1000);
+    if (block >= latestBlock.number || blocks.length === 30) {
+      break;
     }
-    blocks.push(block)
+    blocks.push(block);
   }
-  blocks.push(latestBlock.number)
-  const timestamp = (await provider.getBlock(latestBlock.number)).timestamp
-  timestamps.push(timestamp*1000)
-  const dataPoints = blocks.map((block)=> {
-    return contracts.positionManager.functions.estimateValue(id, contracts.stableToken.address, {blockTag: block})
-  })
-  const usdValues = (await Promise.all(dataPoints))
-  const formattedusdValues = usdValues.map(value=>parseFloat(ethers.utils.formatUnits(value.toString(), usdcDecimals)))
+  blocks.push(latestBlock.number);
+  const timestamp = (await provider.getBlock(latestBlock.number)).timestamp;
+  timestamps.push(timestamp * 1000);
+  const dataPoints = blocks.map((block) => {
+    return contracts.positionManager.functions.estimateValue(id, contracts.stableToken.address, { blockTag: block });
+  });
+  const usdValues = await Promise.all(dataPoints);
+  const formattedusdValues = usdValues.map((value) =>
+    parseFloat(ethers.utils.formatUnits(value.toString(), usdcDecimals))
+  );
   let graphData = timestamps.map((timestamp, index) => {
-    const time = new Date(timestamp)
-    if (timestamps[timestamps.length-1]-timestamps[0]<86400000) {
+    const time = new Date(timestamp);
+    if (timestamps[timestamps.length - 1] - timestamps[0] < 86400000) {
       return {
-        name: time.toTimeString().split(' ')[0].slice(0, 5),
-        value: formattedusdValues[index].toFixed(4)
-      }
+        name: time.toTimeString().split(" ")[0].slice(0, 5),
+        value: formattedusdValues[index].toFixed(4),
+      };
     } else {
       return {
-        name: `${time.toDateString().split(' ')[2]} ${time.toDateString().split(' ')[1]}`,
-        value: formattedusdValues[index].toFixed(4)
-      }
+        name: `${time.toDateString().split(" ")[2]} ${time.toDateString().split(" ")[1]}`,
+        value: formattedusdValues[index].toFixed(4),
+      };
     }
-  })
-  return graphData
-}
+  });
+  return graphData;
+};
 
-export const fetchImportantPoints = async (contracts: SwapContracts, id: number | string, provider: JsonRpcProvider) => {
-  const stableDecimals = await contracts.stableToken.decimals()
-  let usdcDeposited = 0
-  let usdcWithdrawn = 0
+export const fetchImportantPoints = async (
+  contracts: SwapContracts,
+  id: number | string,
+  provider: JsonRpcProvider
+) => {
+  const stableDecimals = await contracts.stableToken.decimals();
+  let usdcDeposited = 0;
+  let usdcWithdrawn = 0;
 
-  const positionInteractions = await contracts.positionManager.getPositionInteractions(id)
-  const depositToken = positionInteractions[0].assets.tokens[0]
-  const depositTokenContract = new ethers.Contract(depositToken, erc20Abi, provider)
-  let depositTokenDecimals: number
-  if (depositToken!=ethers.constants.AddressZero) {
-    depositTokenDecimals = await depositTokenContract.decimals()
+  const positionInteractions = await contracts.positionManager.getPositionInteractions(id);
+  const depositToken = positionInteractions[0].assets.tokens[0];
+  const depositTokenContract = new ethers.Contract(depositToken, erc20Abi, provider);
+  let depositTokenDecimals: number;
+  if (depositToken != ethers.constants.AddressZero) {
+    depositTokenDecimals = await depositTokenContract.decimals();
   } else {
-    depositTokenDecimals = 18
+    depositTokenDecimals = 18;
   }
-  const formattedInteractions = positionInteractions.map(interaction=>{
-    if (interaction.action.toLowerCase()==='deposit') {
-      usdcDeposited+=+ethers.utils.formatUnits(interaction.usdValue, stableDecimals)
+  const formattedInteractions = positionInteractions.map((interaction) => {
+    if (interaction.action.toLowerCase() === "deposit") {
+      usdcDeposited += +ethers.utils.formatUnits(interaction.usdValue, stableDecimals);
     }
     if (
-      interaction.action.toLowerCase()==='harvest' ||
-      interaction.action.toLowerCase()==='withdraw' ||
-      interaction.action.toLowerCase()==='liquidate' ||
-      interaction.action.toLowerCase()==='close' || 
-      interaction.action.toLowerCase().includes('executed order')) {
-      usdcWithdrawn+=+ethers.utils.formatUnits(interaction.usdValue, stableDecimals)
+      interaction.action.toLowerCase() === "harvest" ||
+      interaction.action.toLowerCase() === "withdraw" ||
+      interaction.action.toLowerCase() === "liquidate" ||
+      interaction.action.toLowerCase() === "close" ||
+      interaction.action.toLowerCase().includes("executed order")
+    ) {
+      usdcWithdrawn += +ethers.utils.formatUnits(interaction.usdValue, stableDecimals);
     }
     return {
       ...interaction,
       sizeChange: ethers.utils.formatUnits(interaction.positionSizeChange, depositTokenDecimals),
       usdValue: +ethers.utils.formatUnits(interaction.usdValue, stableDecimals),
-      date:(new Date(interaction.timestamp.toNumber() * 1000)).toLocaleDateString()
-    }
-  })
-  return {data: formattedInteractions, usdcDeposited, usdcWithdrawn}
-}
+      date: new Date(interaction.timestamp.toNumber() * 1000).toLocaleDateString(),
+    };
+  });
+  return { data: formattedInteractions, usdcDeposited, usdcWithdrawn };
+};

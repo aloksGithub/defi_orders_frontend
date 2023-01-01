@@ -1,13 +1,13 @@
-import {CoinbaseWallet} from "@web3-react/coinbase-wallet";
-import {GnosisSafe} from "@web3-react/gnosis-safe";
-import {MetaMask} from "@web3-react/metamask";
-import {Network} from "@web3-react/network";
-import {WalletConnect} from "@web3-react/walletconnect";
-import type {Connector} from "@web3-react/types";
+import { CoinbaseWallet } from "@web3-react/coinbase-wallet";
+import { GnosisSafe } from "@web3-react/gnosis-safe";
+import { MetaMask } from "@web3-react/metamask";
+import { Network } from "@web3-react/network";
+import { WalletConnect } from "@web3-react/walletconnect";
+import type { Connector } from "@web3-react/types";
 import { ethers } from "ethers";
-import bscAssets from './protocolData/56.json'
-import bscTestnetAssets from './protocolData/97.json'
-import mainnetAssets from './protocolData/1.json'
+import bscAssets from "./protocolData/56.json";
+import bscTestnetAssets from "./protocolData/97.json";
+import mainnetAssets from "./protocolData/1.json";
 import { Asset } from "./Types";
 
 export function getName(connector: Connector) {
@@ -44,12 +44,9 @@ export const chainNames = {
 };
 
 export const walletLogos = {
-  MetaMask:
-    "https://seeklogo.com/images/M/metamask-logo-09EDE53DBD-seeklogo.com.png",
-  Coinbase:
-    "https://seeklogo.com/images/C/coinbase-coin-logo-C86F46D7B8-seeklogo.com.png",
-  WalletConnect:
-    "https://seeklogo.com/images/W/walletconnect-logo-EE83B50C97-seeklogo.com.png",
+  MetaMask: "https://seeklogo.com/images/M/metamask-logo-09EDE53DBD-seeklogo.com.png",
+  Coinbase: "https://seeklogo.com/images/C/coinbase-coin-logo-C86F46D7B8-seeklogo.com.png",
+  WalletConnect: "https://seeklogo.com/images/W/walletconnect-logo-EE83B50C97-seeklogo.com.png",
 };
 
 export const getUnderlyingTokens = async (contracts, token) => {
@@ -59,11 +56,9 @@ export const getUnderlyingTokens = async (contracts, token) => {
 
 export const getPrice = async (chainId, address) => {
   const {
-    data: {price, decimals},
-  } = await (
-    await fetch(`/api/tokenPrice?chainId=${chainId}&address=${address}`)
-  ).json();
-  return {price, decimals};
+    data: { price, decimals },
+  } = await (await fetch(`/api/tokenPrice?chainId=${chainId}&address=${address}`)).json();
+  return { price, decimals };
 };
 
 export const blockExplorers = {
@@ -80,31 +75,31 @@ export const blockExplorerAPIs = {
   250: "https://api.ftmscan.com",
   137: "https://api.polygonscan.com",
   97: "https://api-testnet.bscscan.com",
-}
+};
 
 export const getBlockExplorerUrl = (chainId: number, token: string) => {
   return `${blockExplorers[chainId]}/token/${token}`;
 };
 
-export const getBlockExplorerUrlTransaction = (chainId:number, tx:string) => {
-  return `${blockExplorers[chainId]}/tx/${tx}`
-}
+export const getBlockExplorerUrlTransaction = (chainId: number, tx: string) => {
+  return `${blockExplorers[chainId]}/tx/${tx}`;
+};
 
 export function nFormatter(num, digits) {
-  if (num===undefined) {
-    return '0'
+  if (num === undefined) {
+    return "0";
   }
   if (+num < 1) {
     return (+num).toFixed(digits);
   }
   const lookup = [
-    {value: 1, symbol: ""},
-    {value: 1e3, symbol: "k"},
-    {value: 1e6, symbol: "M"},
-    {value: 1e9, symbol: "G"},
-    {value: 1e12, symbol: "T"},
-    {value: 1e15, symbol: "P"},
-    {value: 1e18, symbol: "E"},
+    { value: 1, symbol: "" },
+    { value: 1e3, symbol: "k" },
+    { value: 1e6, symbol: "M" },
+    { value: 1e9, symbol: "G" },
+    { value: 1e12, symbol: "T" },
+    { value: 1e15, symbol: "P" },
+    { value: 1e18, symbol: "E" },
   ];
   const rx = /\.0+$|(\.[0-9]*[1-9])0+$/;
   var item = lookup
@@ -113,9 +108,7 @@ export function nFormatter(num, digits) {
     .find(function (item) {
       return +num >= item.value;
     });
-  return item
-    ? (+num / item.value).toFixed(digits).replace(rx, "$1") + item.symbol
-    : "0";
+  return item ? (+num / item.value).toFixed(digits).replace(rx, "$1") + item.symbol : "0";
 }
 
 const logos = {
@@ -127,14 +120,14 @@ const logos = {
   AAVE: "https://cryptologos.cc/logos/aave-aave-logo.svg?v=023",
 };
 
-export const getLogoUrl = (name:string, address:string, chainId:number) => {
-  const supportedAssets = supportedChainAssets[chainId]
-  const asset = supportedAssets.find(asset=>asset.contract_address.toLowerCase()===address.toLowerCase())
+export const getLogoUrl = (name: string, address: string, chainId: number) => {
+  const supportedAssets = supportedChainAssets[chainId];
+  const asset = supportedAssets.find((asset) => asset.contract_address.toLowerCase() === address.toLowerCase());
   if (asset) {
-    return asset.logo_url
+    return asset.logo_url;
   }
-  if (address===ethers.constants.AddressZero) {
-    return chainLogos[chainId]
+  if (address === ethers.constants.AddressZero) {
+    return chainLogos[chainId];
   }
   if (name === "Biswap LPs") {
     return logos.Biswap;
@@ -152,41 +145,41 @@ export const getLogoUrl = (name:string, address:string, chainId:number) => {
 
 export const nativeTokens = {
   56: {
-    contract_name: 'BNB',
-    contract_ticker_symbol: 'BNB',
+    contract_name: "BNB",
+    contract_ticker_symbol: "BNB",
     contract_address: ethers.constants.AddressZero,
     contract_decimals: 18,
     underlying: [],
-    logo_url: chainLogos[56]
+    logo_url: chainLogos[56],
   },
   1: {
-    contract_name: 'Ether',
-    contract_ticker_symbol: 'ETH',
+    contract_name: "Ether",
+    contract_ticker_symbol: "ETH",
     contract_address: ethers.constants.AddressZero,
     contract_decimals: 18,
     underlying: [],
-    logo_url: chainLogos[1]
+    logo_url: chainLogos[1],
   },
   137: {
-    contract_name: 'Matic',
-    contract_ticker_symbol: 'MATIC',
+    contract_name: "Matic",
+    contract_ticker_symbol: "MATIC",
     contract_address: ethers.constants.AddressZero,
     contract_decimals: 18,
     underlying: [],
-    logo_url: chainLogos[137]
+    logo_url: chainLogos[137],
   },
   250: {
-    contract_name: 'Fantom',
-    contract_ticker_symbol: 'FTM',
+    contract_name: "Fantom",
+    contract_ticker_symbol: "FTM",
     contract_address: ethers.constants.AddressZero,
     contract_decimals: 18,
     underlying: [],
-    logo_url: chainLogos[250]
+    logo_url: chainLogos[250],
   },
-}
+};
 
 interface SupportedChainAssets {
-  [key: string]: Asset[]
+  [key: string]: Asset[];
 }
 
 export const supportedChainAssets: SupportedChainAssets = {
@@ -195,5 +188,5 @@ export const supportedChainAssets: SupportedChainAssets = {
   // @ts-ignore
   1: mainnetAssets,
   // @ts-ignore
-  97: bscTestnetAssets
-}
+  97: bscTestnetAssets,
+};
