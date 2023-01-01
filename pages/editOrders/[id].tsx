@@ -1,5 +1,5 @@
 import { useAppContext } from "../../components/Provider"
-import { Box, Flex, Text, Grid, GridItem, useDisclosure, Modal, ModalBody, ModalCloseButton, ModalContent, ModalHeader, ModalOverlay, useColorModeValue, ModalFooter, Button } from "@chakra-ui/react";
+import { Box, Flex, Text, Grid, GridItem, useDisclosure, Modal, ModalBody, ModalCloseButton, ModalContent, Image, ModalHeader, ModalOverlay, useColorModeValue, ModalFooter, Button, Skeleton, Stack, Stat, StatLabel, StatNumber } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { useRouter } from 'next/router'
 import { useWeb3React } from "@web3-react/core";
@@ -10,9 +10,9 @@ import { close, adjustLiquidationPoints } from "../../contractCalls/transactions
 import LiquidationConditions from "../../components/LiquidationConditions";
 import { Heading2 } from "../../components/Typography";
 import { DangerButton, PrimaryButton, SecondaryButton } from "../../components/Buttons";
-import { getBlockExplorerUrlTransaction, getPrice, nFormatter } from "../../utils";
+import { getBlockExplorerUrlTransaction, getLogoUrl, getPrice, nFormatter } from "../../utils";
 import { BiErrorAlt } from "react-icons/bi";
-import { level1 } from "../../components/Theme";
+import { level1, level2 } from "../../components/Theme";
 import { Asset, defaultUserAssetSupplied, defaultWantedAsset, LiquidationCondition } from "../../Types";
 import { LiquidationConditionStruct } from "../../codegen/PositionManager";
 import WithdrawModal from "../../components/WithdrawModal";
@@ -215,31 +215,45 @@ const EditPosition = () => {
         </Flex>
         <Grid
           w={'100%'}
-          gridTemplateRows={'1fr 1fr'}
-          templateColumns={{base: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)'}}
+          templateColumns={{base: '1fr', sm: 'repeat(3, 1fr)'}}
           mb={'8'}
-          mt={'4'}
+          mt={'8'}
           gap={2}
         >
         <GridItem colSpan={1}>
-          <Heading2>Asset</Heading2>
-          <Text>{position?.name}</Text>
+          <Stat display='flex' padding={'4'} backgroundColor={useColorModeValue(...level2)} borderRadius={'xl'}>
+            <StatLabel fontSize={'l'}>Asset</StatLabel>
+            {
+            position?
+            <Flex py='2' alignItems={'center'}>
+              <Box>
+                <Flex>
+                  <Image mr={'2'} rounded='full' width='25px' height={'25px'} src={getLogoUrl(position?.name, position?.tokenContract, chainId)}></Image>
+                  <Text as='b'>{position?.name}</Text>
+                </Flex>
+              </Box>
+            </Flex>:
+            <Skeleton>Temporary</Skeleton>
+          }
+          </Stat>
         </GridItem>
         <GridItem colSpan={1}>
-          <Box>
-          <Heading2>Underlying Tokens</Heading2>
-          {
-            position?.underlying.map((underlyingAsset)=> <Text>{underlyingAsset.name}</Text>)
-          }
-          </Box>
+          <Stat height={'100%'} display='flex' padding={'4'} backgroundColor={useColorModeValue(...level2)} borderRadius={'xl'}>
+            <StatLabel fontSize={'l'}>Tokens</StatLabel>
+            {
+              typeof(position?.usdcValue)==='number'?<StatNumber fontSize={{base: 'xl', md: '2xl'}}>{nFormatter(position?.formattedAmount||0, 3)}</StatNumber>:
+              <Skeleton>Temporary</Skeleton>
+            }
+          </Stat>
         </GridItem>
-        <GridItem rowStart={2} colSpan={1}>
-          <Heading2>Position Size</Heading2>
-          <Text>{nFormatter(position?.formattedAmount||0, 3)}</Text>
-        </GridItem>
-        <GridItem rowStart={2} colSpan={1}>
-          <Heading2>USD Value</Heading2>
-          <Text fontSize='l'>${nFormatter(position?.usdcValue, 3)}</Text>
+        <GridItem colSpan={1}>
+          <Stat height={'100%'} display='flex' padding={'4'} backgroundColor={useColorModeValue(...level2)} borderRadius={'xl'}>
+            <StatLabel fontSize={'l'}>USD Value</StatLabel>
+            {
+              typeof(position?.usdcValue)==='number'?<StatNumber fontSize={{base: 'xl', md: '2xl'}}>${nFormatter(position?.usdcValue, 3)}</StatNumber>:
+              <Skeleton>Temporary</Skeleton>
+            }
+          </Stat>
         </GridItem>
       </Grid>
       <Heading2>Limit Orders</Heading2>

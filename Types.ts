@@ -128,7 +128,7 @@ export interface ContextType {
   contracts: SwapContracts | undefined
   slippageControl: {slippage: number, setSlippage: (slippage:number)=>void}
   counter: number
-  onError: (error:Error)=>void
+  onError: (error:Error|string)=>void
   successModal: (title:string, body:ReactElement)=>void
 }
 

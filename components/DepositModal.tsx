@@ -21,9 +21,10 @@ const DepositModal = ({position, refreshData, closeSelf}: {position: FetchPositi
   const [isDepositing, setDepositing] = useState(false)
   const [loadingText, setLoadingText] = useState('')
   const [calculatePreSwap, setCalculatePreSwap] = useState(false)
-  const triggerError = (error: string) => {
+  const triggerError = (error: any) => {
+    console.log(error)
     setDepositing(false)
-    onError(new Error(error))
+    onError(error)
   }
 
   const {data:swapData, loading: childLoading, loadingText: preSwapLoadingText} = useUniversalSwapPreSwap({
@@ -70,7 +71,7 @@ const DepositModal = ({position, refreshData, closeSelf}: {position: FetchPositi
         setCalculatePreSwap(true)
       }
       setLoadingText('Calculating ratios')
-      getUnderlying()
+      getUnderlying().catch((error) => triggerError(error))
     }
   }, [isDepositing])
 
@@ -96,28 +97,13 @@ const DepositModal = ({position, refreshData, closeSelf}: {position: FetchPositi
           position.positionId,
           provided, swapData.swaps, swapData.conversions,
           swapData.desired.minAmountsOut, {value: ethSupplied}
-        ).then(tx=>onSuccess(tx.hash)).catch(()=>onError(Error("Failed depositing")))
-      }).catch(()=>onError(Error("Failed approval process")))
+        ).then(tx=>onSuccess(tx.hash)).catch((error)=>triggerError(error))
+      }).catch((error)=>triggerError(error))
     }
   }, [swapData.swaps])
   
   const supply = async () => {
     setDepositing(true)
-    // depositAgain(contracts,provider?.getSigner(account), position, assetsToConvert, chainId, slippage).then((hash)=>{
-    //   setDepositing(false)
-    //   refreshData()
-    //   closeSelf()
-    //   successModal("Deposit Successful", 
-    //     <Text>
-    //       Asset was deposited successfully, 
-    //       View <a href={getBlockExplorerUrlTransaction(chainId, hash)} target="_blank" rel="noopener noreferrer"><Text as='u' textColor={'blue.500'}>transaction</Text></a>
-    //       &nbsp;on block explorer.
-    //     </Text>
-    //   )
-    // }).catch((error)=>{
-    //   setDepositing(false)
-    //   onError(error)
-    // })
   }
 
   return (

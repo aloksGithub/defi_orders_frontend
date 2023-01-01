@@ -72,10 +72,10 @@ const Card = ({id}: {id:number}) => {
         <Flex mb={'3'} pb={'3'} justifyContent={'center'} alignItems={'center'}>
           {
             !loading?
-          <Flex><Image src={asset.logo_url} fallbackSrc='https://www.svgrepo.com/show/99387/dollar.svg' borderRadius={'full'} style={{width: "30px", height: "30px"}}/>
-          <a href={getBlockExplorerUrl(chainId, asset.contract_address)} target="_blank" rel="noopener noreferrer">
+          <Flex><Image src={asset?.logo_url} fallbackSrc='https://www.svgrepo.com/show/99387/dollar.svg' borderRadius={'full'} style={{width: "30px", height: "30px"}}/>
+          <a href={getBlockExplorerUrl(chainId, asset?.contract_address)} target="_blank" rel="noopener noreferrer">
           <Heading _hover={{color: 'blue.500'}} ml={'3'} fontSize={'xl'}>
-          {asset.contract_ticker_symbol}
+          {asset?.contract_ticker_symbol}
           </Heading>
           </a></Flex>:<Skeleton><Heading>Temp Title</Heading></Skeleton>
 
@@ -200,9 +200,9 @@ const Positions = () => {
         setNeedSelector(true)
         setUserPositions(active?activePositions:closedPositions)
       } else {
+        setNeedSelector(false)
         setUserPositions(activePositions.concat(closedPositions))
       }
-      setUserPositions(filteredPositions.map(position=>position.toNumber()))
     }
     getPositions()
   }, [contracts, provider, account, active])

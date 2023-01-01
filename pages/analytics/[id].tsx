@@ -42,7 +42,7 @@ const DaysSelector = ({setDays, daysSelected}) => {
 }
 
 const Analytics = () => {
-  const {contracts, chainId} = useAppContext()
+  const {contracts, chainId, onError} = useAppContext()
   const {provider, account} = useWeb3React()
   const router = useRouter()
   const { id } = router.query
@@ -56,9 +56,13 @@ const Analytics = () => {
 
   useEffect(() => {
     const fetch = async () => {
-      const data = await getGraphData(contracts, id, provider, graphDays)
-      setGraphData(data)
-      setLoadingGraph(false)
+      try {
+        const data = await getGraphData(contracts, id, provider, graphDays)
+        setGraphData(data)
+        setLoadingGraph(false)
+      } catch (error) {
+        onError("Failed to fetch historical data, make sure you are using an archive node in your wallet")
+      }
     }
     if (contracts && provider) {
       setLoadingGraph(true)
@@ -162,7 +166,7 @@ const Analytics = () => {
           {
             position?
             <Flex alignItems={'center'}>
-              <Image mr={'2'} rounded='xl' width='30px' height={'30px'} src={getLogoUrl(position?.name, position?.tokenContract, chainId)}></Image>
+              <Image mr={'2'} rounded='full' width='30px' height={'30px'} src={getLogoUrl(position?.name, position?.tokenContract, chainId)}></Image>
               <Box>
                 <Text>{position?.name}</Text>
                 <Text>{nFormatter(position?.formattedAmount||0, 3)} tokens (${nFormatter(position.usdcValue, 2)})</Text>
@@ -176,7 +180,7 @@ const Analytics = () => {
           {
             position?position.underlying.map((underlyingAsset)=>
             <Flex alignItems={'center'}>
-              <Image mr={'2'} rounded={'xl'} width='30px' height={'30px'} src={getLogoUrl(underlyingAsset.name, underlyingAsset.address, chainId)}></Image>
+              <Image mr={'2'} rounded={'full'} width='30px' height={'30px'} src={getLogoUrl(underlyingAsset.name, underlyingAsset.address, chainId)}></Image>
               <Box mb={'2'}>
                 <Flex alignItems='center'>
                   <Text>{underlyingAsset.name}</Text>
@@ -197,7 +201,7 @@ const Analytics = () => {
             {
               position?position.rewards.map((reward)=>
               <Flex alignItems={'center'}>
-                <Image mr={'2'} rounded={'xl'} width='30px' height={'30px'} src={getLogoUrl(reward.name, reward.address, chainId)}></Image>
+                <Image mr={'2'} rounded={'full'} width='30px' height={'30px'} src={getLogoUrl(reward.name, reward.address, chainId)}></Image>
                 <Box mb={'2'}>
                   <Text>{reward.name}</Text>
                   <Text>{nFormatter(reward.amount, 2)} tokens (${nFormatter(reward.value, 2)})</Text>
@@ -214,7 +218,7 @@ const Analytics = () => {
       </Grid>
       <Heading2>Transactions</Heading2>
       <TableContainer mt={'6'}>
-        <Table size='sm'>
+        <Table borderColor={'red'} size='sm'>
           <Thead>
             <Tr>
               <Th>Date</Th>

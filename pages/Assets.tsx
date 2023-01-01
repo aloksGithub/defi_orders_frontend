@@ -41,7 +41,7 @@ import { FancyButton } from "../components/Buttons";
 import Link from "next/link";
 import { level1 } from "../components/Theme";
 import { getAmountsOut } from "../contractCalls/routeCalculation";
-import { defaultUserAssetSupplied, defaultWantedAsset, LiquidationCondition, UserAsset } from "../Types";
+import { defaultUserAssetSupplied, defaultWantedAsset, LiquidationCondition, UserAsset, UserAssetSupplied } from "../Types";
 
 const Card = ({asset, index, setSecuring}: {asset: UserAsset, index: number, setSecuring: Function}) => {
   const {chainId} = useAppContext()
@@ -136,6 +136,7 @@ const SecureAsset = ({asset, setSecuring}: {asset: UserAsset, setSecuring: Funct
   const [currentUsd, setCurrentUsd] = useState('0')
   const [txHash, setTxHash] = useState('')
   const [processing, setProcessing] = useState(false)
+  const [loadingText, setLoadingText] = useState('Checking order 1')
   const [liquidationConditions, setLiquidationConditions] = useState<LiquidationCondition[]>([{
     watchedAsset: {
       "contract_name": "Value of self",
@@ -195,32 +196,36 @@ const SecureAsset = ({asset, setSecuring}: {asset: UserAsset, setSecuring: Funct
     setTokens('0')
   }
 
+  const checkCondition = async (index: number, assetToConvert: UserAssetSupplied[]) => {
+    const condition = liquidationConditions[index]
+    const desiredAsset = [{
+      ...defaultWantedAsset,
+      contract_address: condition.convertTo.contract_address,
+      percentage: 100,
+      minOut: 0,
+      contract_decimals: condition.convertTo.contract_decimals
+    }]
+    const {expectedAssets} = await getAmountsOut(contracts, assetToConvert, desiredAsset)
+    const expectedUsdOut = expectedAssets[0].quote
+    const slippage = 100*(+currentUsd-expectedUsdOut)/+currentUsd
+    if (+slippage+0.2>+condition.slippage) {
+      setError(`Calculated slippage for condition ${index+1} was ${slippage.toFixed(3)}% which is too close to the input slippage.
+      Please increase the slippage tolerance to ${(+slippage+0.2).toFixed(2)}% or greater`)
+      onOpen()
+      return false
+    }
+    setLoadingText(`Checking Order ${index+2}`)
+    return true
+  }
+
   const secure = async () => {
     setProcessing(true)
     let invalidConditions = false
     const assetToConvert = [{
       ...defaultUserAssetSupplied,
       contract_address: asset.contract_address, contract_decimals: asset.contract_decimals, tokensSupplied: tokens}]
-    // @ts-ignore
-    for (const [index, condition] of liquidationConditions.entries()) {
-      const desiredAsset = [{
-        ...defaultWantedAsset,
-        contract_address: condition.convertTo.contract_address,
-        percentage: 100,
-        minOut: 0,
-        contract_decimals: condition.convertTo.contract_decimals
-      }]
-      const {expectedAssets} = await getAmountsOut(contracts, assetToConvert, desiredAsset)
-      const expectedUsdOut = expectedAssets[0].quote
-      const slippage = 100*(+currentUsd-expectedUsdOut)/+currentUsd
-      if (+slippage+0.2>+condition.slippage) {
-        setError(`Calculated slippage for condition ${index+1} was ${slippage.toFixed(3)}% which is too close to the input slippage.
-        Please increase the slippage tolerance to ${(+slippage+0.2).toFixed(2)}% or greater`)
-        onOpen()
-        setProcessing(false)
-        return
-      }
-    }
+    const checks = await Promise.all(liquidationConditions.map(async (condition, index)=> {return await checkCondition(index, assetToConvert)}))
+    if (!checks.every(check=>check===true)) {setProcessing(false);return}
     const formattedConditions = liquidationConditions.map((condition, index) => {
       try {
         return {
@@ -351,7 +356,7 @@ const SecureAsset = ({asset, setSecuring}: {asset: UserAsset, setSecuring: Funct
           <ModalBody>
             <Text>
               Asset was deposited successfully, 
-              you can view your position <Link href={`/Positions`}><Text color='blue.500' _hover={{cursor: 'pointer'}} as={'u'}>here</Text></Link>. 
+              you can view your position <Link href={`/Orders`}><Text color='blue.500' _hover={{cursor: 'pointer'}} as={'u'}>here</Text></Link>. 
               View <a href={getBlockExplorerUrlTransaction(chainId, txHash)} target="_blank" rel="noopener noreferrer"><Text as='u' textColor={'blue.500'}>Transaction</Text></a> on block explorer</Text>
           </ModalBody>
           <ModalFooter>

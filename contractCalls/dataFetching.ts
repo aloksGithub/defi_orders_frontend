@@ -135,13 +135,13 @@ export const getGraphData = async (contracts: SwapContracts, id, provider: JsonR
   const blockTime = currentTime-previousTimestamp
   let startBlock
   const positionInteractions = await contracts.positionManager.getPositionInteractions(id)
-  if (duration===-1) {
-    startBlock = +positionInteractions[0].blockNumber
+    if (duration===-1) {
+    startBlock = positionInteractions[0].blockNumber.toNumber()
     startBlock += (latestBlock.number-startBlock)%numPoints
   } else {
-    // startBlock = await getBlockFromProvider(provider, duration)
+    startBlock = await getBlockFromProvider(provider, duration)
     // startBlock = await getBlockFromExplorer(chainId, duration)
-    startBlock = latestBlock.number-blockTime*numPoints*duration
+    // startBlock = latestBlock.number-blockTime*numPoints*duration
     startBlock = startBlock>=+positionInteractions[0].blockNumber?startBlock:+positionInteractions[0].blockNumber
     startBlock += (latestBlock.number-startBlock)%numPoints
   }
@@ -159,9 +159,9 @@ export const getGraphData = async (contracts: SwapContracts, id, provider: JsonR
   const timestamp = (await provider.getBlock(latestBlock.number)).timestamp
   timestamps.push(timestamp*1000)
   const dataPoints = blocks.map((block)=> {
-    return contracts.positionManager.estimateValue(id, contracts.stableToken.address, {blockTag: block})
+    return contracts.positionManager.functions.estimateValue(id, contracts.stableToken.address, {blockTag: block})
   })
-  const usdValues = await Promise.all(dataPoints)
+  const usdValues = (await Promise.all(dataPoints))
   const formattedusdValues = usdValues.map(value=>parseFloat(ethers.utils.formatUnits(value.toString(), usdcDecimals)))
   let graphData = timestamps.map((timestamp, index) => {
     const time = new Date(timestamp)

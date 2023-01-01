@@ -86,7 +86,6 @@ const usePosition = (positionId: number, refresh: boolean) => {
     if (rewardData?.tokens) {
       Promise.all(rewardData?.tokens.map((token, index)=>fetchRewards(token, index))).then(rewards=> {
         setRewards(rewards)
-        setLoading(false)
       })
     }
   }, [rewardData])

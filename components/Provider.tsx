@@ -149,9 +149,14 @@ export function AppWrapper({ children }) {
   }, [account, usedChainId, provider, reloadTrigger])
   
   const onError = (error:any) => {
+    if (typeof(error)==='string') {
+      setErrorMessage(error)
+      triggerError()
+      return
+    }
     console.log(error.reason)
     // @ts-ignore
-    if (error.reason?.includes('3')) {
+    if (error?.reason?.includes('execution reverted: 3')) {
       setErrorMessage("Transaction failed due to high slippage. You can try setting a higher slippage threshold from the settings")
     } else {
       setErrorMessage("Transaction failed with no revert reason. Please contact us at info@de-limit.com")
@@ -202,7 +207,7 @@ export function AppWrapper({ children }) {
           backdropFilter='blur(10px)'
         />
         <ModalContent>
-          <ModalHeader>Transaction Failed</ModalHeader>
+          <ModalHeader>Error</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <Text>{errorMessage}</Text>

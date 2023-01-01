@@ -17,7 +17,7 @@ export const depositNew = async (contracts: SwapContracts, signer: JsonRpcSigner
     const contract = ERC20__factory.connect(asset.contract_address, signer)
     const currentApproval = await contract.allowance(account, contracts.positionManager.address)
     if (currentApproval<position.amount) {
-      await contract.approve(contracts.positionManager.address, position.amount)
+      await contract.approve(contracts.positionManager.address, ethers.constants.MaxInt256)
     }
     tx = await contracts.positionManager.deposit(position, [asset.contract_address], [position.amount])
   } else {
@@ -41,7 +41,7 @@ export const swap = async (
       const tokensSupplied = provided.amounts[i]
       const currentAllowance = await assetContract.allowance(account, contracts.universalSwap.address)
       if (currentAllowance<tokensSupplied) {
-        await assetContract.approve(contracts.universalSwap.address, tokensSupplied)
+        await assetContract.approve(contracts.universalSwap.address, ethers.constants.MaxInt256)
       }
     } else {
       ethSupplied = await provided.amounts[i]
@@ -98,7 +98,7 @@ export const approveAssets = async (assetsToConvert: UserAssetSupplied[], spende
       const contract = ERC20__factory.connect(address, signer)
       const allowance = await contract.allowance(account, spender)
       if (allowance.lt(supplied)){
-        await contract.approve(spender, supplied)
+        await contract.approve(spender, ethers.constants.MaxInt256)
       }
     } else {
       ethSupplied = ethers.utils.parseUnits(asset.tokensSupplied.toString(), asset.contract_decimals)
@@ -161,9 +161,8 @@ export const depositAgain = async (contracts: SwapContracts, signer: JsonRpcSign
       const supplied = ethers.utils.parseUnits(asset.tokensSupplied.toString(), asset.contract_decimals)
       const contract = ERC20__factory.connect(address, signer)
       const allowance = await contract.allowance(account, contracts.positionManager.address)
-      console.log(allowance.toString(), supplied.toString())
       if (allowance.lt(supplied)){
-        await contract.approve(contracts.positionManager.address, supplied)
+        await contract.approve(contracts.positionManager.address, ethers.constants.MaxInt256)
       }
     } else {
       ethSupplied = ethers.utils.parseUnits(asset.tokensSupplied.toString(), asset.contract_decimals)
