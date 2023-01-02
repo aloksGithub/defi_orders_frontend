@@ -96,6 +96,7 @@ const Analytics = () => {
   const { provider, account } = useWeb3React();
   const router = useRouter();
   const { id } = router.query;
+  if (typeof(id)!='string') return <></>
   const [position, setPosition] = useState<FetchPositionData>(undefined);
   const [analytics, setAnalytics] = useState(undefined);
   const [roi, setRoi] = useState<string>();
@@ -106,13 +107,9 @@ const Analytics = () => {
 
   useEffect(() => {
     const fetch = async () => {
-      try {
-        const data = await getGraphData(contracts, id, provider, graphDays);
-        setGraphData(data);
-        setLoadingGraph(false);
-      } catch (error) {
-        onError("Failed to fetch historical data, make sure you are using an archive node in your wallet");
-      }
+      const data = await getGraphData(contracts, chainId, id, provider, graphDays);
+      setGraphData(data);
+      setLoadingGraph(false);
     };
     if (contracts && provider) {
       setLoadingGraph(true);
@@ -122,9 +119,7 @@ const Analytics = () => {
 
   useEffect(() => {
     const fetch = async () => {
-      // @ts-ignore
       const position = await fetchPosition(parseInt(id), contracts, provider.getSigner(account), chainId);
-      // @ts-ignore
       const positionData = await fetchImportantPoints(contracts, id, provider);
       const roi = positionData.usdcWithdrawn + position.usdcValue - positionData.usdcDeposited;
       const pnl = (roi * 100) / positionData.usdcDeposited;

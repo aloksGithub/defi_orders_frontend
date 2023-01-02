@@ -77,6 +77,12 @@ export const blockExplorerAPIs = {
   97: "https://api-testnet.bscscan.com",
 };
 
+export const archiveRPCs = {
+  56: "https://rpc.ankr.com/bsc",
+  97: "https://rpc.ankr.com/bsc_testnet_chapel",
+  1: "https://rpc.ankr.com/eth"
+}
+
 export const getBlockExplorerUrl = (chainId: number, token: string) => {
   return `${blockExplorers[chainId]}/token/${token}`;
 };

@@ -1,6 +1,6 @@
 import { BigNumber, ethers } from "ethers";
 import erc20Abi from "../constants/abis/ERC20.json";
-import { nativeTokens } from "../utils";
+import { archiveRPCs, nativeTokens } from "../utils";
 import { blockExplorerAPIs } from "../utils";
 import EthDater from "ethereum-block-by-date";
 import { SwapContracts, UserAssetSupplied, WantedAsset } from "../Types";
@@ -151,7 +151,8 @@ const getBlockFromProvider = async (provider: JsonRpcProvider, daysAgo: number) 
   return block.block;
 };
 
-export const getGraphData = async (contracts: SwapContracts, id, provider: JsonRpcProvider, duration: number) => {
+export const getGraphData = async (contracts: SwapContracts, chainId: number, id: string, provider: JsonRpcProvider, duration: number) => {
+  const rpc = new ethers.providers.JsonRpcProvider(archiveRPCs[chainId])
   const usdcDecimals = await contracts.stableToken.decimals();
   const blocks = [];
   const timestamps = [];
@@ -186,7 +187,7 @@ export const getGraphData = async (contracts: SwapContracts, id, provider: JsonR
   const timestamp = (await provider.getBlock(latestBlock.number)).timestamp;
   timestamps.push(timestamp * 1000);
   const dataPoints = blocks.map((block) => {
-    return contracts.positionManager.functions.estimateValue(id, contracts.stableToken.address, { blockTag: block });
+    return contracts.positionManager.connect(rpc).functions.estimateValue(id, contracts.stableToken.address, { blockTag: block });
   });
   const usdValues = await Promise.all(dataPoints);
   const formattedusdValues = usdValues.map((value) =>
