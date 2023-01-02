@@ -24,6 +24,14 @@ export const depositNew = async (contracts: SwapContracts, signer: JsonRpcSigner
     const currentApproval = await contract.allowance(account, contracts.positionManager.address);
     if (currentApproval < position.amount) {
       await contract.approve(contracts.positionManager.address, ethers.constants.MaxInt256);
+      while(true) {
+        const currentApproval = await contract.allowance(account, contracts.positionManager.address);
+        if (currentApproval < position.amount) {
+          await new Promise(r => setTimeout(r, 1000));
+        } else {
+          break
+        }
+      }
     }
     tx = await contracts.positionManager.deposit(position, [asset.contract_address], [position.amount]);
   } else {
@@ -54,6 +62,21 @@ export const swap = async (
       }
     } else {
       ethSupplied = await provided.amounts[i];
+    }
+  }
+  for (const [i, token] of provided.tokens.entries()) {
+    if (token != ethers.constants.AddressZero) {
+      // @ts-ignore
+      const assetContract = ERC20__factory.connect(token, signer);
+      const tokensSupplied = provided.amounts[i];
+      while(true) {
+        const currentAllowance = await assetContract.allowance(account, contracts.universalSwap.address);
+        if (currentAllowance < tokensSupplied) {
+          await new Promise(r => setTimeout(r, 1000));
+        } else {
+          break
+        }
+      }
     }
   }
   for (const nft of provided.nfts) {
@@ -113,6 +136,20 @@ export const approveAssets = async (assetsToConvert: UserAssetSupplied[], spende
       ethSupplied = ethers.utils.parseUnits(asset.tokensSupplied.toString(), asset.contract_decimals);
     }
   }
+  for (const [i, token] of provided.tokens.entries()) {
+    if (token != ethers.constants.AddressZero) {
+      const assetContract = ERC20__factory.connect(token, signer);
+      const tokensSupplied = provided.amounts[i];
+      while(true) {
+        const currentAllowance = await assetContract.allowance(account, spender);
+        if (currentAllowance < tokensSupplied) {
+          await new Promise(r => setTimeout(r, 1000));
+        } else {
+          break
+        }
+      }
+    }
+  }
   const addressZeroIndex = provided.tokens.findIndex((token) => token === ethers.constants.AddressZero);
   if (addressZeroIndex > -1) {
     provided.tokens.splice(addressZeroIndex, 1);
@@ -129,22 +166,23 @@ export const depositAgain = async (
   chainId: number,
   slippage: number
 ) => {
-  const provided = {
-    tokens: [],
-    amounts: [],
-    nfts: [],
-  };
+  const {ethSupplied, provided} = await approveAssets(assetsToConvert, contracts.positionManager.address, signer)
+  // const provided = {
+  //   tokens: [],
+  //   amounts: [],
+  //   nfts: [],
+  // };
   const desired = {
     outputERC20s: [],
     outputERC721s: [],
     ratios: [],
     minAmountsOut: [],
   };
-  for (const asset of assetsToConvert) {
-    provided.tokens.push(asset.contract_address);
-    provided.amounts.push(ethers.utils.parseUnits(asset.tokensSupplied, asset.contract_decimals));
-  }
-  const account = await signer.getAddress();
+  // for (const asset of assetsToConvert) {
+  //   provided.tokens.push(asset.contract_address);
+  //   provided.amounts.push(ethers.utils.parseUnits(asset.tokensSupplied, asset.contract_decimals));
+  // }
+  // const account = await signer.getAddress();
   const usdTotal = assetsToConvert.reduce((a, b) => a + b.usdcValue, 0);
   const bankAddress = position.positionData.bank;
   const bankContract = contracts.banks.find((bank) => bank.address === bankAddress);
@@ -176,20 +214,20 @@ export const depositAgain = async (
     swaps = s;
     conversions = c;
   }
-  let ethSupplied = ethers.BigNumber.from("0");
-  for (const asset of assetsToConvert) {
-    const address = asset.contract_address;
-    if (address != ethers.constants.AddressZero) {
-      const supplied = ethers.utils.parseUnits(asset.tokensSupplied.toString(), asset.contract_decimals);
-      const contract = ERC20__factory.connect(address, signer);
-      const allowance = await contract.allowance(account, contracts.positionManager.address);
-      if (allowance.lt(supplied)) {
-        await contract.approve(contracts.positionManager.address, ethers.constants.MaxInt256);
-      }
-    } else {
-      ethSupplied = ethers.utils.parseUnits(asset.tokensSupplied.toString(), asset.contract_decimals);
-    }
-  }
+  // let ethSupplied = ethers.BigNumber.from("0");
+  // for (const asset of assetsToConvert) {
+  //   const address = asset.contract_address;
+  //   if (address != ethers.constants.AddressZero) {
+  //     const supplied = ethers.utils.parseUnits(asset.tokensSupplied.toString(), asset.contract_decimals);
+  //     const contract = ERC20__factory.connect(address, signer);
+  //     const allowance = await contract.allowance(account, contracts.positionManager.address);
+  //     if (allowance.lt(supplied)) {
+  //       await contract.approve(contracts.positionManager.address, ethers.constants.MaxInt256);
+  //     }
+  //   } else {
+  //     ethSupplied = ethers.utils.parseUnits(asset.tokensSupplied.toString(), asset.contract_decimals);
+  //   }
+  // }
   const addressZeroIndex = provided.tokens.findIndex((token) => token === ethers.constants.AddressZero);
   if (addressZeroIndex > -1) {
     provided.tokens.splice(addressZeroIndex, 1);

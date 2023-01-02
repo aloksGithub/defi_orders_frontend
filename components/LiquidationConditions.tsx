@@ -19,6 +19,7 @@ import { SelectAsset } from "./selectAssets";
 import { getPrice } from "../utils";
 import { Reload } from "./Reload";
 import { level2 } from "./Theme";
+import { Asset } from "../Types";
 
 const Condition = ({
   i,
@@ -30,17 +31,17 @@ const Condition = ({
   setSlippage,
   loading,
 }) => {
-  const { supportedAssets, contracts } = useAppContext();
+  const { supportedAssets, contracts, chainId } = useAppContext();
 
   const parseSlippage = (val) => val.replace(/^\%/, "");
   const formatSlippage = (val) => val + `%`;
-  // @ts-ignore
-  const self = {
-    value: contracts.positionManager.address,
-    label: "Value of self",
+  const self: Asset = {
     contract_name: "Value of self",
     contract_ticker_symbol: "Self",
     contract_address: contracts.positionManager.address,
+    contract_decimals: 18,
+    protocol_name: 'Delimit',
+    chain_id: chainId,
     underlying: [],
     logo_url: "https://www.svgrepo.com/show/99387/dollar.svg",
   };
@@ -68,6 +69,7 @@ const Condition = ({
             onSelect={setWatchedAsset}
             assets={[self, ...(supportedAssets || [])]}
             placeHolder={"Watched price"}
+            higher={true}
           />
         </Flex>
         <Flex alignItems={"center"}>
@@ -77,6 +79,7 @@ const Condition = ({
             onSelect={onSelectConvertTo}
             assets={supportedAssets}
             placeHolder={"liquidate To"}
+            higher={true}
           />
         </Flex>
       </GridItem>

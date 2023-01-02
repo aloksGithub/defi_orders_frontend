@@ -32,11 +32,13 @@ export const SelectAsset = ({
   asset,
   onSelect,
   placeHolder = "Select",
+  higher=false
 }: {
   assets: Asset[];
   asset: Asset;
   onSelect: (asset: Asset) => void;
   placeHolder?: string;
+  higher?: boolean;
 }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [filter, setFilter] = useState("");
@@ -87,6 +89,10 @@ export const SelectAsset = ({
           alignItems={"center"}
           justifyContent={"center"}
           paddingInline="2"
+          bgColor={useColorModeValue(higher?'gray.300':'gray.200', higher?'gray.600':'gray.700')}
+          _hover={{bgColor: useColorModeValue(higher?'gray.400':'gray.300', higher?'gray.500':'gray.600')}}
+          _active={{bgColor: useColorModeValue(higher?'gray.500':'gray.400', higher?'gray.400':'gray.500')}}
+          color={useColorModeValue('black', 'white')}
           paddingBlock={"1"}
           borderRadius={"2xl"}
         >

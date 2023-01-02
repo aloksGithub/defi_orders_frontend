@@ -302,9 +302,9 @@ const Analytics = () => {
         </Grid>
         <Heading2>Transactions</Heading2>
         <TableContainer mt={"6"}>
-          <Table borderColor={"red"} size="sm">
+          <Table variant={'unstyled'} borderColor={"red"} size="sm">
             <Thead>
-              <Tr>
+              <Tr borderBottom={'1px'} borderColor={useColorModeValue('gray.300', 'gray.600')}>
                 <Th>Date</Th>
                 <Th>Transaction Type</Th>
                 <Th>Tokens</Th>
@@ -314,7 +314,7 @@ const Analytics = () => {
             <Tbody>
               {analytics?.data.map((transaction) => {
                 return (
-                  <Tr>
+                  <Tr borderBottom={'1px'} borderColor={useColorModeValue('gray.300', 'gray.600')}>
                     <Td>{transaction.date}</Td>
                     <Td>{transaction.action}</Td>
                     <Td>{nFormatter(transaction.sizeChange, 3)}</Td>
