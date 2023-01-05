@@ -276,7 +276,6 @@ export const SupplyAssets = ({
   const { userAssets, hardRefreshAssets } = useAppContext();
   const assets: UserAssetSupplied[] = userAssets?.data;
   const loading = userAssets?.loading;
-  const userAssetsError = userAssets?.error;
 
   // const [assetsToConvert, setAssetsToConvert] = useState<any>([{}])
   const filteredAssets = assets?.filter(
@@ -285,7 +284,7 @@ export const SupplyAssets = ({
   );
 
   useEffect(() => {
-    if (assets?.length > 0 && !loading && !userAssetsError) {
+    if (assets?.length > 0 && !loading) {
       const newAssets = assetsToConvert.map((asset) => {
         const matchingAsset = assets.find((reloadedAsset) => reloadedAsset.contract_address === asset.contract_address);
         if (matchingAsset && matchingAsset.balance) {
