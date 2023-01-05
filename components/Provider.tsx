@@ -24,7 +24,7 @@ import { coinbaseWallet, hooks as coinbaseWalletHooks } from "../connectors/coin
 import { hooks as metaMaskHooks, metaMask } from "../connectors/metaMask";
 import { hooks as networkHooks, network } from "../connectors/network";
 import { hooks as walletConnectHooks, walletConnect } from "../connectors/walletConnect";
-import { getPrice, supportedChainAssets } from "../utils";
+import { supportedChainAssets } from "../utils";
 import { Navbar } from "./Navbar";
 import { createContext, useContext } from "react";
 import { ethers } from "ethers";
@@ -41,11 +41,10 @@ import {
   UniversalSwap__factory,
   BankBase__factory,
   ERC20__factory,
-  UniswapV3PoolInteractor__factory,
-  SwapHelper__factory,
   ISwapper__factory,
   IOracle__factory,
 } from "../codegen";
+import useUserAssets from "../hooks/useUserAssets";
 
 const AppContext = createContext(defaultContext);
 
@@ -63,13 +62,28 @@ export function AppWrapper({ children }) {
   const [successTitle, setSuccessTitle] = useState("");
   const [successBody, setSuccessBody] = useState<ReactElement>();
 
-  const [userAssets, setUserAssets] = useState<{ data: UserAsset[]; loading: boolean; error: boolean }>({
-    data: [],
-    loading: true,
-    error: false,
-  });
   const [supportedAssets, setSupportedAssets] = useState<Asset[]>([]);
   const [contracts, setContracts] = useState<SwapContracts>();
+  
+
+  const onError = (error: any) => {
+    if (typeof error === "string") {
+      setErrorMessage(error);
+      triggerError();
+      return;
+    }
+    console.log(error.reason);
+    // @ts-ignore
+    if (error?.reason?.includes("execution reverted: 3")) {
+      setErrorMessage(
+        "Transaction failed due to high slippage. You can try setting a higher slippage threshold from the settings"
+      );
+    } else {
+      setErrorMessage("Transaction failed with no revert reason. Please contact us at info@de-limit.com");
+    }
+    triggerError();
+  };
+  const {userAssets, loading: loadingAssets} = useUserAssets(account, usedChainId, contracts, onError, reloadTrigger)
 
   const [counter, setCounter] = useState(0);
   useEffect(() => {
@@ -83,31 +97,13 @@ export function AppWrapper({ children }) {
 
   useEffect(() => {
     if (counter % 60 === 0) {
-      softRefreshAssets();
+      hardRefreshAssets();
     }
   }, [counter]);
 
   const hardRefreshAssets = async () => {
-    if (userAssets.loading) return;
-    setUserAssets({ ...userAssets, loading: true });
+    if (loadingAssets) return;
     setReloadTrigger(!reloadTrigger);
-  };
-
-  useEffect(() => {
-    const updateQuotes = async () => {
-      const temp = [...(userAssets?.data || [])];
-      for (let i = 0; i < temp.length; i++) {
-        const { price } = await getPrice(usedChainId, temp[i].contract_address);
-        temp[i].quote = +temp[i].formattedBalance * price;
-      }
-      setUserAssets({ ...userAssets, data: temp, loading: false });
-    };
-    updateQuotes();
-  }, [softReloadTrigger]);
-
-  const softRefreshAssets = async () => {
-    setUserAssets({ ...userAssets, loading: true });
-    setSoftReloadTrigger(!softReloadTrigger);
   };
 
   useEffect(() => {
@@ -151,40 +147,6 @@ export function AppWrapper({ children }) {
     }
   }, [usedChainId]);
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const { data } = await (await fetch(`/api/userAssets?chainId=${usedChainId}&address=${account}`)).json();
-        const assets = data ? data.items : [];
-        setUserAssets({ ...userAssets, data: assets, loading: false, error: false });
-      } catch (error) {
-        setUserAssets({ ...userAssets, data: [], loading: false, error: true });
-      }
-    };
-    if (account && usedChainId) {
-      setUserAssets({ ...userAssets, data: undefined, loading: true });
-      fetchUserData();
-    }
-  }, [account, usedChainId, provider, reloadTrigger]);
-
-  const onError = (error: any) => {
-    if (typeof error === "string") {
-      setErrorMessage(error);
-      triggerError();
-      return;
-    }
-    console.log(error.reason);
-    // @ts-ignore
-    if (error?.reason?.includes("execution reverted: 3")) {
-      setErrorMessage(
-        "Transaction failed due to high slippage. You can try setting a higher slippage threshold from the settings"
-      );
-    } else {
-      setErrorMessage("Transaction failed with no revert reason. Please contact us at info@de-limit.com");
-    }
-    triggerError();
-  };
-
   const successModal = (title: string, body: ReactElement) => {
     setSuccessTitle(title);
     setSuccessBody(body);
@@ -195,9 +157,8 @@ export function AppWrapper({ children }) {
     <AppContext.Provider
       value={{
         supportedAssets,
-        userAssets,
+        userAssets: {data: userAssets, loading: loadingAssets},
         hardRefreshAssets,
-        softRefreshAssets,
         account,
         chainId: usedChainId,
         connector,

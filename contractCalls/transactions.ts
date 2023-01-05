@@ -1,7 +1,6 @@
 import { BigNumberish, ethers } from "ethers";
 import erc20Abi from "../constants/abis/ERC20.json";
 import npmAbi from "../constants/abis/INonFungiblePositionsManager.json";
-import { getPrice } from "../utils";
 import { SwapContracts, UserAssetSupplied, WantedAsset } from "../Types";
 import { JsonRpcSigner, JsonRpcProvider } from "@ethersproject/providers";
 import {
@@ -13,7 +12,7 @@ import {
 } from "../codegen/PositionManager";
 import { ERC20__factory, INonFungiblePositionsManager__factory } from "../codegen";
 import { DesiredStruct } from "../codegen/UniversalSwap";
-import { FetchPositionData } from "./dataFetching";
+import { FetchPositionData, getPriceUniversalSwap } from "./dataFetching";
 import { getSwapsAndConversionsFromProvidedAndDesired } from "./routeCalculation";
 
 export const depositNew = async (contracts: SwapContracts, signer: JsonRpcSigner, position: PositionStruct, asset) => {
@@ -200,7 +199,7 @@ export const depositAgain = async (
   } else {
     const totalRatio = underlyingTokens[1].reduce((a, b) => a.add(b), ethers.BigNumber.from("0"));
     for (const [index, token] of underlyingTokens[0].entries()) {
-      const { price, decimals } = await getPrice(chainId, token);
+      const { price, decimals } = await getPriceUniversalSwap(contracts, token);
       const percentageAllocated = underlyingTokens[1][index].toNumber() / totalRatio.toNumber();
       const usd = usdTotal * percentageAllocated;
       const expectedTokens = usd / price;
@@ -283,7 +282,7 @@ export const compound = async (
   }
   const usdValues = [];
   for (const [index, reward] of rewards.entries()) {
-    const { price, decimals } = await getPrice(chainId, reward);
+    const { price, decimals } = await getPriceUniversalSwap(contracts, reward);
     const amount = +ethers.utils.formatUnits(rewardAmounts[index].toString(), decimals);
     const usdValue = amount * price;
     usdValues.push(usdValue);
@@ -297,7 +296,7 @@ export const compound = async (
   for (const [index, token] of underlying.entries()) {
     desired.outputERC20s.push(token);
     desired.ratios.push(ratios[index]);
-    const { price, decimals } = await getPrice(chainId, token);
+    const { price, decimals } = await getPriceUniversalSwap(contracts, token);
     const percentageAllocated = ratios[index].toNumber() / totalRatio.toNumber();
     const usd = usdSupplied * percentageAllocated;
     const expectedTokens = usd / price;

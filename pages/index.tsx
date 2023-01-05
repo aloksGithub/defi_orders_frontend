@@ -34,7 +34,7 @@ import { SupplyAssets, SelectAsset } from "../components/selectAssets";
 import { TickMath, encodeSqrtRatioX96 } from "@uniswap/v3-sdk";
 import JSBI from "jsbi";
 import Fraction from "fraction.js";
-import { getPrice, nFormatter } from "../utils";
+import { nFormatter } from "../utils";
 import { swap } from "../contractCalls/transactions";
 import { BiErrorAlt } from "react-icons/bi";
 import { FancyButton, PrimaryButton } from "../components/Buttons";
@@ -42,6 +42,7 @@ import { getBlockExplorerUrlTransaction } from "../utils";
 import { level0, level1, level2 } from "../components/Theme";
 import { defaultUserAssetSupplied, defaultWantedAsset, UserAssetSupplied, WantedAsset } from "../Types";
 import useUniversalSwapGetAmounts from "../hooks/useUniversalSwapGetAmounts";
+import { getPriceUniversalSwap } from "../contractCalls/dataFetching";
 
 // @ts-ignore
 const TickPicker = forwardRef(({ pool, usdSupplied }, _ref) => {
@@ -296,7 +297,7 @@ const SelectWantedAsset = ({
   changePercentage,
   deleteSelf,
 }: SelectWantedAssetProps) => {
-  const { supportedAssets, chainId, counter } = useAppContext();
+  const { supportedAssets, contracts, counter } = useAppContext();
   const {
     slippageControl: { slippage },
   } = useAppContext();
@@ -317,7 +318,7 @@ const SelectWantedAsset = ({
 
   const reload = async () => {
     if (selected.contract_address) {
-      const { price } = await getPrice(chainId, selected.contract_address);
+      const { price } = await getPriceUniversalSwap(contracts, selected.contract_address);
       const expected = (usdSupplied * selected.percentage) / 100 / price;
       updateExpected(expected, price);
     } else {

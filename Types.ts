@@ -125,9 +125,8 @@ export interface SwapContracts {
 }
 
 export interface ContextType {
-  userAssets: { data: UserAsset[]; loading: boolean; error: boolean };
+  userAssets: { data: UserAsset[]; loading: boolean };
   hardRefreshAssets: Function;
-  softRefreshAssets: Function;
   account: undefined | string;
   chainId: undefined | number;
   connector: undefined | Connector;
@@ -140,9 +139,8 @@ export interface ContextType {
 }
 
 export const defaultContext: ContextType = {
-  userAssets: { data: [], loading: true, error: false },
+  userAssets: { data: [], loading: true },
   hardRefreshAssets: () => {},
-  softRefreshAssets: () => {},
   account: undefined,
   chainId: undefined,
   connector: undefined,

@@ -149,7 +149,7 @@ const SecureAsset = ({ asset, setSecuring }: { asset: UserAsset; setSecuring: Fu
     contracts,
     onError,
     userAssets: { loading },
-    softRefreshAssets,
+    hardRefreshAssets,
     chainId,
     slippageControl: { slippage },
   } = useAppContext();
@@ -409,7 +409,7 @@ const SecureAsset = ({ asset, setSecuring }: { asset: UserAsset; setSecuring: Fu
           onChangeConditions={setLiquidationConditions}
           resetFlag={undefined}
           assetPrice={currentUsd}
-          onReload={softRefreshAssets}
+          onReload={hardRefreshAssets}
           loading={loading}
         />
       </Flex>
@@ -478,7 +478,7 @@ const SecureAsset = ({ asset, setSecuring }: { asset: UserAsset; setSecuring: Fu
 
 const Assets = () => {
   const { userAssets } = useAppContext();
-  const assets = userAssets?.data;
+  const {data: assets, loading} = userAssets
   const [securing, setSecuring] = useState<number>();
 
   useEffect(() => {
@@ -494,9 +494,9 @@ const Assets = () => {
       ) : (
         <Box marginInline={"auto"} maxW={"1000px"}>
           <Pagination
-            cards={assets?.map((asset, index) => (
+            cards={!loading?assets?.map((asset, index) => (
               <Card asset={asset} index={index} setSecuring={setSecuring}></Card>
-            ))}
+            )):undefined}
             placeholder={
               <Text textAlign={"center"} mt={"20"}>
                 {"No Assets detected"}

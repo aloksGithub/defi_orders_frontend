@@ -16,10 +16,10 @@ import { ethers } from "ethers";
 import { useEffect, useState } from "react";
 import { useAppContext } from "./Provider";
 import { SelectAsset } from "./selectAssets";
-import { getPrice } from "../utils";
 import { Reload } from "./Reload";
 import { level2 } from "./Theme";
 import { Asset } from "../Types";
+import { getPriceUniversalSwap } from "../contractCalls/dataFetching";
 
 const Condition = ({
   i,
@@ -245,7 +245,7 @@ const LiquidationConditions = ({
         temp[index].price = assetPrice;
       } else {
         if (asset?.contract_address) {
-          const { price } = await getPrice(chainId, asset.contract_address);
+          const { price } = await getPriceUniversalSwap(contracts, asset.contract_address);
           temp[index].price = price;
         }
       }

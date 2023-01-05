@@ -1,10 +1,10 @@
 import { Flex, useColorModeValue, Text, Box } from "@chakra-ui/react";
 import { useWeb3React } from "@web3-react/core";
 import { useEffect, useState } from "react";
-import { FetchPositionData } from "../contractCalls/dataFetching";
+import { FetchPositionData, getPriceUniversalSwap } from "../contractCalls/dataFetching";
 import { approveAssets, depositAgain } from "../contractCalls/transactions";
 import { UserAssetSupplied, defaultUserAssetSupplied, WantedAsset } from "../Types";
-import { getBlockExplorerUrlTransaction, getPrice } from "../utils";
+import { getBlockExplorerUrlTransaction } from "../utils";
 import { PrimaryButton } from "./Buttons";
 import { useAppContext } from "./Provider";
 import { SupplyAssets } from "./selectAssets";
@@ -63,7 +63,7 @@ const DepositModal = ({
         );
         const totalRatio = underlyingTokens[1].reduce((a, b) => a.add(b), BigNumber.from("0"));
         for (const [index, token] of underlyingTokens[0].entries()) {
-          const { price, decimals } = await getPrice(chainId, token);
+          const { price, decimals } = await getPriceUniversalSwap(contracts, token);
           const percentageAllocated = underlyingTokens[1][index].toNumber() / totalRatio.toNumber();
           const usd = usdTotal * percentageAllocated;
           const expectedTokens = usd / price;

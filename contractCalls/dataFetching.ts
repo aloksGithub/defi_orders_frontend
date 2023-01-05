@@ -7,6 +7,7 @@ import { SwapContracts, UserAssetSupplied, WantedAsset } from "../Types";
 import { JsonRpcSigner, JsonRpcProvider } from "@ethersproject/providers";
 import { PositionStructOutput } from "../codegen/PositionManager";
 import { ERC20__factory } from "../codegen";
+import deploymentAddresses from "../constants/deployments.json";
 
 export const getAmountsOut = async (
   contracts: SwapContracts,
@@ -249,4 +250,19 @@ export const fetchImportantPoints = async (
     };
   });
   return { data: formattedInteractions, usdcDeposited, usdcWithdrawn };
+};
+
+export const getPriceUniversalSwap = async (contracts: SwapContracts, address: string) => {
+  const token = ERC20__factory.connect(address, contracts.universalSwap.provider);
+  const tokenDecimals = address != ethers.constants.AddressZero ? await token.decimals() : 18;
+  const price = await contracts.universalSwap.estimateValueERC20(
+    address,
+    ethers.utils.parseUnits("1", tokenDecimals),
+    contracts.stableToken.address
+  );
+  const stableDecimals = await contracts.stableToken.decimals()
+  return {
+    price: +ethers.utils.formatUnits(price, stableDecimals),
+    decimals: tokenDecimals,
+  };
 };

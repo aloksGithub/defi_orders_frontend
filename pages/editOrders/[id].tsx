@@ -26,13 +26,13 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useWeb3React } from "@web3-react/core";
 import { ethers } from "ethers";
-import { fetchPosition, FetchPositionData } from "../../contractCalls/dataFetching";
+import { fetchPosition, FetchPositionData, getPriceUniversalSwap } from "../../contractCalls/dataFetching";
 import { getAmountsOut } from "../../contractCalls/routeCalculation";
 import { close, adjustLiquidationPoints } from "../../contractCalls/transactions";
 import LiquidationConditions from "../../components/LiquidationConditions";
 import { Heading2 } from "../../components/Typography";
 import { DangerButton, PrimaryButton, SecondaryButton } from "../../components/Buttons";
-import { getBlockExplorerUrlTransaction, getLogoUrl, getPrice, nFormatter } from "../../utils";
+import { getBlockExplorerUrlTransaction, getLogoUrl, nFormatter } from "../../utils";
 import { BiErrorAlt } from "react-icons/bi";
 import { level1, level2 } from "../../components/Theme";
 import { Asset, defaultUserAssetSupplied, defaultWantedAsset, LiquidationCondition } from "../../Types";
@@ -108,7 +108,7 @@ const EditPosition = () => {
           watchedAsset = supportedAssets.find(
             (asset: any) => asset.contract_address.toLowerCase() === point.watchedToken.toLowerCase()
           );
-          price = (await getPrice(chainId, point.watchedToken)).price;
+          price = (await getPriceUniversalSwap(contracts, point.watchedToken)).price;
         }
         const convertTo = supportedAssets.find(
           (asset: any) => asset.contract_address.toLowerCase() === point.liquidateTo.toLowerCase()

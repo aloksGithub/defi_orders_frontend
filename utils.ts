@@ -54,13 +54,6 @@ export const getUnderlyingTokens = async (contracts, token) => {
   return underlying;
 };
 
-export const getPrice = async (chainId, address) => {
-  const {
-    data: { price, decimals },
-  } = await (await fetch(`/api/tokenPrice?chainId=${chainId}&address=${address}`)).json();
-  return { price, decimals };
-};
-
 export const blockExplorers = {
   1: "https://etherscan.io",
   56: "https://bscscan.com",
