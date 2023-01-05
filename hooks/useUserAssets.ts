@@ -16,13 +16,22 @@ const useUserAssets = (address:string, chainId:number, contracts:SwapContracts, 
   };
 
   const fetchAssets = async () => {
-    if (!address || !contracts) return
     const api = blockExplorerAPIs[chainId]
-    const url = `${api}/api?module=account&action=tokentx&address=${address}&page=1&startblock=0&sort=asc&apikey=YourApiKeyToken`
-    const response = await (await fetch(url)).json();
-    if (response.message!="OK") {
-      onError("Failed to fetch user assets")
+    if (!address || !contracts || !api) {
+      setLoading(false)
       return
+    }
+    const url = `${api}/api?module=account&action=tokentx&address=${address}&page=1&startblock=0&sort=asc&apikey=YourApiKeyToken`
+    let response = await (await fetch(url)).json();
+    if (response.message!="OK") {
+      if (response.message==='No transactions found') {
+        response = {result: []}
+      } else {
+        onError(response.message)
+        setAssets([])
+        setLoading(false)
+        return
+      }
     }
     const transactions = response.result
     let assets: UserAsset[] = []
