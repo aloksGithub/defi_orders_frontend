@@ -125,7 +125,7 @@ const usePosition = (positionId: number, refresh: boolean) => {
     setLoading(true);
     setUnderlying(undefined);
     setRewards(undefined);
-    contracts.positionManager.getPosition(positionId).then(async (positionData) => {
+    contracts?.positionManager.getPosition(positionId).then(async (positionData) => {
       const {
         position,
         bankTokenInfo,

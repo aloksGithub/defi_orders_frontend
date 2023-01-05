@@ -67,7 +67,7 @@ export const Pagination = ({ cards, placeholder }) => {
             // @ts-ignore
           })
         ) : (
-          <GridItem margin={"auto"} width={"70%"} colSpan={3}>
+          <GridItem margin={"auto"} width={"70%"} colSpan={24}>
             {placeholder}
           </GridItem>
         )}

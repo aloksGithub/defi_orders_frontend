@@ -287,8 +287,13 @@ const Positions = () => {
   const [active, setActive] = useState(true);
   const [needSelector, setNeedSelector] = useState(false);
 
+  console.log(account, userPositions, contracts)
+
   useEffect(() => {
-    if (!contracts?.positionManager) return;
+    if (!contracts?.positionManager || !account) {
+      setUserPositions([])
+      return;
+    }
     const getPositions = async () => {
       const positions = await contracts.positionManager.getPositions(account);
       const filteredPositions: BigNumber[] = [];
@@ -355,19 +360,25 @@ const Positions = () => {
             </Button>
           </Flex>
           <Pagination
-            cards={userPositions?.map((id) => (
+            cards={account?userPositions?.map((id) => (
               <Card id={id}></Card>
-            ))}
+            )):[]}
             placeholder={
-              <Text mt={"20"}>
+              account?<>
+              <Text textAlign={'center'} mt={"20"}>
                 No positions detected.{" "}
                 <Link href={`/`}>
-                  <Text color="blue" _hover={{ cursor: "pointer" }} as={"u"}>
+                  <Text color="blue.500" _hover={{ cursor: "pointer" }} as={"u"}>
                     Click here
                   </Text>
                 </Link>{" "}
-                to create a position using your assets. Note: You might have to reload in a minute to see newly created
+                to create a position using your assets.
                 positions
+              </Text>
+              <Text textAlign={'center'}> Note: You might have to reload in a minute to see newly created</Text>
+              </>:
+              <Text textAlign={'center'} mt={"20"}>
+                Please connect wallet
               </Text>
             }
           ></Pagination>

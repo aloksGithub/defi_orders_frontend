@@ -138,6 +138,8 @@ export function AppWrapper({ children }) {
     };
     if (provider && chainId) {
       getContracts();
+    } else {
+      setContracts(undefined)
     }
   }, [provider, chainId, account]);
 

@@ -18,6 +18,7 @@ const useUserAssets = (address:string, chainId:number, contracts:SwapContracts, 
   const fetchAssets = async () => {
     const api = blockExplorerAPIs[chainId]
     if (!address || !contracts || !api) {
+      setAssets([])
       setLoading(false)
       return
     }

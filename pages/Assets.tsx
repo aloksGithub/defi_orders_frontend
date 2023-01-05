@@ -478,6 +478,7 @@ const SecureAsset = ({ asset, setSecuring }: { asset: UserAsset; setSecuring: Fu
 
 const Assets = () => {
   const { userAssets } = useAppContext();
+  const {account} = useWeb3React()
   const {data: assets, loading} = userAssets
   const [securing, setSecuring] = useState<number>();
 
@@ -498,8 +499,12 @@ const Assets = () => {
               <Card asset={asset} index={index} setSecuring={setSecuring}></Card>
             )):undefined}
             placeholder={
+              account?
               <Text textAlign={"center"} mt={"20"}>
                 {"No Assets detected"}
+              </Text>:
+              <Text textAlign={"center"} mt={"20"}>
+                Please connect wallet
               </Text>
             }
           ></Pagination>
