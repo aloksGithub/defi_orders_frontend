@@ -11,7 +11,7 @@ const useUserAssets = (address:string, chainId:number, contracts:SwapContracts, 
   const [assets, setAssets] = useState<UserAsset[]>([])
 
   const fetchTokenDetails = (address: string) => {
-    const asset = supportedChainAssets[chainId].find((a) => a.contract_address.toLowerCase() == address.toLowerCase());
+    const asset = supportedChainAssets[chainId].find((a) => a.contract_address.toLowerCase()===address?.toLowerCase());
     return asset;
   };
 
@@ -24,7 +24,7 @@ const useUserAssets = (address:string, chainId:number, contracts:SwapContracts, 
     }
     const url = `${api}/api?module=account&action=tokentx&address=${address}&page=1&startblock=0&sort=asc&apikey=YourApiKeyToken`
     let response = await (await fetch(url)).json();
-    if (response.message!="OK") {
+    if (!response.message.includes("OK")) {
       if (response.message==='No transactions found') {
         response = {result: []}
       } else {
@@ -40,13 +40,15 @@ const useUserAssets = (address:string, chainId:number, contracts:SwapContracts, 
       const idx = assets.findIndex(asset=>asset.contract_address.toLowerCase()===transaction.contractAddress.toLowerCase())
       if (idx==-1) {
         const tokenData = fetchTokenDetails(transaction.contractAddress);
-        assets.push({
-          ...tokenData,
-          quote: 0,
-          quote_rate: 0,
-          formattedBalance: '0',
-          balance: '0'
-        })
+        if (tokenData) {
+          assets.push({
+            ...tokenData,
+            quote: 0,
+            quote_rate: 0,
+            formattedBalance: '0',
+            balance: '0'
+          })
+        }
       }
     }
     const networkToken = fetchTokenDetails(constants.AddressZero)
