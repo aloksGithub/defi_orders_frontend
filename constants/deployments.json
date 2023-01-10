@@ -6,5 +6,9 @@
   "97": {
     "positionsManager": "0xe0578878700A6e91f7CA7D985c04243f772b552F",
     "universalSwap": "0xAb031175A712357234Dee702d6Fe59B934504b39"
+  },
+  "56": {
+    "positionsManager": "0x833528b775077A1659b7C879C483DF12d86ec769",
+    "universalSwap": "0xb8a314bCC7C6f3445FC6Dd7902b08B805F2539FE"
   }
 }
