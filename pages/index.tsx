@@ -429,7 +429,7 @@ const ConvertTo = ({
   }, [slippage]);
 
   const addWanted = () => {
-    updateWantedAssets([...wantedAssets, defaultWantedAsset]);
+    updateWantedAssets([...wantedAssets, JSON.parse(JSON.stringify(defaultWantedAsset))]);
   };
 
   const select = (index, asset) => {
@@ -455,6 +455,13 @@ const ConvertTo = ({
   const updatePercentages = (index: number, percentage: number) => {
     const temp = [...wantedAssets];
     temp[index].percentage = percentage;
+    if (temp.length===2) {
+      if (index===0) {
+        temp[1].percentage = 100-percentage
+      } else {
+        temp[0].percentage = 100-percentage
+      }
+    }
     updateWantedAssets(temp);
   };
 
@@ -498,7 +505,7 @@ const ConvertTo = ({
 
 const UniversalSwap = () => {
   const [assetsToConvert, setAssetsToConvert] = useState<UserAssetSupplied[]>([defaultUserAssetSupplied]);
-  const [wantedAssets, setWantedAssets] = useState<WantedAsset[]>([defaultWantedAsset]);
+  const [wantedAssets, setWantedAssets] = useState<WantedAsset[]>([JSON.parse(JSON.stringify({...defaultWantedAsset, percentage: 100}))]);
   const updateWantedAssets = (assets: WantedAsset[]) => {
     setWantedAssets(assets);
   };
