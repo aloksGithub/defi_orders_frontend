@@ -27,7 +27,7 @@ import {
   useColorMode,
 } from "@chakra-ui/react";
 import { HamburgerIcon, CloseIcon, SettingsIcon, SunIcon, MoonIcon } from "@chakra-ui/icons";
-import { useWeb3React } from "@web3-react/core";
+import { initializeConnector, useWeb3React } from "@web3-react/core";
 import { getName, chainLogos, chainNames, supportedChains, walletLogos } from "../utils";
 import React from "react";
 import { coinbaseWallet } from "../connectors/coinbaseWallet";
@@ -40,6 +40,7 @@ import { CSSTransition } from "react-transition-group";
 import { FaWallet } from "react-icons/fa";
 import { level0 } from "./Theme";
 import { PrimaryButton } from "./Buttons";
+import { Connector } from "@web3-react/types";
 
 const Links = [
   {
@@ -83,12 +84,14 @@ const Wallet = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [overlay, setOverlay] = React.useState(<Overlay />);
 
-  const activateController = async (connector, chainId) => {
+  const activateController = async (connector: Connector, chainId: number|undefined) => {
     try {
       if (chainId) {
-        await connector.activate(chainId || 1);
+        await connector.activate(chainId);
+        window.location.reload()
       } else {
         await connector.activate();
+        window.location.reload()
       }
       onClose();
     } catch {

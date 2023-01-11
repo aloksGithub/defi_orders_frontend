@@ -30,7 +30,7 @@ export const chainLogos = {
   1337: "https://cryptologos.cc/logos/ethereum-eth-logo.svg?v=023",
 };
 
-export const supportedChains = [1, 56, 97, 1337];
+export const supportedChains = [56, 97];
 
 export const chainNames = {
   1: "Ethereum",
@@ -184,8 +184,6 @@ interface SupportedChainAssets {
 export const supportedChainAssets: SupportedChainAssets = {
   // @ts-ignore
   56: bscAssets,
-  // @ts-ignore
-  1: mainnetAssets,
   // @ts-ignore
   97: bscTestnetAssets,
 };

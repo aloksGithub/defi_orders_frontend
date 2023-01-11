@@ -199,7 +199,7 @@ export function AppWrapper({ children }) {
           <ModalFooter></ModalFooter>
         </ModalContent>
       </Modal>
-      <Modal size={"sm"} isCentered isOpen={alertOpen} onClose={closeAlert}>
+      <Modal size={"sm"} isCentered isOpen={false} onClose={closeAlert}>
         <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
         <ModalContent>
           <ModalHeader>
