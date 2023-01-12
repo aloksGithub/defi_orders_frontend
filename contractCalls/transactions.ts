@@ -21,11 +21,12 @@ export const depositNew = async (contracts: SwapContracts, signer: JsonRpcSigner
   if (asset.contract_address != ethers.constants.AddressZero) {
     const contract = ERC20__factory.connect(asset.contract_address, signer);
     const currentApproval = await contract.allowance(account, contracts.positionManager.address);
-    if (currentApproval < position.amount) {
+    const amount = await position.amount
+    if (currentApproval.lt(amount)) {
       await contract.approve(contracts.positionManager.address, ethers.constants.MaxInt256);
       while(true) {
         const currentApproval = await contract.allowance(account, contracts.positionManager.address);
-        if (currentApproval < position.amount) {
+        if (currentApproval.lt(amount)) {
           await new Promise(r => setTimeout(r, 1000));
         } else {
           break
@@ -54,9 +55,9 @@ export const swap = async (
     if (token != ethers.constants.AddressZero) {
       // @ts-ignore
       const assetContract = ERC20__factory.connect(token, signer);
-      const tokensSupplied = provided.amounts[i];
+      const tokensSupplied = await provided.amounts[i];
       const currentAllowance = await assetContract.allowance(account, contracts.universalSwap.address);
-      if (currentAllowance < tokensSupplied) {
+      if (currentAllowance.lt(tokensSupplied)) {
         await assetContract.approve(contracts.universalSwap.address, ethers.constants.MaxInt256);
       }
     } else {
@@ -67,10 +68,10 @@ export const swap = async (
     if (token != ethers.constants.AddressZero) {
       // @ts-ignore
       const assetContract = ERC20__factory.connect(token, signer);
-      const tokensSupplied = provided.amounts[i];
+      const tokensSupplied = await provided.amounts[i];
       while(true) {
         const currentAllowance = await assetContract.allowance(account, contracts.universalSwap.address);
-        if (currentAllowance < tokensSupplied) {
+        if (currentAllowance.lt(tokensSupplied)) {
           await new Promise(r => setTimeout(r, 1000));
         } else {
           break
@@ -141,7 +142,7 @@ export const approveAssets = async (assetsToConvert: UserAssetSupplied[], spende
       const tokensSupplied = provided.amounts[i];
       while(true) {
         const currentAllowance = await assetContract.allowance(account, spender);
-        if (currentAllowance < tokensSupplied) {
+        if (currentAllowance.lt(tokensSupplied)) {
           await new Promise(r => setTimeout(r, 1000));
         } else {
           break

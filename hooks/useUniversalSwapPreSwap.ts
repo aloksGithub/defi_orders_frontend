@@ -81,7 +81,7 @@ const useUniversalSwapPreSwap = ({
     setLoading(true);
     const provided = {
       tokens: assetsToConvert.map((asset) => asset.contract_address),
-      amounts: assetsToConvert.map((asset) => parseUnits(asset.tokensSupplied, asset.contract_decimals)),
+      amounts: assetsToConvert.map((asset) => parseUnits((+asset.tokensSupplied).toFixed(asset.contract_decimals), asset.contract_decimals)),
       nfts: [],
     };
     setProvided(provided);
