@@ -287,8 +287,6 @@ const Positions = () => {
   const [active, setActive] = useState(true);
   const [needSelector, setNeedSelector] = useState(false);
 
-  console.log(account, userPositions, contracts)
-
   useEffect(() => {
     if (!contracts?.positionManager || !account) {
       setUserPositions([])

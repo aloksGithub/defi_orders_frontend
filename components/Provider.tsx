@@ -45,6 +45,7 @@ import {
   IOracle__factory,
 } from "../codegen";
 import useUserAssets from "../hooks/useUserAssets";
+import Head from 'next/head'
 
 const AppContext = createContext(defaultContext);
 
@@ -272,6 +273,10 @@ const connectors: [MetaMask | WalletConnect | CoinbaseWallet | Network, Web3Reac
 export default function Provider({ children }) {
   return (
     <ChakraProvider theme={theme}>
+      <Head>
+        <link rel="shortcut icon" href="https://upload.wikimedia.org/wikipedia/commons/7/7d/Eo_circle_blue_letter-d.svg" />
+        <title>Delimit</title>
+      </Head>
       <Web3ReactProvider connectors={connectors}>
         <AppWrapper>
           <Navbar></Navbar>
