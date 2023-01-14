@@ -162,6 +162,10 @@ const Wallet = () => {
             aria-label="wallet"
             icon={<FaWallet></FaWallet>}
             background="hidden"
+            onClick={() => {
+              setOverlay(<Overlay />);
+              onOpen();
+            }}
             display={{ base: "flex", md: "none" }}
           ></IconButton>
         </Flex>
