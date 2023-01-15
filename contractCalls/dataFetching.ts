@@ -8,6 +8,7 @@ import { JsonRpcSigner, JsonRpcProvider } from "@ethersproject/providers";
 import { PositionStructOutput } from "../codegen/PositionManager";
 import { ERC20__factory } from "../codegen";
 import deploymentAddresses from "../constants/deployments.json";
+import { parseUnits } from "@ethersproject/units";
 
 export const getAmountsOut = async (
   contracts: SwapContracts,
@@ -96,16 +97,35 @@ export const fetchPosition = async (id: number, contracts: SwapContracts, signer
     decimals = 18;
     name = nativeTokens[chainId].contract_name;
   }
-  const underlying = await Promise.all(
-    underlyingTokens.map(async (token, index) => {
-      const contract = ERC20__factory.connect(token, signer);
-      const name = await contract.name();
-      const decimals = await contract.decimals();
-      const amount = +ethers.utils.formatUnits(underlyingAmounts[index], decimals);
-      const value = +ethers.utils.formatUnits(underlyingValues[index], stableDecimals);
-      return { name, amount, value, address: token };
-    })
-  );
+  let underlying: {
+    name: string;
+    amount: number;
+    value: number;
+    address: string;
+  }[]
+  if (usdValue.isZero()) {
+    const [actualUnderlying] = await contracts.universalSwap.getUnderlying({tokens: underlyingTokens, amounts: [parseUnits("1", 18)], nfts: []})
+    underlying = await Promise.all(
+      actualUnderlying.map(async (token, index) => {
+        const contract = ERC20__factory.connect(token, signer);
+        const name = await contract.name();
+        const amount = 0;
+        const value = 0;
+        return { name, amount, value, address: token };
+      })
+    );
+  } else {
+    underlying = await Promise.all(
+      underlyingTokens.map(async (token, index) => {
+        const contract = ERC20__factory.connect(token, signer);
+        const name = await contract.name();
+        const decimals = await contract.decimals();
+        const amount = +ethers.utils.formatUnits(underlyingAmounts[index], decimals);
+        const value = +ethers.utils.formatUnits(underlyingValues[index], stableDecimals);
+        return { name, amount, value, address: token };
+      })
+    );
+  }
   const rewards = await Promise.all(
     rewardTokens.map(async (token, index) => {
       const contract = ERC20__factory.connect(token, signer);

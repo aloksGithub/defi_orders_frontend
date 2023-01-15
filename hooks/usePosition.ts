@@ -6,6 +6,7 @@ import { useWeb3React } from "@web3-react/core";
 import { getLogoUrl, nativeTokens, nFormatter, supportedChainAssets } from "../utils";
 import { BigNumber, ethers } from "ethers";
 import { ERC20__factory } from "../codegen";
+import { parseUnits } from "ethers/lib/utils";
 
 const usePosition = (positionId: number, refresh: boolean) => {
   const { provider, account } = useWeb3React();
@@ -143,7 +144,16 @@ const usePosition = (positionId: number, refresh: boolean) => {
       setStableDecimals(stableDecimals);
       setUsdcValue(nFormatter(usd, 3));
       setBankTokenInfo(bankTokenInfo);
-      setUnderlyingData({ tokens: underlyingTokens, amounts: underlyingAmounts, values: underlyingValues });
+      if (usdValue.isZero()) {
+        const [actualUnderlying] = await contracts.universalSwap.getUnderlying({tokens: underlyingTokens, amounts: [parseUnits("1", 18)], nfts: []})
+        setUnderlyingData({ 
+          tokens: actualUnderlying, 
+          amounts: Array(actualUnderlying.length).fill(BigNumber.from(0)), 
+          values: Array(actualUnderlying.length).fill(BigNumber.from(0))
+        });
+      } else {
+        setUnderlyingData({ tokens: underlyingTokens, amounts: underlyingAmounts, values: underlyingValues });
+      }
       setRewardData({ tokens: rewardTokens, amounts: rewardAmounts, values: rewardValues });
     });
   }, [positionId, refresh, provider, account]);
