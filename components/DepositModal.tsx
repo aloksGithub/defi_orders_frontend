@@ -127,7 +127,10 @@ const DepositModal = ({
               swapData.desired.minAmountsOut,
               { value: ethSupplied }
             )
-            .then((tx) => onSuccess(tx.hash))
+            .then(async (tx) => {
+              tx.wait()
+              onSuccess(tx.hash)
+            })
             .catch((error) => triggerError(error));
         })
         .catch((error) => triggerError(error));

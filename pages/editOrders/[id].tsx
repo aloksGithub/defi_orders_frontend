@@ -56,7 +56,6 @@ const EditPosition = () => {
   const [refresh, setRefresh] = useState(false);
   const { isOpen: isDepositOpen, onOpen: onDepositOpen, onClose: onDepositClose } = useDisclosure();
   const { isOpen: isWithdrawOpen, onOpen: onWithdrawOpen, onClose: onWithdrawClose } = useDisclosure();
-  const { isOpen: isCloseOpen, onOpen: onCloseOpen, onClose: onCloseClose } = useDisclosure();
   const [error, setError] = useState("");
   const { isOpen: errorOpen, onOpen: openError, onClose: closeError } = useDisclosure();
   const [resetFlag, setResetFlag] = useState(false);
@@ -132,31 +131,6 @@ const EditPosition = () => {
 
   const refreshData = () => {
     setRefresh(!refresh);
-  };
-
-  const closePosition = () => {
-    setClosing(true);
-    close(contracts, id)
-      .then((hash) => {
-        setClosing(false);
-        successModal(
-          "Withdrawal Successful",
-          <Text>
-            Assets were withdrawn successfully, View{" "}
-            <a href={getBlockExplorerUrlTransaction(chainId, hash)} target="_blank" rel="noopener noreferrer">
-              <Text as="u" textColor={"blue.500"}>
-                transaction
-              </Text>
-            </a>
-            &nbsp;on block explorer.
-          </Text>
-        );
-        onCloseClose();
-      })
-      .catch((error) => {
-        setClosing(false);
-        onError(error);
-      });
   };
 
   const updateConditions = async () => {
@@ -364,24 +338,6 @@ const EditPosition = () => {
           <ModalCloseButton />
           <ModalBody>
             <WithdrawModal position={position} closeSelf={onWithdrawClose} refreshData={refreshData} />
-          </ModalBody>
-        </ModalContent>
-      </Modal>
-      <Modal isCentered isOpen={isCloseOpen} onClose={onCloseClose}>
-        <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
-        <ModalContent padding={"5"}>
-          <ModalHeader>Close Position</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <Text mb={"10"}>Are you sure you want to close the position?</Text>
-            <Flex justifyContent={"end"}>
-              <DangerButton isLoading={isClosing} mr={"5"} size="large" onClick={closePosition}>
-                Confirm
-              </DangerButton>
-              <PrimaryButton loadingText={"Closing"} size="large" onClick={onCloseClose}>
-                Cancel
-              </PrimaryButton>
-            </Flex>
           </ModalBody>
         </ModalContent>
       </Modal>

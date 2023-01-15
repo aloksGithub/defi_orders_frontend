@@ -54,7 +54,6 @@ const WithdrawModal = ({
   };
   const withdrawFromPostion = () => {
     if (value === 0) return;
-    console.log(typeof value);
     setWithdrawing(true);
     withdraw(
       contracts,
@@ -89,6 +88,7 @@ const WithdrawModal = ({
     close(contracts, position.positionId)
       .then((hash) => {
         setClosing(false);
+        refreshData();
         successModal(
           "Withdrawal Successful",
           <Text>

@@ -17,7 +17,7 @@ import { getSwapsAndConversionsFromProvidedAndDesired } from "./routeCalculation
 
 export const depositNew = async (contracts: SwapContracts, signer: JsonRpcSigner, position: PositionStruct, asset) => {
   const account = await signer.getAddress();
-  let tx: ethers.Transaction;
+  let tx: ethers.ContractTransaction;
   if (asset.contract_address != ethers.constants.AddressZero) {
     const contract = ERC20__factory.connect(asset.contract_address, signer);
     const currentApproval = await contract.allowance(account, contracts.positionManager.address);
@@ -34,8 +34,10 @@ export const depositNew = async (contracts: SwapContracts, signer: JsonRpcSigner
       }
     }
     tx = await contracts.positionManager.deposit(position, [asset.contract_address], [position.amount]);
+    await tx.wait();
   } else {
     tx = await contracts.positionManager.deposit(position, [], [], { value: position.amount });
+    await tx.wait();
   }
   return tx.hash;
 };
@@ -58,7 +60,8 @@ export const swap = async (
       const tokensSupplied = await provided.amounts[i];
       const currentAllowance = await assetContract.allowance(account, contracts.universalSwap.address);
       if (currentAllowance.lt(tokensSupplied)) {
-        await assetContract.approve(contracts.universalSwap.address, ethers.constants.MaxInt256);
+        const tx = await assetContract.approve(contracts.universalSwap.address, ethers.constants.MaxInt256);
+        await tx.wait();
       }
     } else {
       ethSupplied = await provided.amounts[i];
@@ -90,6 +93,7 @@ export const swap = async (
   }
 
   const tx = await contracts.universalSwap.swap(provided, swaps, conversions, desired, account, { value: ethSupplied });
+  await tx.wait();
   const hash = tx.hash;
   const rc = await tx.wait();
   const event = rc.events?.find((event: any) => event.event === "AssetsSent");
@@ -130,7 +134,8 @@ export const approveAssets = async (assetsToConvert: UserAssetSupplied[], spende
       const contract = ERC20__factory.connect(address, signer);
       const allowance = await contract.allowance(account, spender);
       if (allowance.lt(supplied)) {
-        await contract.approve(spender, ethers.constants.MaxInt256);
+        const tx = await contract.approve(spender, ethers.constants.MaxInt256);
+        await tx.wait();
       }
     } else {
       ethSupplied = ethers.utils.parseUnits(asset.tokensSupplied.toString(), asset.contract_decimals);
@@ -241,6 +246,7 @@ export const depositAgain = async (
     desired.minAmountsOut,
     { value: ethSupplied }
   );
+  await tx.wait();
   return tx.hash;
 };
 
@@ -250,11 +256,13 @@ export const adjustLiquidationPoints = async (
   liquidationConditions: LiquidationConditionStruct[]
 ) => {
   const tx = await contracts.positionManager.adjustLiquidationPoints(positionId, liquidationConditions);
+  await tx.wait();
   return tx.hash;
 };
 
 export const harvest = async (contracts: SwapContracts, positionId: BigNumberish) => {
   const tx = await contracts.positionManager.harvestRewards(positionId);
+  await tx.wait();
   return tx.hash;
 };
 
@@ -312,15 +320,18 @@ export const compound = async (
     conversions,
     desired.minAmountsOut
   );
+  await tx.wait();
   return tx.hash;
 };
 
 export const withdraw = async (contracts: SwapContracts, positionId: BigNumberish, amount: BigNumberish) => {
   const tx = await contracts.positionManager.withdraw(positionId, amount);
+  await tx.wait();
   return tx.hash;
 };
 
 export const close = async (contracts: SwapContracts, positionId: BigNumberish) => {
   const tx = await contracts.positionManager.close(positionId);
+  await tx.wait();
   return tx.hash;
 };
