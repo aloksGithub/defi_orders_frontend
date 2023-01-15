@@ -100,7 +100,7 @@ export const SelectAsset = ({
             <>
               &nbsp;&nbsp;
               <Image
-                src={asset.logo_url}
+                src={asset.logo_url.toLowerCase()}
                 w="20px"
                 h="20px"
                 borderRadius={"15px"}
@@ -142,7 +142,7 @@ export const SelectAsset = ({
                     onClick={() => onSelected(selectableAsset)}
                   >
                     <Image
-                      src={selectableAsset.logo_url}
+                      src={selectableAsset.logo_url.toLowerCase()}
                       w="20px"
                       h="20px"
                       borderRadius={"15px"}

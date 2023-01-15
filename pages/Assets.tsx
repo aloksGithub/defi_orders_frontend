@@ -66,7 +66,7 @@ const Card = ({ asset, index, setSecuring }: { asset: UserAsset; index: number; 
       >
         <Flex mb={"3"} pb={"3"} justifyContent={"center"} alignItems={"center"}>
           <Image
-            src={asset.logo_url}
+            src={asset.logo_url.toLowerCase()}
             fallbackSrc="https://www.svgrepo.com/show/99387/dollar.svg"
             borderRadius={"full"}
             style={{ width: "30px", height: "30px" }}
@@ -93,9 +93,10 @@ const Card = ({ asset, index, setSecuring }: { asset: UserAsset; index: number; 
                 Underlying
               </Text>
               {asset.underlying.map((token) => {
+                console.log(token)
                 return (
                   <Flex alignItems={"center"} paddingBlock={"1"} marginBlock={"1"}>
-                    <Image src={token.logo_url} width="20px" height={"20px"} borderRadius="full" />
+                    <Image src={token.logo_url.toLowerCase()} width="20px" height={"20px"} borderRadius="full" />
                     {/* <img src={token.logo_url} style={{width: "20px", height: "20px", borderRadius: '15px'}}/> */}
                     <a
                       href={getBlockExplorerUrl(chainId, token.contract_address)}

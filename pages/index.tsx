@@ -653,7 +653,7 @@ const UniversalSwap = () => {
                   >
                     <Flex width={"40%"} alignItems={"center"}>
                       <Image
-                        src={asset.logo_url}
+                        src={asset.logo_url.toLowerCase()}
                         fallbackSrc="https://www.svgrepo.com/show/99387/dollar.svg"
                         style={{ width: "20px", height: "20px", borderRadius: "15px" }}
                       />
@@ -736,7 +736,7 @@ const UniversalSwap = () => {
                     borderRadius={"2xl"}
                   >
                     <Flex width={"40%"} alignItems={"center"}>
-                      <img src={asset.logo_url} style={{ width: "20px", height: "20px", borderRadius: "15px" }} />
+                      <img src={asset.logo_url.toLowerCase()} style={{ width: "20px", height: "20px", borderRadius: "15px" }} />
                       <Text pl={"2"}>{asset.contract_name}</Text>
                     </Flex>
                     <Box width={"60%"} textAlign={"end"}>

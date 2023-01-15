@@ -122,7 +122,8 @@ const Analytics = () => {
       const position = await fetchPosition(parseInt(id), contracts, provider.getSigner(account), chainId);
       const positionData = await fetchImportantPoints(contracts, id, provider);
       const roi = positionData.usdcWithdrawn + position.usdcValue - positionData.usdcDeposited;
-      const pnl = (roi * 100) / positionData.usdcDeposited;
+      const pnl = (roi) / 100*positionData.usdcDeposited;
+      console.log(pnl, roi, positionData.usdcDeposited)
       setRoi(roi.toFixed(2));
       setPnl(pnl.toFixed(2));
       setAnalytics(positionData);

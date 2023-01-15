@@ -98,7 +98,7 @@ const Card = ({ id }: { id: number }) => {
           {!loading ? (
             <Flex>
               <Image
-                src={asset?.logo_url}
+                src={asset?.logo_url.toLowerCase()}
                 fallbackSrc="https://www.svgrepo.com/show/99387/dollar.svg"
                 borderRadius={"full"}
                 style={{ width: "30px", height: "30px" }}
@@ -123,7 +123,7 @@ const Card = ({ id }: { id: number }) => {
                 {!loading ? (
                   underlying?.map((token) => (
                     <Flex alignItems={"center"}>
-                      <img src={token.logo_url} style={{ width: "20px", height: "20px", borderRadius: "15px" }} />
+                      <img src={token.logo_url.toLowerCase()} style={{ width: "20px", height: "20px", borderRadius: "15px" }} />
                       <a
                         href={getBlockExplorerUrl(chainId, token.contract_address)}
                         target="_blank"
@@ -191,7 +191,7 @@ const Card = ({ id }: { id: number }) => {
                 {rewards.map((reward) => (
                   <Flex>
                     <Image
-                      src={reward.logo_url}
+                      src={reward.logo_url.toLowerCase()}
                       fallbackSrc="https://www.svgrepo.com/show/99387/dollar.svg"
                       style={{ width: "20px", height: "20px", borderRadius: "15px" }}
                     />

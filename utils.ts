@@ -123,7 +123,7 @@ export const getLogoUrl = (name: string, address: string, chainId: number) => {
   const supportedAssets = supportedChainAssets[chainId];
   const asset = supportedAssets.find((asset) => asset.contract_address.toLowerCase() === address.toLowerCase());
   if (asset) {
-    return asset.logo_url;
+    return asset.logo_url.toLowerCase();
   }
   if (address === ethers.constants.AddressZero) {
     return chainLogos[chainId];
