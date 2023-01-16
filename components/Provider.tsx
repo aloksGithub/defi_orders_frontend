@@ -212,8 +212,9 @@ export function AppWrapper({ children }) {
           <ModalCloseButton />
           <ModalBody>
             <Text mb={"3"}>
-              Limit orders are temporarily disabled while we work on improvements to our bots. You can use the website and place
-              limit orders but they won't be executed.
+              This is a demo version of the Delimit protocol. Limit orders work but have been temporarily disabled
+              as they incur a high gas cost. You can still place the limit orders, but they won't be executed.
+              In the final version of the protocol, we intend to shift the cost of the limit orders to the deposited assets.
             </Text>
           </ModalBody>
           <ModalFooter></ModalFooter>
