@@ -200,23 +200,20 @@ export function AppWrapper({ children }) {
           <ModalFooter></ModalFooter>
         </ModalContent>
       </Modal>
-      <Modal size={"sm"} isCentered isOpen={false} onClose={closeAlert}>
+      <Modal size={"sm"} isCentered isOpen={alertOpen} onClose={closeAlert}>
         <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
         <ModalContent>
           <ModalHeader>
             <Flex>
               {<GrCircleInformation color="yellow" fontSize={"2rem"} />}
-              <Text ml={"4"}>Welcome</Text>
+              <Text ml={"4"}>Notice</Text>
             </Flex>
           </ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <Text mb={"3"}>
-              Welcome to the alpha version of Delimit. Please do not use a large amount of funds as we are still testing
-              and fixing issues.
-            </Text>
-            <Text fontSize={"sm"}>
-              Note: All positions created in the alpha version will be liquidated and returned by February 2023
+              Limit orders are temporarily disabled while we work on improvements to our bots. You can use the website and place
+              limit orders but they won't be executed.
             </Text>
           </ModalBody>
           <ModalFooter></ModalFooter>
