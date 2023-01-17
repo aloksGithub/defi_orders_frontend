@@ -80,7 +80,7 @@ export function AppWrapper({ children }) {
         "Transaction failed due to high slippage. You can try setting a higher slippage threshold from the settings"
       );
     } else {
-      setErrorMessage("Transaction failed with no revert reason. Please contact us at info@de-limit.com");
+      setErrorMessage("Transaction failed with no revert reason. Please contact us at site.delimit@gmail.com");
     }
     triggerError();
   };
