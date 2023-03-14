@@ -1,4 +1,4 @@
-import { AddIcon, DeleteIcon } from "@chakra-ui/icons";
+import { AddIcon, DeleteIcon, InfoIcon } from "@chakra-ui/icons";
 import {
   Text,
   Flex,
@@ -11,6 +11,7 @@ import {
   useColorModeValue,
   Grid,
   GridItem,
+  Tooltip,
 } from "@chakra-ui/react";
 import { ethers } from "ethers";
 import { useEffect, useState } from "react";
@@ -52,6 +53,7 @@ const Condition = ({
 
   return (
     <Grid
+      zIndex={2}
       marginBlock={"2"}
       padding={"4"}
       gap="4"
@@ -84,8 +86,11 @@ const Condition = ({
         </Flex>
       </GridItem>
       <GridItem display={"flex"} flexDirection="column">
-        <Text mb={"2"} as="b">
-          Slippage
+        <Text zIndex={1} mb={"2"} as="b">
+          Slippage&nbsp;&nbsp;
+          <Tooltip label='Liquidation fee is not included in slippage calculation' maxWidth={'150px'}>
+            <InfoIcon></InfoIcon>
+          </Tooltip>
         </Text>
         <NumberInput
           minWidth={"100"}
@@ -137,6 +142,7 @@ const Condition = ({
         borderColor={useColorModeValue("white", "gray.800")}
       >
         <Text
+          zIndex={1}
           textAlign={"center"}
           borderRadius={"lg"}
           width={"2rem"}
@@ -161,6 +167,7 @@ const LiquidationConditions = ({
   resetFlag,
   onReload,
   loading,
+  errorMessage=undefined
 }) => {
   const {
     chainId,
@@ -170,6 +177,7 @@ const LiquidationConditions = ({
 
   const [initialized, setInitialized] = useState(false);
   const [loadingPrices, setLoadingPrices] = useState(Array(liquidationPoints?.length || 0).fill(false));
+  const failedOrder: number|undefined = +errorMessage?.split("_")[0]
 
   useEffect(() => {
     if (initialLiquidationPoints && initialLiquidationPoints.length > 0 && !initialized) {
@@ -280,6 +288,8 @@ const LiquidationConditions = ({
     onChangeConditions(temp);
   };
 
+  console.log(failedOrder)
+
   return (
     <Box marginTop={"5"} width={"100%"}>
       <Box margin={"auto"}>
@@ -299,6 +309,19 @@ const LiquidationConditions = ({
         {liquidationPoints && liquidationPoints.length > 0 ? (
           liquidationPoints.map((condition, index) => {
             return (
+              <Box position={'relative'}>
+                {
+                  index===failedOrder?
+                  <Tooltip label={`Order failed with error: ${errorMessage?.split("_")[1]}`}>
+                    <Box
+                      zIndex={0}
+                      borderRadius={"2xl"}
+                      position='absolute'
+                      height='100%' width={'100%'}
+                      bgColor={'red.200'} opacity='0.3'>
+                    </Box>
+                  </Tooltip>:<></>
+                }
               <Condition
                 i={index}
                 condition={condition}
@@ -309,6 +332,7 @@ const LiquidationConditions = ({
                 setSlippage={(slippage) => setSlippage(index, slippage)}
                 loading={loading || loadingPrices[index]}
               />
+              </Box>
             );
           })
         ) : (

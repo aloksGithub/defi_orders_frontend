@@ -31,8 +31,9 @@ import { fetchPosition, FetchPositionData, getGraphData } from "../../contractCa
 import { fetchImportantPoints } from "../../contractCalls/dataFetching";
 import { LineChart, Line, CartesianGrid, Tooltip, XAxis, YAxis, Label } from "recharts";
 import { Heading2 } from "../../components/Typography";
-import { getLogoUrl, nFormatter } from "../../utils";
+import { getBlockExplorerUrlTransaction, getLogoUrl, nFormatter } from "../../utils";
 import { level1, level2 } from "../../components/Theme";
+import Link from "next/link";
 
 const DaysSelector = ({ setDays, daysSelected }) => {
   return (
@@ -120,10 +121,9 @@ const Analytics = () => {
   useEffect(() => {
     const fetch = async () => {
       const position = await fetchPosition(parseInt(id), contracts, provider.getSigner(account), chainId);
-      const positionData = await fetchImportantPoints(contracts, id, provider);
+      const positionData = await fetchImportantPoints(contracts, id, position.decimals, chainId);
       const roi = positionData.usdcWithdrawn + position.usdcValue - positionData.usdcDeposited;
       const pnl = (roi) / 100*positionData.usdcDeposited;
-      console.log(pnl, roi, positionData.usdcDeposited)
       setRoi(roi.toFixed(2));
       setPnl(pnl.toFixed(2));
       setAnalytics(positionData);
@@ -303,6 +303,7 @@ const Analytics = () => {
               <Tr borderBottom={'1px'} borderColor={useColorModeValue('gray.300', 'gray.600')}>
                 <Th>Date</Th>
                 <Th>Transaction Type</Th>
+                <Th>Tx Hash</Th>
                 <Th>Tokens</Th>
                 <Th>USD Value</Th>
               </Tr>
@@ -313,6 +314,13 @@ const Analytics = () => {
                   <Tr borderBottom={'1px'} borderColor={useColorModeValue('gray.300', 'gray.600')}>
                     <Td>{transaction.date}</Td>
                     <Td>{transaction.action}</Td>
+                    <Td>
+                    <a href={getBlockExplorerUrlTransaction(chainId, transaction.txHash)} target="_blank" rel="noopener noreferrer">
+                      <Text color={"blue.500"} as="u">
+                        {transaction.txHash.slice(0, 5)}...{transaction.txHash.slice(-5)}
+                      </Text>
+                    </a>
+                    </Td>
                     <Td>{nFormatter(transaction.sizeChange, 3)}</Td>
                     <Td>${nFormatter(transaction.usdValue, 3)}</Td>
                   </Tr>

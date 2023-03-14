@@ -2,7 +2,7 @@ import { formatUnits, parseUnits } from "@ethersproject/units";
 import { BigNumber, constants, ethers } from "ethers";
 import { ERC20__factory, ISwapper, ISwapper__factory } from "../codegen";
 import { ProvidedStruct, SwapPointStruct } from "../codegen/PositionManager";
-import { DesiredStruct } from "../codegen/UniversalSwap";
+import { DesiredStruct, ProvidedStructOutput } from "../codegen/UniversalSwap";
 import { SwapContracts, UserAssetSupplied, WantedAsset } from "../Types";
 
 const eighteen = ethers.BigNumber.from("1000000000000000000");
@@ -245,8 +245,14 @@ export const getSwapsAndConversionsFromProvidedAndDesired = async (
   provided: ProvidedStruct,
   desired: DesiredStruct
 ) => {
+  const providedModified: ProvidedStructOutput = JSON.parse(JSON.stringify(provided))
+  providedModified.tokens = providedModified.tokens.map(token=>token===ethers.constants.AddressZero?contracts.networkToken.address:token)
+  const {simplifiedTokens, simplifiedAmounts} = await contracts.providedHelper.simplifyWithoutWrite(providedModified)
+  providedModified.amounts = simplifiedAmounts.map(amount=>amount.sub(amount.mul(100).div(100000)))
+  providedModified.tokens = simplifiedTokens
+  providedModified.nfts = []
   const [tokens, amounts, inputTokenValues, conversions, conversionUnderlying, conversionUnderlyingValues] =
-    await contracts.universalSwap.preSwapCalculateUnderlying(provided, desired);
+    await contracts.universalSwap.preSwapCalculateUnderlying(providedModified, desired);
   const swaps = await findMultipleSwaps(
     contracts,
     tokens,
@@ -279,8 +285,14 @@ export const getSwapsAndConversions = async (
     desired.ratios.push(Math.floor(asset.percentage * 10000));
     desired.minAmountsOut.push(parseUnits(asset.minOut.toFixed(asset.contract_decimals), asset.contract_decimals));
   }
+  const providedModified: ProvidedStructOutput = JSON.parse(JSON.stringify(provided))
+  providedModified.tokens = providedModified.tokens.map(token=>token===ethers.constants.AddressZero?contracts.networkToken.address:token)
+  const {simplifiedTokens, simplifiedAmounts} = await contracts.providedHelper.simplifyWithoutWrite(providedModified)
+  providedModified.amounts = simplifiedAmounts.map(amount=>amount.sub(amount.mul(100).div(100000)))
+  providedModified.tokens = simplifiedTokens
+  providedModified.nfts = []
   const [tokens, amounts, inputTokenValues, conversions, conversionUnderlying, conversionUnderlyingValues] =
-    await contracts.universalSwap.preSwapCalculateUnderlying(provided, desired);
+    await contracts.universalSwap.preSwapCalculateUnderlying(providedModified, desired);
   const swaps = await findMultipleSwaps(
     contracts,
     tokens,

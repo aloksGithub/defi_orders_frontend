@@ -8,95 +8,16 @@ import type { UniversalSwap, UniversalSwapInterface } from "../UniversalSwap";
 
 const _abi = [
   {
-    inputs: [
-      {
-        internalType: "address[]",
-        name: "_poolInteractors",
-        type: "address[]",
-      },
-      {
-        internalType: "address[]",
-        name: "_nftPoolInteractors",
-        type: "address[]",
-      },
-      {
-        internalType: "address",
-        name: "_networkToken",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "_stableToken",
-        type: "address",
-      },
-      {
-        internalType: "address[]",
-        name: "_swappers",
-        type: "address[]",
-      },
-      {
-        internalType: "address",
-        name: "_oracle",
-        type: "address",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "constructor",
-  },
-  {
     anonymous: false,
     inputs: [
       {
         indexed: false,
-        internalType: "address",
-        name: "receiver",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "address[]",
-        name: "tokens",
-        type: "address[]",
-      },
-      {
-        indexed: false,
-        internalType: "address[]",
-        name: "managers",
-        type: "address[]",
-      },
-      {
-        indexed: false,
-        internalType: "uint256[]",
-        name: "amountsAndIds",
-        type: "uint256[]",
+        internalType: "uint8",
+        name: "version",
+        type: "uint8",
       },
     ],
-    name: "AssetsSent",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "address",
-        name: "manager",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "tokenId",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "address",
-        name: "pool",
-        type: "address",
-      },
-    ],
-    name: "NFTMinted",
+    name: "Initialized",
     type: "event",
   },
   {
@@ -119,6 +40,43 @@ const _abi = [
     type: "event",
   },
   {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "receiver",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "inputUsdValue",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "address[]",
+        name: "tokens",
+        type: "address[]",
+      },
+      {
+        indexed: false,
+        internalType: "address[]",
+        name: "managers",
+        type: "address[]",
+      },
+      {
+        indexed: false,
+        internalType: "uint256[]",
+        name: "amountsAndIds",
+        type: "uint256[]",
+      },
+    ],
+    name: "Trade",
+    type: "event",
+  },
+  {
     inputs: [],
     name: "conversionHelper",
     outputs: [
@@ -126,6 +84,45 @@ const _abi = [
         internalType: "contract ConversionHelper",
         name: "",
         type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "coreLogic",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "currentOwner",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "devFee",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
       },
     ],
     stateMutability: "view",
@@ -274,6 +271,19 @@ const _abi = [
         internalType: "uint256",
         name: "",
         type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "ethWithdrawer",
+    outputs: [
+      {
+        internalType: "address payable",
+        name: "",
+        type: "address",
       },
     ],
     stateMutability: "view",
@@ -510,239 +520,6 @@ const _abi = [
       },
     ],
     stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        components: [
-          {
-            internalType: "address[]",
-            name: "tokens",
-            type: "address[]",
-          },
-          {
-            internalType: "uint256[]",
-            name: "amounts",
-            type: "uint256[]",
-          },
-          {
-            components: [
-              {
-                internalType: "address",
-                name: "pool",
-                type: "address",
-              },
-              {
-                internalType: "address",
-                name: "manager",
-                type: "address",
-              },
-              {
-                internalType: "uint256",
-                name: "tokenId",
-                type: "uint256",
-              },
-              {
-                internalType: "uint256",
-                name: "liquidity",
-                type: "uint256",
-              },
-              {
-                internalType: "bytes",
-                name: "data",
-                type: "bytes",
-              },
-            ],
-            internalType: "struct Asset[]",
-            name: "nfts",
-            type: "tuple[]",
-          },
-        ],
-        internalType: "struct Provided",
-        name: "provided",
-        type: "tuple",
-      },
-      {
-        components: [
-          {
-            internalType: "address[]",
-            name: "outputERC20s",
-            type: "address[]",
-          },
-          {
-            components: [
-              {
-                internalType: "address",
-                name: "pool",
-                type: "address",
-              },
-              {
-                internalType: "address",
-                name: "manager",
-                type: "address",
-              },
-              {
-                internalType: "uint256",
-                name: "tokenId",
-                type: "uint256",
-              },
-              {
-                internalType: "uint256",
-                name: "liquidity",
-                type: "uint256",
-              },
-              {
-                internalType: "bytes",
-                name: "data",
-                type: "bytes",
-              },
-            ],
-            internalType: "struct Asset[]",
-            name: "outputERC721s",
-            type: "tuple[]",
-          },
-          {
-            internalType: "uint256[]",
-            name: "ratios",
-            type: "uint256[]",
-          },
-          {
-            internalType: "uint256[]",
-            name: "minAmountsOut",
-            type: "uint256[]",
-          },
-        ],
-        internalType: "struct Desired",
-        name: "desired",
-        type: "tuple",
-      },
-    ],
-    name: "getAmountsOut2",
-    outputs: [
-      {
-        internalType: "uint256[]",
-        name: "amounts",
-        type: "uint256[]",
-      },
-      {
-        components: [
-          {
-            internalType: "uint256",
-            name: "amountIn",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "valueIn",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "amountOut",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "valueOut",
-            type: "uint256",
-          },
-          {
-            internalType: "int256",
-            name: "slippage",
-            type: "int256",
-          },
-          {
-            internalType: "address",
-            name: "tokenIn",
-            type: "address",
-          },
-          {
-            internalType: "address[]",
-            name: "swappers",
-            type: "address[]",
-          },
-          {
-            internalType: "address",
-            name: "tokenOut",
-            type: "address",
-          },
-          {
-            internalType: "address[][]",
-            name: "paths",
-            type: "address[][]",
-          },
-        ],
-        internalType: "struct SwapPoint[]",
-        name: "swaps",
-        type: "tuple[]",
-      },
-      {
-        components: [
-          {
-            components: [
-              {
-                internalType: "address",
-                name: "pool",
-                type: "address",
-              },
-              {
-                internalType: "address",
-                name: "manager",
-                type: "address",
-              },
-              {
-                internalType: "uint256",
-                name: "tokenId",
-                type: "uint256",
-              },
-              {
-                internalType: "uint256",
-                name: "liquidity",
-                type: "uint256",
-              },
-              {
-                internalType: "bytes",
-                name: "data",
-                type: "bytes",
-              },
-            ],
-            internalType: "struct Asset",
-            name: "desiredERC721",
-            type: "tuple",
-          },
-          {
-            internalType: "address",
-            name: "desiredERC20",
-            type: "address",
-          },
-          {
-            internalType: "uint256",
-            name: "value",
-            type: "uint256",
-          },
-          {
-            internalType: "address[]",
-            name: "underlying",
-            type: "address[]",
-          },
-          {
-            internalType: "uint256[]",
-            name: "underlyingValues",
-            type: "uint256[]",
-          },
-        ],
-        internalType: "struct Conversion[]",
-        name: "conversions",
-        type: "tuple[]",
-      },
-      {
-        internalType: "uint256[]",
-        name: "expectedUSDValues",
-        type: "uint256[]",
-      },
-    ],
-    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -1136,6 +913,44 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "address[]",
+        name: "_poolInteractors",
+        type: "address[]",
+      },
+      {
+        internalType: "address[]",
+        name: "_nftPoolInteractors",
+        type: "address[]",
+      },
+      {
+        internalType: "address",
+        name: "_networkToken",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "_stableToken",
+        type: "address",
+      },
+      {
+        internalType: "address[]",
+        name: "_swappers",
+        type: "address[]",
+      },
+      {
+        internalType: "address",
+        name: "_oracle",
+        type: "address",
+      },
+    ],
+    name: "initialize",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "address",
         name: "token",
         type: "address",
@@ -1206,19 +1021,6 @@ const _abi = [
   {
     inputs: [],
     name: "oracle",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "owner",
     outputs: [
       {
         internalType: "address",
@@ -1690,6 +1492,47 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "uint256",
+        name: "_fee",
+        type: "uint256",
+      },
+    ],
+    name: "setDevFee",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_coreLogic",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "_providedHelper",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "_conversionHelper",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "_swapHelper",
+        type: "address",
+      },
+    ],
+    name: "setHelpers",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "address[]",
         name: "_nftPoolInteractors",
         type: "address[]",
@@ -1735,6 +1578,19 @@ const _abi = [
       },
     ],
     name: "setSwappers",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_treasury",
+        type: "address",
+      },
+    ],
+    name: "setTreasury",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -2264,6 +2120,19 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "treasury",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     stateMutability: "payable",
     type: "receive",
   },
@@ -2274,7 +2143,10 @@ export class UniversalSwap__factory {
   static createInterface(): UniversalSwapInterface {
     return new utils.Interface(_abi) as UniversalSwapInterface;
   }
-  static connect(address: string, signerOrProvider: Signer | Provider): UniversalSwap {
+  static connect(
+    address: string,
+    signerOrProvider: Signer | Provider
+  ): UniversalSwap {
     return new Contract(address, _abi, signerOrProvider) as UniversalSwap;
   }
 }

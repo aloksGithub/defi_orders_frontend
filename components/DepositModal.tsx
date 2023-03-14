@@ -128,7 +128,7 @@ const DepositModal = ({
               { value: ethSupplied }
             )
             .then(async (tx) => {
-              tx.wait()
+              await tx.wait()
               onSuccess(tx.hash)
             })
             .catch((error) => triggerError(error));

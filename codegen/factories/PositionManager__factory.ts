@@ -4,51 +4,20 @@
 
 import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
-import type { PositionManager, PositionManagerInterface } from "../PositionManager";
+import type {
+  PositionManager,
+  PositionManagerInterface,
+} from "../PositionManager";
 
 const _abi = [
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "_universalSwap",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "_stableToken",
-        type: "address",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "constructor",
-  },
   {
     anonymous: false,
     inputs: [
       {
-        indexed: false,
+        indexed: true,
         internalType: "uint256",
         name: "positionId",
         type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "address",
-        name: "bank",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "bankToken",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "address",
-        name: "user",
-        type: "address",
       },
       {
         indexed: false,
@@ -57,37 +26,41 @@ const _abi = [
         type: "uint256",
       },
       {
-        components: [
-          {
-            internalType: "address",
-            name: "watchedToken",
-            type: "address",
-          },
-          {
-            internalType: "address",
-            name: "liquidateTo",
-            type: "address",
-          },
-          {
-            internalType: "bool",
-            name: "lessThan",
-            type: "bool",
-          },
-          {
-            internalType: "uint256",
-            name: "liquidationPoint",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "slippage",
-            type: "uint256",
-          },
-        ],
         indexed: false,
-        internalType: "struct LiquidationCondition[]",
-        name: "liquidationPoints",
-        type: "tuple[]",
+        internalType: "uint256",
+        name: "usdValue",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "liquidationIndex",
+        type: "uint256",
+      },
+    ],
+    name: "BotLiquidate",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "positionId",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "usdValue",
+        type: "uint256",
       },
     ],
     name: "Deposit",
@@ -97,22 +70,22 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
-        indexed: false,
+        indexed: true,
         internalType: "uint256",
         name: "positionId",
         type: "uint256",
       },
       {
         indexed: false,
-        internalType: "address[]",
-        name: "rewards",
-        type: "address[]",
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
       },
       {
         indexed: false,
-        internalType: "uint256[]",
-        name: "rewardAmounts",
-        type: "uint256[]",
+        internalType: "uint256",
+        name: "usdValue",
+        type: "uint256",
       },
     ],
     name: "Harvest",
@@ -122,7 +95,7 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
-        indexed: false,
+        indexed: true,
         internalType: "uint256",
         name: "positionId",
         type: "uint256",
@@ -130,7 +103,13 @@ const _abi = [
       {
         indexed: false,
         internalType: "uint256",
-        name: "lpTokens",
+        name: "amount",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "usdValue",
         type: "uint256",
       },
     ],
@@ -141,7 +120,7 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
-        indexed: false,
+        indexed: true,
         internalType: "uint256",
         name: "positionId",
         type: "uint256",
@@ -150,6 +129,12 @@ const _abi = [
         indexed: false,
         internalType: "uint256",
         name: "amount",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "usdValue",
         type: "uint256",
       },
     ],
@@ -161,18 +146,12 @@ const _abi = [
     inputs: [
       {
         indexed: false,
-        internalType: "address",
-        name: "keeper",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "bool",
-        name: "active",
-        type: "bool",
+        internalType: "uint8",
+        name: "version",
+        type: "uint8",
       },
     ],
-    name: "KeeperUpdate",
+    name: "Initialized",
     type: "event",
   },
   {
@@ -198,20 +177,7 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
-        indexed: false,
-        internalType: "uint256",
-        name: "positionId",
-        type: "uint256",
-      },
-    ],
-    name: "PositionClose",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
+        indexed: true,
         internalType: "uint256",
         name: "positionId",
         type: "uint256",
@@ -222,22 +188,71 @@ const _abi = [
         name: "amount",
         type: "uint256",
       },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "usdValue",
+        type: "uint256",
+      },
     ],
-    name: "Withdraw",
+    name: "PositionClose",
     type: "event",
   },
   {
+    anonymous: false,
     inputs: [
       {
-        internalType: "address",
-        name: "bank",
-        type: "address",
+        indexed: true,
+        internalType: "uint256",
+        name: "positionId",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "usdValue",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "string",
+        name: "reason",
+        type: "string",
       },
     ],
-    name: "addBank",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
+    name: "Refund",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "positionId",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "usdValue",
+        type: "uint256",
+      },
+    ],
+    name: "Withdraw",
+    type: "event",
   },
   {
     inputs: [
@@ -313,6 +328,11 @@ const _abi = [
       {
         internalType: "uint256",
         name: "liquidationIndex",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "liquidationFee",
         type: "uint256",
       },
       {
@@ -439,34 +459,28 @@ const _abi = [
         name: "positionId",
         type: "uint256",
       },
-    ],
-    name: "checkLiquidate",
-    outputs: [
       {
-        internalType: "uint256",
-        name: "index",
-        type: "uint256",
-      },
-      {
-        internalType: "bool",
-        name: "liquidate",
-        type: "bool",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "positionId",
-        type: "uint256",
+        internalType: "string",
+        name: "reason",
+        type: "string",
       },
     ],
     name: "close",
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "currentOwner",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -731,30 +745,6 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "positionId",
-        type: "uint256",
-      },
-      {
-        internalType: "address",
-        name: "inTermsOf",
-        type: "address",
-      },
-    ],
-    name: "estimateValue",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
     inputs: [],
     name: "getBanks",
     outputs: [
@@ -780,278 +770,61 @@ const _abi = [
       {
         components: [
           {
-            components: [
-              {
-                internalType: "address",
-                name: "user",
-                type: "address",
-              },
-              {
-                internalType: "address",
-                name: "bank",
-                type: "address",
-              },
-              {
-                internalType: "uint256",
-                name: "bankToken",
-                type: "uint256",
-              },
-              {
-                internalType: "uint256",
-                name: "amount",
-                type: "uint256",
-              },
-              {
-                components: [
-                  {
-                    internalType: "address",
-                    name: "watchedToken",
-                    type: "address",
-                  },
-                  {
-                    internalType: "address",
-                    name: "liquidateTo",
-                    type: "address",
-                  },
-                  {
-                    internalType: "bool",
-                    name: "lessThan",
-                    type: "bool",
-                  },
-                  {
-                    internalType: "uint256",
-                    name: "liquidationPoint",
-                    type: "uint256",
-                  },
-                  {
-                    internalType: "uint256",
-                    name: "slippage",
-                    type: "uint256",
-                  },
-                ],
-                internalType: "struct LiquidationCondition[]",
-                name: "liquidationPoints",
-                type: "tuple[]",
-              },
-            ],
-            internalType: "struct Position",
-            name: "position",
-            type: "tuple",
+            internalType: "address",
+            name: "user",
+            type: "address",
           },
           {
-            components: [
-              {
-                internalType: "address",
-                name: "lpToken",
-                type: "address",
-              },
-              {
-                internalType: "address",
-                name: "manager",
-                type: "address",
-              },
-              {
-                internalType: "uint256",
-                name: "idInManager",
-                type: "uint256",
-              },
-            ],
-            internalType: "struct BankTokenInfo",
-            name: "bankTokenInfo",
-            type: "tuple",
-          },
-          {
-            internalType: "address[]",
-            name: "underlyingTokens",
-            type: "address[]",
-          },
-          {
-            internalType: "uint256[]",
-            name: "underlyingAmounts",
-            type: "uint256[]",
-          },
-          {
-            internalType: "uint256[]",
-            name: "underlyingValues",
-            type: "uint256[]",
-          },
-          {
-            internalType: "address[]",
-            name: "rewardTokens",
-            type: "address[]",
-          },
-          {
-            internalType: "uint256[]",
-            name: "rewardAmounts",
-            type: "uint256[]",
-          },
-          {
-            internalType: "uint256[]",
-            name: "rewardValues",
-            type: "uint256[]",
+            internalType: "address",
+            name: "bank",
+            type: "address",
           },
           {
             internalType: "uint256",
-            name: "usdValue",
+            name: "bankToken",
             type: "uint256",
           },
+          {
+            internalType: "uint256",
+            name: "amount",
+            type: "uint256",
+          },
+          {
+            components: [
+              {
+                internalType: "address",
+                name: "watchedToken",
+                type: "address",
+              },
+              {
+                internalType: "address",
+                name: "liquidateTo",
+                type: "address",
+              },
+              {
+                internalType: "bool",
+                name: "lessThan",
+                type: "bool",
+              },
+              {
+                internalType: "uint256",
+                name: "liquidationPoint",
+                type: "uint256",
+              },
+              {
+                internalType: "uint256",
+                name: "slippage",
+                type: "uint256",
+              },
+            ],
+            internalType: "struct LiquidationCondition[]",
+            name: "liquidationPoints",
+            type: "tuple[]",
+          },
         ],
-        internalType: "struct PositionData",
-        name: "data",
+        internalType: "struct Position",
+        name: "position",
         type: "tuple",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "positionId",
-        type: "uint256",
-      },
-    ],
-    name: "getPositionInteractions",
-    outputs: [
-      {
-        components: [
-          {
-            internalType: "string",
-            name: "action",
-            type: "string",
-          },
-          {
-            internalType: "uint256",
-            name: "timestamp",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "blockNumber",
-            type: "uint256",
-          },
-          {
-            components: [
-              {
-                internalType: "address[]",
-                name: "tokens",
-                type: "address[]",
-              },
-              {
-                internalType: "uint256[]",
-                name: "amounts",
-                type: "uint256[]",
-              },
-              {
-                components: [
-                  {
-                    internalType: "address",
-                    name: "pool",
-                    type: "address",
-                  },
-                  {
-                    internalType: "address",
-                    name: "manager",
-                    type: "address",
-                  },
-                  {
-                    internalType: "uint256",
-                    name: "tokenId",
-                    type: "uint256",
-                  },
-                  {
-                    internalType: "uint256",
-                    name: "liquidity",
-                    type: "uint256",
-                  },
-                  {
-                    internalType: "bytes",
-                    name: "data",
-                    type: "bytes",
-                  },
-                ],
-                internalType: "struct Asset[]",
-                name: "nfts",
-                type: "tuple[]",
-              },
-            ],
-            internalType: "struct Provided",
-            name: "assets",
-            type: "tuple",
-          },
-          {
-            internalType: "uint256",
-            name: "usdValue",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "positionSizeChange",
-            type: "uint256",
-          },
-        ],
-        internalType: "struct PositionInteraction[]",
-        name: "",
-        type: "tuple[]",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "positionId",
-        type: "uint256",
-      },
-    ],
-    name: "getPositionRewards",
-    outputs: [
-      {
-        internalType: "address[]",
-        name: "rewards",
-        type: "address[]",
-      },
-      {
-        internalType: "uint256[]",
-        name: "rewardAmounts",
-        type: "uint256[]",
-      },
-      {
-        internalType: "uint256[]",
-        name: "rewardValues",
-        type: "uint256[]",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "positionId",
-        type: "uint256",
-      },
-    ],
-    name: "getPositionTokens",
-    outputs: [
-      {
-        internalType: "address[]",
-        name: "tokens",
-        type: "address[]",
-      },
-      {
-        internalType: "uint256[]",
-        name: "amounts",
-        type: "uint256[]",
-      },
-      {
-        internalType: "uint256[]",
-        name: "values",
-        type: "uint256[]",
       },
     ],
     stateMutability: "view",
@@ -1236,16 +1009,21 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "helper",
-    outputs: [
+    inputs: [
       {
-        internalType: "contract ManagerHelper",
-        name: "",
+        internalType: "address",
+        name: "_universalSwap",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "_stableToken",
         type: "address",
       },
     ],
-    stateMutability: "view",
+    name: "initialize",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -1262,6 +1040,38 @@ const _abi = [
         internalType: "bool",
         name: "",
         type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    name: "liquidationFailure",
+    outputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "minDepositAmount",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
       },
     ],
     stateMutability: "view",
@@ -1294,19 +1104,6 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "owner",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
     inputs: [
       {
         internalType: "uint256",
@@ -1320,99 +1117,6 @@ const _abi = [
         internalType: "bool",
         name: "",
         type: "bool",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    name: "positionInteractions",
-    outputs: [
-      {
-        internalType: "string",
-        name: "action",
-        type: "string",
-      },
-      {
-        internalType: "uint256",
-        name: "timestamp",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "blockNumber",
-        type: "uint256",
-      },
-      {
-        components: [
-          {
-            internalType: "address[]",
-            name: "tokens",
-            type: "address[]",
-          },
-          {
-            internalType: "uint256[]",
-            name: "amounts",
-            type: "uint256[]",
-          },
-          {
-            components: [
-              {
-                internalType: "address",
-                name: "pool",
-                type: "address",
-              },
-              {
-                internalType: "address",
-                name: "manager",
-                type: "address",
-              },
-              {
-                internalType: "uint256",
-                name: "tokenId",
-                type: "uint256",
-              },
-              {
-                internalType: "uint256",
-                name: "liquidity",
-                type: "uint256",
-              },
-              {
-                internalType: "bytes",
-                name: "data",
-                type: "bytes",
-              },
-            ],
-            internalType: "struct Asset[]",
-            name: "nfts",
-            type: "tuple[]",
-          },
-        ],
-        internalType: "struct Provided",
-        name: "assets",
-        type: "tuple",
-      },
-      {
-        internalType: "uint256",
-        name: "usdValue",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "positionSizeChange",
-        type: "uint256",
       },
     ],
     stateMutability: "view",
@@ -1486,6 +1190,19 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "address payable[]",
+        name: "_banks",
+        type: "address[]",
+      },
+    ],
+    name: "setBanks",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "address",
         name: "keeperAddress",
         type: "address",
@@ -1504,12 +1221,30 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "address",
-        name: "_universalSwap",
-        type: "address",
+        internalType: "uint256",
+        name: "positionId",
+        type: "uint256",
+      },
+      {
+        internalType: "string",
+        name: "reason",
+        type: "string",
       },
     ],
-    name: "setUniversalSwap",
+    name: "setLiquidationFailure",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_minDepositAmount",
+        type: "uint256",
+      },
+    ],
+    name: "setMinDepositAmount",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -1606,7 +1341,10 @@ export class PositionManager__factory {
   static createInterface(): PositionManagerInterface {
     return new utils.Interface(_abi) as PositionManagerInterface;
   }
-  static connect(address: string, signerOrProvider: Signer | Provider): PositionManager {
+  static connect(
+    address: string,
+    signerOrProvider: Signer | Provider
+  ): PositionManager {
     return new Contract(address, _abi, signerOrProvider) as PositionManager;
   }
 }

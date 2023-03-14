@@ -65,6 +65,15 @@ const EditPosition = () => {
   const [reloadTrigger, setReloadTrigger] = useState(false);
   const [loading, setLoading] = useState(false);
   const wrongUser = position?.positionData.user && position?.positionData.user != account;
+  const [failureMessage, setFailureMessage] = useState<string>()
+
+  useEffect(() => {
+    contracts.positionManager.liquidationFailure(id).then(message=>{
+      if (message!="") {
+        setFailureMessage(message)
+      }
+    })
+  }, [])
 
   useEffect(() => {
     if (wrongUser) {
@@ -305,6 +314,7 @@ const EditPosition = () => {
             resetFlag={resetFlag}
             onReload={() => setReloadTrigger(!reloadTrigger)}
             loading={loading}
+            errorMessage={failureMessage}
           />
         </Flex>
         <Flex mt={"4"} justifyContent={"center"}>

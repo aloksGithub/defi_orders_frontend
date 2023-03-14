@@ -96,9 +96,9 @@ export const swap = async (
   await tx.wait();
   const hash = tx.hash;
   const rc = await tx.wait();
-  const event = rc.events?.find((event: any) => event.event === "AssetsSent");
+  const event = rc.events?.find((event: any) => event.event === "Trade");
   // @ts-ignore
-  const [receiver, tokens, managers, amountsAndIds] = event!.args;
+  const [receiver, usdValue, tokens, managers, amountsAndIds] = event!.args;
   for (const [index, asset] of expectedAssets.entries()) {
     if (index < tokens.length) {
       const amountObtained = +ethers.utils.formatUnits(amountsAndIds[index], asset.contract_decimals);
@@ -273,7 +273,7 @@ export const compound = async (
   slippage: number,
   chainId: number
 ) => {
-  const { rewards, rewardAmounts } = await contracts.positionManager.getPositionRewards(positionId);
+  const { rewards, rewardAmounts } = await contracts.managerHelper.getPositionRewards(positionId);
   const provided = {
     tokens: [],
     amounts: [],
@@ -331,7 +331,7 @@ export const withdraw = async (contracts: SwapContracts, positionId: BigNumberis
 };
 
 export const close = async (contracts: SwapContracts, positionId: BigNumberish) => {
-  const tx = await contracts.positionManager.close(positionId);
+  const tx = await contracts.positionManager.close(positionId, '');
   await tx.wait();
   return tx.hash;
 };

@@ -43,6 +43,8 @@ import {
   ERC20__factory,
   ISwapper__factory,
   IOracle__factory,
+  ManagerHelper__factory,
+  ProvidedHelper__factory,
 } from "../codegen";
 import useUserAssets from "../hooks/useUserAssets";
 import Head from 'next/head'
@@ -68,12 +70,12 @@ export function AppWrapper({ children }) {
   
 
   const onError = (error: any) => {
+    console.log(error.reason);
     if (typeof error === "string") {
       setErrorMessage(error);
       triggerError();
       return;
     }
-    console.log(error.reason);
     // @ts-ignore
     if (error?.reason?.includes("execution reverted: 3")) {
       setErrorMessage(
@@ -121,8 +123,11 @@ export function AppWrapper({ children }) {
       }
       try {
         const positionManager = PositionManager__factory.connect(deploymentAddresses[chainId].positionsManager, signer);
+        const managerHelper = ManagerHelper__factory.connect(deploymentAddresses[chainId].managerHelper, signer);
         const banks = (await positionManager.getBanks()).map((bank) => BankBase__factory.connect(bank, signer));
         const universalSwap = UniversalSwap__factory.connect(deploymentAddresses[chainId].universalSwap, signer);
+        const providedHelperAddress = await universalSwap.providedHelper()
+        const providedHelper = ProvidedHelper__factory.connect(providedHelperAddress, signer)
         const oracleAddress = await universalSwap.oracle();
         const oracle = IOracle__factory.connect(oracleAddress, signer);
         const swapperAddresses = await universalSwap.getSwappers();
@@ -132,7 +137,7 @@ export function AppWrapper({ children }) {
         const stableTokenAddress = await positionManager.stableToken();
         const stableToken = ERC20__factory.connect(stableTokenAddress, provider);
         const uniswapV3PoolInteractor = undefined;
-        setContracts({ positionManager, banks, universalSwap, oracle, swappers, networkToken, stableToken });
+        setContracts({ positionManager, managerHelper, banks, universalSwap, providedHelper, oracle, swappers, networkToken, stableToken });
       } catch (error) {
         console.log(error);
       }
@@ -200,7 +205,7 @@ export function AppWrapper({ children }) {
           <ModalFooter></ModalFooter>
         </ModalContent>
       </Modal>
-      <Modal size={"sm"} isCentered isOpen={alertOpen} onClose={closeAlert}>
+      <Modal size={"sm"} isCentered isOpen={false} onClose={closeAlert}>
         <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
         <ModalContent>
           <ModalHeader>

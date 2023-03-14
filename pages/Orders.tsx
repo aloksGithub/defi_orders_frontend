@@ -1,6 +1,6 @@
 import { useWeb3React } from "@web3-react/core";
 import { useAppContext } from "../components/Provider";
-import { Box, Flex, Text, Button, Heading, Stack, useColorModeValue, Skeleton, VStack, Image } from "@chakra-ui/react";
+import { Box, Flex, Text, Button, Heading, Stack, useColorModeValue, Skeleton, VStack, Image, Tooltip } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Pagination } from "../components/Pagination";
@@ -13,6 +13,7 @@ import { harvest, compound } from "../contractCalls/transactions";
 import { PrimaryButton } from "../components/Buttons";
 import { level1, level2 } from "../components/Theme";
 import usePosition from "../hooks/usePosition";
+import { WarningTwoIcon } from "@chakra-ui/icons";
 
 const Card = ({ id }: { id: number }) => {
   const {
@@ -30,6 +31,19 @@ const Card = ({ id }: { id: number }) => {
   const [expandRewards, setExpandRewards] = useState(false);
   const [isHarvesting, setHarvesting] = useState(false);
   const [isCompounding, setCompounding] = useState(false);
+  const [failureMessage, setFailureMessage] = useState<string>(undefined)
+
+  useEffect(() => {
+    contracts.positionManager.liquidationFailure(id).then(message=>{
+      if (message!="") {
+        const orderNumber = +message.split("_")[0]
+        const revertReason = message.split("_")[1]
+        setFailureMessage(`Limit order #${orderNumber+1} failed with error: ${revertReason}`)
+      } else {
+        setFailureMessage(undefined)
+      }
+    })
+  }, [id])
 
   const harvestPosition = () => {
     setHarvesting(true);
@@ -83,6 +97,17 @@ const Card = ({ id }: { id: number }) => {
 
   return (
     <Box position="relative" minW={"300px"}>
+      {
+        failureMessage?
+        <Box
+          zIndex={1}
+          rounded={"lg"}
+          position='absolute'
+          height='100%' width={'100%'}
+          bgColor={'red.200'} opacity='0.3'>
+        </Box>:
+        <></>
+      }
       <Flex
         direction={"column"}
         justifyContent={"space-between"}
@@ -94,7 +119,14 @@ const Card = ({ id }: { id: number }) => {
         p={6}
         textAlign={"center"}
       >
-        <Flex mb={"3"} pb={"3"} justifyContent={"center"} alignItems={"center"}>
+        {
+          failureMessage?
+          <Tooltip zIndex={3} label={failureMessage}>
+            <WarningTwoIcon zIndex={3} fontSize={'1.3rem'} color={'red.400'} position={'absolute'} right={8}></WarningTwoIcon>
+          </Tooltip>:
+          <></>
+        }
+        <Flex zIndex={2} mb={"3"} pb={"3"} justifyContent={"center"} alignItems={"center"}>
           {!loading ? (
             <Flex>
               <Image
@@ -115,7 +147,7 @@ const Card = ({ id }: { id: number }) => {
             </Skeleton>
           )}
         </Flex>
-        <Flex>
+        <Flex zIndex={2}>
           <Box width={"100%"}>
             <Flex mb={"3"} flexDir={"column"} alignItems={"start"}>
               <Heading fontSize={"m"}>Underlying</Heading>
@@ -255,7 +287,7 @@ const Card = ({ id }: { id: number }) => {
           )}
         </Flex>
 
-        <Stack mt={8} direction={"row"} spacing={4}>
+        <Stack zIndex={2} mt={8} direction={"row"} spacing={4}>
           <Link href={`/editOrders/${id}`}>
             <PrimaryButton flex={1}>
               <IoMdSettings fontSize={"1.3rem"}></IoMdSettings>

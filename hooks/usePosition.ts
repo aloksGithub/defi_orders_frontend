@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { useAppContext } from "../components/Provider";
-import { BankTokenInfoStructOutput, PositionStructOutput } from "../codegen/PositionManager";
+import { PositionStructOutput } from "../codegen/PositionManager";
 import { Asset, UserAsset } from "../Types";
 import { useWeb3React } from "@web3-react/core";
 import { getLogoUrl, nativeTokens, nFormatter, supportedChainAssets } from "../utils";
 import { BigNumber, ethers } from "ethers";
 import { ERC20__factory } from "../codegen";
 import { parseUnits } from "ethers/lib/utils";
+import { BankTokenInfoStructOutput } from "../codegen/ManagerHelper";
 
 const usePosition = (positionId: number, refresh: boolean) => {
   const { provider, account } = useWeb3React();
@@ -126,7 +127,7 @@ const usePosition = (positionId: number, refresh: boolean) => {
     setLoading(true);
     setUnderlying(undefined);
     setRewards(undefined);
-    contracts?.positionManager.getPosition(positionId).then(async (positionData) => {
+    contracts?.managerHelper.getPosition(positionId).then(async (positionData) => {
       const {
         position,
         bankTokenInfo,
@@ -144,16 +145,7 @@ const usePosition = (positionId: number, refresh: boolean) => {
       setStableDecimals(stableDecimals);
       setUsdcValue(nFormatter(usd, 3));
       setBankTokenInfo(bankTokenInfo);
-      if (usdValue.isZero()) {
-        const [actualUnderlying] = await contracts.universalSwap.getUnderlying({tokens: underlyingTokens, amounts: [parseUnits("1", 18)], nfts: []})
-        setUnderlyingData({ 
-          tokens: actualUnderlying, 
-          amounts: Array(actualUnderlying.length).fill(BigNumber.from(0)), 
-          values: Array(actualUnderlying.length).fill(BigNumber.from(0))
-        });
-      } else {
-        setUnderlyingData({ tokens: underlyingTokens, amounts: underlyingAmounts, values: underlyingValues });
-      }
+      setUnderlyingData({ tokens: underlyingTokens, amounts: underlyingAmounts, values: underlyingValues });
       setRewardData({ tokens: rewardTokens, amounts: rewardAmounts, values: rewardValues });
     });
   }, [positionId, refresh, provider, account]);

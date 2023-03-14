@@ -199,7 +199,10 @@ export class ISwapper__factory {
   static createInterface(): ISwapperInterface {
     return new utils.Interface(_abi) as ISwapperInterface;
   }
-  static connect(address: string, signerOrProvider: Signer | Provider): ISwapper {
+  static connect(
+    address: string,
+    signerOrProvider: Signer | Provider
+  ): ISwapper {
     return new Contract(address, _abi, signerOrProvider) as ISwapper;
   }
 }

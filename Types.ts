@@ -9,6 +9,8 @@ import {
   UniswapV3PoolInteractor,
   ISwapper,
   IOracle,
+  ManagerHelper,
+  ProvidedHelper,
 } from "./codegen";
 
 export type SupportedChains = 56 | 1 | 97;
@@ -116,7 +118,9 @@ export const defaultLiquidationCondition: LiquidationCondition = {
 
 export interface SwapContracts {
   positionManager: PositionManager;
+  managerHelper: ManagerHelper
   universalSwap: UniversalSwap;
+  providedHelper: ProvidedHelper;
   swappers: ISwapper[];
   oracle: IOracle;
   banks: BankBase[];

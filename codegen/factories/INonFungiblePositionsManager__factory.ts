@@ -377,7 +377,8 @@ const _abi = [
             type: "uint256",
           },
         ],
-        internalType: "struct INonfungiblePositionManager.DecreaseLiquidityParams",
+        internalType:
+          "struct INonfungiblePositionManager.DecreaseLiquidityParams",
         name: "params",
         type: "tuple",
       },
@@ -465,7 +466,8 @@ const _abi = [
             type: "uint256",
           },
         ],
-        internalType: "struct INonfungiblePositionManager.IncreaseLiquidityParams",
+        internalType:
+          "struct INonfungiblePositionManager.IncreaseLiquidityParams",
         name: "params",
         type: "tuple",
       },
@@ -1004,7 +1006,14 @@ export class INonFungiblePositionsManager__factory {
   static createInterface(): INonFungiblePositionsManagerInterface {
     return new utils.Interface(_abi) as INonFungiblePositionsManagerInterface;
   }
-  static connect(address: string, signerOrProvider: Signer | Provider): INonFungiblePositionsManager {
-    return new Contract(address, _abi, signerOrProvider) as INonFungiblePositionsManager;
+  static connect(
+    address: string,
+    signerOrProvider: Signer | Provider
+  ): INonFungiblePositionsManager {
+    return new Contract(
+      address,
+      _abi,
+      signerOrProvider
+    ) as INonFungiblePositionsManager;
   }
 }

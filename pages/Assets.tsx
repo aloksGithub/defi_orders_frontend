@@ -93,7 +93,6 @@ const Card = ({ asset, index, setSecuring }: { asset: UserAsset; index: number; 
                 Underlying
               </Text>
               {asset.underlying.map((token) => {
-                console.log(token)
                 return (
                   <Flex alignItems={"center"} paddingBlock={"1"} marginBlock={"1"}>
                     <Image src={token.logo_url.toLowerCase()} width="20px" height={"20px"} borderRadius="full" />
@@ -304,6 +303,15 @@ const SecureAsset = ({ asset, setSecuring }: { asset: UserAsset; setSecuring: Fu
       setProcessing(false);
       return;
     }
+    const minDeposit = await contracts.positionManager.minDepositAmount()
+    const stableDecimals = await contracts.stableToken.decimals()
+    const minUsd = +ethers.utils.formatUnits(minDeposit, stableDecimals)
+    if (+currentUsd<minUsd) {
+      setError(`Minimum deposit is $${minUsd}`);
+      onOpen();
+      setProcessing(false);
+      return;
+    }
     const position = {
       user: account,
       bank: selectedBank.address,
@@ -316,6 +324,7 @@ const SecureAsset = ({ asset, setSecuring }: { asset: UserAsset; setSecuring: Fu
         setProcessing(false);
         setTxHash(hash);
         onOpenSuccess();
+        hardRefreshAssets();
       })
       .catch((error) => {
         setProcessing(false);

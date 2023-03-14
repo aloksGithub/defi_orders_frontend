@@ -4,7 +4,10 @@
 
 import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
-import type { UniswapV3PoolInteractor, UniswapV3PoolInteractorInterface } from "../UniswapV3PoolInteractor";
+import type {
+  UniswapV3PoolInteractor,
+  UniswapV3PoolInteractorInterface,
+} from "../UniswapV3PoolInteractor";
 
 const _abi = [
   {
@@ -419,7 +422,14 @@ export class UniswapV3PoolInteractor__factory {
   static createInterface(): UniswapV3PoolInteractorInterface {
     return new utils.Interface(_abi) as UniswapV3PoolInteractorInterface;
   }
-  static connect(address: string, signerOrProvider: Signer | Provider): UniswapV3PoolInteractor {
-    return new Contract(address, _abi, signerOrProvider) as UniswapV3PoolInteractor;
+  static connect(
+    address: string,
+    signerOrProvider: Signer | Provider
+  ): UniswapV3PoolInteractor {
+    return new Contract(
+      address,
+      _abi,
+      signerOrProvider
+    ) as UniswapV3PoolInteractor;
   }
 }
