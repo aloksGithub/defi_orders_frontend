@@ -108,10 +108,10 @@ const Analytics = () => {
   const [logs, setLogs] = useState()
 
   useEffect(() => {
-    if (id && chainId && contracts.positionManager && !logs) {
+    if (id && chainId && contracts?.positionManager && !logs) {
       fetchAllLogs(chainId, id, contracts.positionManager).then((data) => setLogs(data))
     }
-  }, [])
+  }, [contracts, id])
 
   useEffect(() => {
     const fetch = async () => {

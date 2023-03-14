@@ -157,7 +157,7 @@ export const fetchAllLogs = async (chainId: number, positionId: number | string,
   const filter = contract.filters.Deposit(positionId)
   const topic = filter.topics[1]
   await new Promise(r => setTimeout(r, 500));
-  const query = `${blockExplorerAPIs[chainId]}/api?module=logs&action=getLogs&address=${contract.address}&topic1=${topic}&apikey=YourApiKeyToken`
+  const query = `${blockExplorerAPIs[chainId]}/api?module=logs&action=getLogs&address=${contract.address}&topic1=${topic}&apikey=K34CKDK8FQJUC6S76TVX2JTZU6V73QGHRA`
   const response = await fetch(query)
   const data = await response.json()
   const logs = data.result
@@ -287,7 +287,7 @@ export const fetchImportantPoints = async (
     if (event.name==="BotLiquidate") {
       usdcWithdrawn += +ethers.utils.formatUnits(event.args.usdValue, stableDecimals);
       return {
-        action: `Execute order ${event.args.liquidationIndex}`,
+        action: `Execute order ${+event.args.liquidationIndex+1}`,
         date: new Date(event.timeStamp * 1000).toLocaleDateString(),
         blockNumber: event.blockNumber,
         txHash: event.transactionHash,
