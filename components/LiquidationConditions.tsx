@@ -195,7 +195,6 @@ const LiquidationConditions = ({
   useEffect(() => {
     if (liquidationPoints) {
       const temp = [...liquidationPoints];
-      console.log(temp);
       for (const condition of temp) {
         if (condition.watchedAsset?.contract_address === contracts.positionManager.address) {
           condition.price = assetPrice;
@@ -287,8 +286,6 @@ const LiquidationConditions = ({
     temp[index].slippage = slippage;
     onChangeConditions(temp);
   };
-
-  console.log(failedOrder)
 
   return (
     <Box marginTop={"5"} width={"100%"}>

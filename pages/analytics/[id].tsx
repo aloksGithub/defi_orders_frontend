@@ -27,7 +27,7 @@ import {
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useWeb3React } from "@web3-react/core";
-import { fetchPosition, FetchPositionData, getGraphData } from "../../contractCalls/dataFetching";
+import { fetchAllLogs, fetchPosition, FetchPositionData, getGraphData } from "../../contractCalls/dataFetching";
 import { fetchImportantPoints } from "../../contractCalls/dataFetching";
 import { LineChart, Line, CartesianGrid, Tooltip, XAxis, YAxis, Label } from "recharts";
 import { Heading2 } from "../../components/Typography";
@@ -105,23 +105,30 @@ const Analytics = () => {
   const [graphData, setGraphData] = useState(undefined);
   const [graphDays, setGraphDays] = useState(1);
   const [loadingGraph, setLoadingGraph] = useState(true);
+  const [logs, setLogs] = useState()
+
+  useEffect(() => {
+    if (id && chainId && contracts.positionManager && !logs) {
+      fetchAllLogs(chainId, id, contracts.positionManager).then((data) => setLogs(data))
+    }
+  }, [])
 
   useEffect(() => {
     const fetch = async () => {
-      const data = await getGraphData(contracts, chainId, id, provider, graphDays);
+      const data = await getGraphData(contracts, chainId, id, provider, graphDays, logs);
       setGraphData(data);
       setLoadingGraph(false);
     };
-    if (contracts && provider) {
+    if (contracts && provider && logs) {
       setLoadingGraph(true);
       fetch();
     }
-  }, [contracts, provider, id, graphDays]);
+  }, [contracts, provider, id, graphDays, logs]);
 
   useEffect(() => {
     const fetch = async () => {
       const position = await fetchPosition(parseInt(id), contracts, provider.getSigner(account), chainId);
-      const positionData = await fetchImportantPoints(contracts, id, position.decimals, chainId);
+      const positionData = await fetchImportantPoints(contracts, position.decimals, logs);
       const roi = positionData.usdcWithdrawn + position.usdcValue - positionData.usdcDeposited;
       const pnl = (roi) / 100*positionData.usdcDeposited;
       setRoi(roi.toFixed(2));
@@ -129,10 +136,10 @@ const Analytics = () => {
       setAnalytics(positionData);
       setPosition(position);
     };
-    if (contracts && provider) {
+    if (contracts && provider && logs) {
       fetch();
     }
-  }, [contracts, provider, id]);
+  }, [contracts, provider, id, logs]);
 
   return (
     <Box maxWidth={"900px"} marginTop={"50px"} marginInline={"auto"}>

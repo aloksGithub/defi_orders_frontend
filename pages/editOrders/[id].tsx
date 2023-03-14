@@ -68,12 +68,12 @@ const EditPosition = () => {
   const [failureMessage, setFailureMessage] = useState<string>()
 
   useEffect(() => {
-    contracts.positionManager.liquidationFailure(id).then(message=>{
+    contracts?.positionManager.liquidationFailure(id).then(message=>{
       if (message!="") {
         setFailureMessage(message)
       }
     })
-  }, [])
+  }, [contracts])
 
   useEffect(() => {
     if (wrongUser) {
@@ -129,10 +129,10 @@ const EditPosition = () => {
       const formattedLiquidationPoints: LiquidationCondition[] = await Promise.all(promises);
       setInitialLiquidationPoints(JSON.parse(JSON.stringify(formattedLiquidationPoints)));
     };
-    if (liquidationPoints) {
+    if (liquidationPoints && contracts) {
       formatLiquidationPoints();
     }
-  }, [liquidationPoints]);
+  }, [liquidationPoints, contracts]);
 
   const resetConditions = () => {
     setResetFlag(!resetFlag);
@@ -206,6 +206,7 @@ const EditPosition = () => {
     adjustLiquidationPoints(contracts, id, formattedConditions)
       .then((hash) => {
         setAdjusting(false);
+        setInitialLiquidationPoints(JSON.parse(JSON.stringify(liquidationConditions)))
         successModal(
           "Update Successful",
           <Text>
@@ -337,7 +338,7 @@ const EditPosition = () => {
           <ModalHeader paddingBlock={"0"}>Deposit</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <DepositModal position={position} closeSelf={onDepositClose} refreshData={refreshData}></DepositModal>
+            <DepositModal position={position} closeSelf={onDepositClose} refreshData={refreshData} liquidationConditions={initialLiquidationPoints}></DepositModal>
           </ModalBody>
         </ModalContent>
       </Modal>
@@ -347,7 +348,7 @@ const EditPosition = () => {
           <ModalHeader>Withdraw</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <WithdrawModal position={position} closeSelf={onWithdrawClose} refreshData={refreshData} />
+            <WithdrawModal position={position} closeSelf={onWithdrawClose} refreshData={refreshData} liquidationConditions={initialLiquidationPoints}/>
           </ModalBody>
         </ModalContent>
       </Modal>

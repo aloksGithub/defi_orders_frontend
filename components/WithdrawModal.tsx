@@ -18,7 +18,7 @@ import {
   ModalOverlay,
 } from "@chakra-ui/react";
 import { ethers } from "ethers";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FetchPositionData } from "../contractCalls/dataFetching";
 import { withdraw } from "../contractCalls/transactions";
 import { getBlockExplorerUrlTransaction, nFormatter } from "../utils";
@@ -26,15 +26,18 @@ import { DangerButton, PrimaryButton } from "./Buttons";
 import { useAppContext } from "./Provider";
 import { level0 } from "./Theme";
 import { close } from "../contractCalls/transactions";
+import { LiquidationCondition } from "../Types";
 
 const WithdrawModal = ({
   position,
   refreshData,
   closeSelf,
+  liquidationConditions
 }: {
   position: FetchPositionData;
   refreshData: Function;
   closeSelf: Function;
+  liquidationConditions: LiquidationCondition[]
 }) => {
   const positionSizeDecimals = +position?.formattedAmount || 0;
   const { isOpen: isCloseOpen, onOpen: onCloseOpen, onClose: onCloseClose } = useDisclosure();
@@ -44,6 +47,27 @@ const WithdrawModal = ({
   const [percentage, setPercentage] = useState("0");
   const usdWithdraw = (value / positionSizeDecimals) * position.usdcValue || 0;
   const [isClosing, setClosing] = useState(false);
+  const [violatedCondition, setViolatedCondition] = useState<number>()
+
+  useEffect(() => {
+    let violatedIndex = -1
+    for (const [index, condition] of liquidationConditions.entries()) {
+      if (condition.lessThan) {
+        if (condition.watchedAsset.contract_address===contracts.positionManager.address) {
+          const liquidateAt = condition.liquidationPoint
+          if (liquidateAt>position.usdcValue-usdWithdraw) {
+            violatedIndex = index
+          }
+        }
+      }
+    }
+    if (violatedIndex!=-1) {
+      setViolatedCondition(violatedIndex+1)
+    } else {
+      setViolatedCondition(undefined)
+    }
+  }, [usdWithdraw])
+
   const handleChange = (value) => {
     setValue(+value);
     setPercentage(((value * 100) / positionSizeDecimals).toFixed(1));
@@ -111,7 +135,14 @@ const WithdrawModal = ({
 
   return (
     <Box>
-      <Box backgroundColor={useColorModeValue(...level0)} padding="4" borderRadius={"lg"}>
+      <Box backgroundColor={useColorModeValue(...level0)} borderRadius={"lg"}>
+        {
+          violatedCondition?
+          <Flex width={'100%'} zIndex={0} mb={4} position='relative' borderRadius={'lg'} border='1px' borderColor={'yellow.200'}>
+            <Flex zIndex={1} bgColor={'yellow'} opacity='0.1' position={'absolute'} width='100%' height={'100%'}></Flex>
+            <Text zIndex={2} m='2'>Warning: Placing this order will trigger limit order {violatedCondition}</Text>
+          </Flex>:<></>
+        }
         <Flex mb={"4"} justifyContent={"space-between"}>
           <Box>
             <Text as={"b"} mr={"4"}>

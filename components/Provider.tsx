@@ -29,6 +29,7 @@ import { Navbar } from "./Navbar";
 import { createContext, useContext } from "react";
 import { ethers } from "ethers";
 import deploymentAddresses from "../constants/deployments.json";
+import errorCodes from "../constants/errorCodes.json"
 import theme from "./Theme";
 import { GrCircleInformation } from "react-icons/gr";
 import { BiErrorAlt } from "react-icons/bi";
@@ -70,17 +71,17 @@ export function AppWrapper({ children }) {
   
 
   const onError = (error: any) => {
-    console.log(error.reason);
     if (typeof error === "string") {
       setErrorMessage(error);
       triggerError();
       return;
-    }
-    // @ts-ignore
-    if (error?.reason?.includes("execution reverted: 3")) {
-      setErrorMessage(
-        "Transaction failed due to high slippage. You can try setting a higher slippage threshold from the settings"
-      );
+    } else if (error?.reason?.includes("execution reverted: ")) {
+      const revertReason = error?.reason?.split(" ").slice(-1)[0]
+      if (errorCodes[revertReason]) {
+        setErrorMessage(`Transaction failed with reason: ${errorCodes[revertReason]}`)
+      } else {
+        setErrorMessage(`Transaction failed with reason${revertReason}`);
+      }
     } else {
       setErrorMessage("Transaction failed with no revert reason. Please contact us at site.delimit@gmail.com");
     }
@@ -197,7 +198,12 @@ export function AppWrapper({ children }) {
       <Modal size={"sm"} isCentered isOpen={errorHappened} onClose={closeErrorModal}>
         <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
         <ModalContent>
-          <ModalHeader>Error</ModalHeader>
+          <ModalHeader>
+            <Flex alignItems={"center"}>
+              {<BiErrorAlt color="red" fontSize={"2rem"} />}
+              <Text ml={"4"}>Error</Text>
+            </Flex>
+          </ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <Text>{errorMessage}</Text>

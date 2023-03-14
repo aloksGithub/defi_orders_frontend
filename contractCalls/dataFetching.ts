@@ -5,7 +5,7 @@ import { blockExplorerAPIs } from "../utils";
 import EthDater from "ethereum-block-by-date";
 import { SwapContracts, UserAssetSupplied, WantedAsset } from "../Types";
 import { JsonRpcSigner, JsonRpcProvider } from "@ethersproject/providers";
-import { PositionStructOutput } from "../codegen/PositionManager";
+import { PositionManager, PositionStructOutput } from "../codegen/PositionManager";
 import { ERC20__factory, PositionManagerProxy__factory, PositionManager__factory } from "../codegen";
 import deploymentAddresses from "../constants/deployments.json";
 import { parseUnits } from "@ethersproject/units";
@@ -153,9 +153,11 @@ const getBlockFromProvider = async (provider: JsonRpcProvider, daysAgo: number) 
   return block.block;
 };
 
-const fetchAllLogs = async (chainId: number, address: string, topic: string) => {
+export const fetchAllLogs = async (chainId: number, positionId: number | string, contract: PositionManager) => {
+  const filter = contract.filters.Deposit(positionId)
+  const topic = filter.topics[1]
   await new Promise(r => setTimeout(r, 500));
-  const query = `${blockExplorerAPIs[chainId]}/api?module=logs&action=getLogs&address=${address}&topic1=${topic}&apikey=YourApiKeyToken`
+  const query = `${blockExplorerAPIs[chainId]}/api?module=logs&action=getLogs&address=${contract.address}&topic1=${topic}&apikey=YourApiKeyToken`
   const response = await fetch(query)
   const data = await response.json()
   const logs = data.result
@@ -165,18 +167,13 @@ const fetchAllLogs = async (chainId: number, address: string, topic: string) => 
   })
 }
 
-export const getGraphData = async (contracts: SwapContracts, chainId: number, id: string, provider: JsonRpcProvider, duration: number) => {
+export const getGraphData = async (contracts: SwapContracts, chainId: number, id: string, provider: JsonRpcProvider, duration: number, logs: any) => {
   const rpc = new ethers.providers.JsonRpcProvider(archiveRPCs[chainId])
   const usdcDecimals = await contracts.stableToken.decimals();
   const blocks = [];
   const timestamps = [];
   const numPoints = 30;
   const latestBlock = await provider.getBlock("latest");
-  const currentTime = latestBlock.timestamp;
-  const previousTimestamp = (await provider.getBlock(latestBlock.number - 1)).timestamp;
-  const filter = contracts.positionManager.filters.Deposit(id)
-  // @ts-ignore
-  const logs = await fetchAllLogs(chainId, contracts.positionManager.address, filter.topics[1])
   let startBlock = logs[0].blockNumber
   if (duration === -1) {
     startBlock += (latestBlock.number - startBlock) % numPoints;
@@ -224,19 +221,14 @@ export const getGraphData = async (contracts: SwapContracts, chainId: number, id
 
 export const fetchImportantPoints = async (
   contracts: SwapContracts,
-  id: number | string,
   depositTokenDecimals: number,
-  chainId: number
+  logs: any
 ) => {
   const stableDecimals = await contracts.stableToken.decimals();
   let usdcDeposited = 0;
   let usdcWithdrawn = 0;
 
-  const filter = contracts.positionManager.filters.Deposit(id)
-
-  // @ts-ignore
-  const events = await fetchAllLogs(chainId, contracts.positionManager.address, filter.topics[1])
-  const formattedInteractions: {action: string, date: string, txHash: string, blockNumber: number, sizeChange: number, usdValue: number}[] = events.map(event=>{
+  const formattedInteractions: {action: string, date: string, txHash: string, blockNumber: number, sizeChange: number, usdValue: number}[] = logs.map(event=>{
     if (["Deposit", "IncreasePosition"].includes(event.name)) {
       usdcDeposited += +ethers.utils.formatUnits(event.args.usdValue, stableDecimals);
       return {

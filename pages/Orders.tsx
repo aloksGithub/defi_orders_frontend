@@ -396,16 +396,14 @@ const Positions = () => {
             placeholder={
               account?<>
               <Text textAlign={'center'} mt={"20"}>
-                No positions detected.{" "}
+                No orders detected.{" "}
                 <Link href={`/`}>
                   <Text color="blue.500" _hover={{ cursor: "pointer" }} as={"u"}>
                     Click here
                   </Text>
                 </Link>{" "}
-                to create a position using your assets.
-                positions
+                to create orders using your assets.
               </Text>
-              <Text textAlign={'center'}> Note: You might have to reload in a minute to see newly created</Text>
               </>:
               <Text textAlign={'center'} mt={"20"}>
                 Please connect wallet
